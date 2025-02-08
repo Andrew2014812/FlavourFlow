@@ -13,4 +13,6 @@ if __name__ == "__main__":
         reload=True,
         reload_dirs=["."],
         reload_includes=["*.py"],
+        server_header=False,
+        workers=1
     )

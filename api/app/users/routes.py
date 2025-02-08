@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Query
 
 from api.app.users.schemas import UserLogin, TokenResponse
-from api.app.common.database import SessionDep
+from api.app.common.dependencies import SessionDep
 from api.app.users.crud import (
     create_user,
     get_user_by_email,

@@ -3,9 +3,12 @@ from sqlmodel import Field, SQLModel
 
 
 class UserBase(SQLModel):
-    first_name: str
-    last_name: str
+    username: str
     email: EmailStr = Field(unique=True, index=True)
+    redactor: str
+    bonuses: float
+    telegram_id: int
+    is_admin: bool = Field(default=False)
 
 
 class UserCreate(UserBase):

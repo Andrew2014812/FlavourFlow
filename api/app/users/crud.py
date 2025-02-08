@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status
-from sqlmodel import select
+from sqlmodel import select, func
 
+from api.app.common.dependencies import SessionDep
 from api.app.users.models import User
 from api.app.users.schemas import UserCreate, UserResponse, UserLogin, TokenResponse
-from api.app.common.database import SessionDep
 
 
 def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
@@ -15,9 +15,11 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
         )
 
     db_user = User(
-        first_name=user.first_name,
-        last_name=user.last_name,
+        username=user.username,
         email=user.email,
+        redactor=user.redactor,
+        bonuses=user.bonuses,
+        telegram_id=user.telegram_id,
     )
     db_user.password = user.password
 
@@ -60,3 +62,59 @@ def get_user_by_id(session: SessionDep, user_id: int) -> UserResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with this id does not exist")
 
     return UserResponse.model_validate(existing_user)
+
+
+def get_by_telegram_id(session: SessionDep, telegram_id: int):
+    existing_user = session.exec(select(User).where(User.telegram_id == telegram_id)).first()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with telegram id does not exist")
+
+    return UserResponse.model_validate(existing_user)
+
+
+def get_by_username(session: SessionDep, username: str):
+    existing_user = session.exec(select(User).where(User.username == username)).first()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with this username does not exist")
+
+    return UserResponse.model_validate(existing_user)
+
+
+def is_authenticated(session: SessionDep, telegram_id: int):
+    existing_user = session.exec(select(User).where(User.telegram_id == telegram_id)).first()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with telegram id does not exist")
+
+    return True
+
+
+def is_admin(session: SessionDep, telegram_id: int):
+    existing_user: User = session.exec(select(User).where(User.telegram_id == telegram_id)).first()
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with telegram id does not exist")
+
+    return existing_user.is_admin
+
+
+def change_telegram_id(session: SessionDep, username: str, telegram_id: int):
+    existing_user: User = session.exec(select(User).where(User.username == username)).first()
+    existing_user.telegram_id = telegram_id
+
+
+def is_username_already_exists(session: SessionDep, username: str):
+    existing_user = session.exec(select(User).where(User.username == username)).first()
+
+    return True if existing_user is not None else False
+
+
+def is_email_already_exists(session: SessionDep, email: str):
+    existing_user = session.exec(select(User).where(User.email == email)).first()
+
+    return True if existing_user is not None else False
+
+
+def get_max_id(session: SessionDep):
+    return session.exec(select(func.max(User.id))).scalar()
