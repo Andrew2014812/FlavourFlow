@@ -1,6 +1,6 @@
 from sqlmodel import Field
 from api.app.common.security import get_password_hash, verify_password
-from api.app.users.schemas import UserBase
+from api.app.user.schemas import UserBase
 
 
 class User(UserBase, table=True):

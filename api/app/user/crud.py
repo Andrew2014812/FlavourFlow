@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status
-from sqlmodel import select, func, or_
+from sqlmodel import select, or_
 
 from api.app.common.dependencies import SessionDep
-from api.app.users.models import User
-from api.app.users.schemas import UserCreate, UserResponse, UserLogin, TokenResponse
+from api.app.user.models import User
+from api.app.user.schemas import UserCreate, UserResponse, UserLogin, TokenResponse
 
 
 def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
@@ -113,5 +113,3 @@ def is_authenticated(session: SessionDep, telegram_id: int):
 def change_telegram_id(session: SessionDep, username: str, telegram_id: int):
     existing_user: User = session.exec(select(User).where(User.username == username)).first()
     existing_user.telegram_id = telegram_id
-
-

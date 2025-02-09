@@ -1,14 +1,14 @@
 from fastapi import APIRouter, status, Query
 
 from api.app.common.dependencies import SessionDep
-from api.app.users.crud import (
+from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
     authenticate_user,
 )
-from api.app.users.schemas import UserLogin, TokenResponse
-from ..users.schemas import UserCreate, UserResponse
+from api.app.user.schemas import UserLogin, TokenResponse
+from ..user.schemas import UserCreate, UserResponse
 
 router = APIRouter()
 
