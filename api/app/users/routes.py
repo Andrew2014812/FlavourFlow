@@ -1,13 +1,13 @@
 from fastapi import APIRouter, status, Query
 
-from api.app.users.schemas import UserLogin, TokenResponse
 from api.app.common.dependencies import SessionDep
 from api.app.users.crud import (
     create_user,
-    get_user_by_email,
+    get_user_by_params,
     get_user_by_id,
     authenticate_user,
 )
+from api.app.users.schemas import UserLogin, TokenResponse
 from ..users.schemas import UserCreate, UserResponse
 
 router = APIRouter()
@@ -46,22 +46,28 @@ def user_auth(user: UserLogin, session: SessionDep) -> TokenResponse:
 
 
 @router.get("/")
-def retrieve_user_by_email(
+def retrieve_user(
         session: SessionDep,
-        email: str = Query(description="Filter by email"),
+        phone_number: str = Query(default=None, description="Filter by phone_number"),
+        telegram_id: int = Query(default=None, description="Filter by telegram id"),
+        username: str = Query(default=None, description="Filter by username"),
 ) -> UserResponse:
     """
-    Retrieve a user by email or id.
+    Retrieve a user by email, telegram_id, or username.
 
     Args:
-        session (SessionDep): The database session
-        email (str): The email to filter by (optional)
+        session (SessionDep): The database session.
+        phone_number (str, optional): The phone_number to filter by.
+        telegram_id (int, optional): The telegram id to filter by.
+        username (str, optional): The username to filter by.
 
     Returns:
-        UserResponse: The retrieved user
+        UserResponse: The retrieved user based on the provided filters.
     """
 
-    return get_user_by_email(email=email, session=session)
+    return get_user_by_params(
+        phone_number=phone_number, telegram_id=telegram_id, username=username, session=session
+    )
 
 
 @router.get("/{user_id}/")
