@@ -78,7 +78,7 @@ def put_country(
         CountryResponse: The updated country.
     """
 
-    return update_country(session, country_id, country)
+    return update_country(session=session, country_id=country_id, country=country)
 
 
 @router.delete("/{country_id}/")
@@ -94,4 +94,4 @@ def delete_country(session: SessionDep, country_id: int) -> dict:
         dict: A message indicating success or failure of the deletion.
     """
 
-    return remove_country(session, country_id)
+    return remove_country(session=session, country_id=country_id)

@@ -27,7 +27,7 @@ def kitchen_list(session: SessionDep) -> List[KitchenResponse]:
         List[KitchenResponse]: A list of kitchen details.
     """
 
-    return get_kitchen_list(session)
+    return get_kitchen_list(session=session)
 
 
 @router.get("/{kitchen_id}/")
@@ -43,28 +43,28 @@ def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
         KitchenResponse: The retrieved kitchen.
     """
 
-    return get_kitchen_by_id(session, kitchen_id)
+    return get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
 
 
 @router.post("/")
-def post_country(session: SessionDep, country: KitchenCreate) -> KitchenResponse:
+def post_country(session: SessionDep, kitchen: KitchenCreate) -> KitchenResponse:
     """
     Create a new kitchen in the database.
 
     Args:
         session (SessionDep): The database session.
-        country (KitchenCreate): The kitchen to be created.
+        kitchen (KitchenCreate): The kitchen to be created.
 
     Returns:
         KitchenResponse: The created kitchen.
     """
 
-    return create_kitchen(session, country)
+    return create_kitchen(session=session, kitchen=kitchen)
 
 
 @router.put("/{kitchen_id}/")
 def put_country(
-    session: SessionDep, kitchen_id: int, country: KitchenUpdate
+    session: SessionDep, kitchen_id: int, kitchen: KitchenUpdate
 ) -> KitchenResponse:
     """
     Update an existing kitchen in the database.
@@ -72,13 +72,13 @@ def put_country(
     Args:
         session (SessionDep): The database session.
         kitchen_id (int): The ID of the kitchen to update.
-        country (KitchenUpdate): The kitchen details to update.
+        kitchen (KitchenUpdate): The kitchen details to update.
 
     Returns:
         KitchenResponse: The updated kitchen.
     """
 
-    return update_kitchen(session, kitchen_id, country)
+    return update_kitchen(session=session, kitchen_id=kitchen_id, kitchen=kitchen)
 
 
 @router.delete("/{kitchen_id}/")
@@ -94,4 +94,4 @@ def delete_country(session: SessionDep, kitchen_id: int) -> dict:
         dict: A message indicating the success or failure of the deletion.
     """
 
-    return remove_kitchen(session, kitchen_id)
+    return remove_kitchen(session=session, kitchen_id=kitchen_id)

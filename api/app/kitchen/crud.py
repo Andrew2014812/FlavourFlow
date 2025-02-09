@@ -2,13 +2,14 @@ from typing import List
 
 from fastapi import HTTPException, status
 
+from sqlmodel import select
 from api.app.common.dependencies import SessionDep
 from api.app.kitchen.models import Kitchen
 from api.app.kitchen.schemas import KitchenResponse, KitchenCreate, KitchenUpdate
 
 
 def create_kitchen(session: SessionDep, kitchen: KitchenCreate) -> KitchenResponse:
-    existing_kitchen: Kitchen = session.query(Kitchen).filter(Kitchen.title == kitchen.title).first()
+    existing_kitchen: Kitchen = session.exec(select(Kitchen).filter(Kitchen.title == kitchen.title)).first()
 
     if existing_kitchen:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Country already exists")
@@ -23,12 +24,12 @@ def create_kitchen(session: SessionDep, kitchen: KitchenCreate) -> KitchenRespon
 
 
 def get_kitchen_list(session: SessionDep) -> List[KitchenResponse]:
-    kitchen_list: List[KitchenResponse] = session.query(Kitchen).all()
+    kitchen_list: List[KitchenResponse] = session.exec(select(Kitchen)).all()
     return kitchen_list
 
 
-def get_kitchen_by_id(session: SessionDep, country_id: int) -> KitchenResponse:
-    existing_kitchen: Kitchen = session.query(Kitchen).filter(Kitchen.id == country_id).first()
+def get_kitchen_by_id(session: SessionDep, kitchen_id: int) -> KitchenResponse:
+    existing_kitchen: Kitchen = session.exec(select(Kitchen).filter(Kitchen.id == kitchen_id)).first()
 
     if not existing_kitchen:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kitchen not found")
@@ -37,7 +38,7 @@ def get_kitchen_by_id(session: SessionDep, country_id: int) -> KitchenResponse:
 
 
 def update_kitchen(session: SessionDep, kitchen_id: int, kitchen: KitchenUpdate) -> KitchenResponse:
-    existing_kitchen = session.query(Kitchen).filter(Kitchen.id == kitchen_id).first()
+    existing_kitchen = session.exec(select(Kitchen).filter(Kitchen.id == kitchen_id)).first()
 
     if not existing_kitchen:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kitchen not found")
@@ -52,7 +53,7 @@ def update_kitchen(session: SessionDep, kitchen_id: int, kitchen: KitchenUpdate)
 
 
 def remove_kitchen(session: SessionDep, kitchen_id: int) -> dict:
-    existing_kitchen: Kitchen = session.query(Kitchen).filter(Kitchen.id == kitchen_id).first()
+    existing_kitchen: Kitchen = session.exec(select(Kitchen).filter(Kitchen.id == kitchen_id)).first()
 
     if not existing_kitchen:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kitchen not found")
