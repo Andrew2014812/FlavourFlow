@@ -25,18 +25,18 @@ def upload_to_cloudinary(file_path: str, folder: str = "default_folder", public_
         raise Exception(f"Failed to upload file to Cloudinary: {str(e)}")
 
 
-async def upload_file(file: UploadFile = File(...)) -> Dict[str, str]:
+async def upload_file(filename: str, file: UploadFile = File(...)) -> Dict[str, str]:
     with open(file.filename, "wb") as buffer:
         buffer.write(await file.read())
 
-    result = upload_to_cloudinary(file_path=file.filename, folder="uploads", public_id=file.filename)
+    result = upload_to_cloudinary(file_path=file.filename, folder="uploads", public_id=filename)
 
     os.remove(file.filename)
 
     return {'url': result["secure_url"], 'image_id': result["public_id"]}
 
 
-def delete_from_cloudinary(public_id: str) -> bool:
+def delete_file(public_id: str) -> bool:
     try:
         result = cloudinary.uploader.destroy(public_id)
         if result.get("result") == "ok":

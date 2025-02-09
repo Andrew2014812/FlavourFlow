@@ -7,6 +7,7 @@ from api.app.common.database import create_db_and_tables
 from api.app.company.routes import router as company_router
 from api.app.country.routes import router as country_router
 from api.app.kitchen.routes import router as kitchen_router
+from api.app.product.routes import router as product_router
 from api.app.user.routes import router as users_router
 
 
@@ -23,6 +24,7 @@ app.include_router(users_router, prefix="/users", tags=["users"])
 app.include_router(country_router, prefix="/country", tags=["countries"])
 app.include_router(kitchen_router, prefix="/kitchen", tags=["kitchens"])
 app.include_router(company_router, prefix="/company", tags=["companies"])
+app.include_router(product_router, prefix="/product", tags=["products"])
 
 
 @app.get("/")

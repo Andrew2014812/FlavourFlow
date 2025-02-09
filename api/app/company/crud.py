@@ -1,17 +1,17 @@
 from typing import List
 
-from fastapi import HTTPException, status, UploadFile
+from fastapi import HTTPException, status
 from sqlmodel import select
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
 from api.app.company.schemas import CompanyCreate, CompanyResponse, CompanyUpdate
-from api.app.utils import upload_file, delete_from_cloudinary
+from api.app.utils import upload_file, delete_file
 
 COMPANY_NOT_FOUND = "Company not found"
 
 
-async def create_company(session: SessionDep, company: CompanyCreate, image: UploadFile) -> CompanyResponse:
+async def create_company(session: SessionDep, company: CompanyCreate) -> CompanyResponse:
     existing_company = session.exec(
         select(Company).filter(Company.title == company.title)
     ).first()
@@ -20,8 +20,8 @@ async def create_company(session: SessionDep, company: CompanyCreate, image: Upl
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Company already exists"
         )
-
-    image_data: dict = await upload_file(image)
+    image_name = f'{company.title}.png'
+    image_data: dict = await upload_file(image_name, company.image)
 
     db_company = Company(
         title=company.title,
@@ -56,7 +56,7 @@ def get_company_by_id(session: SessionDep, company_id: int) -> CompanyResponse:
     return db_company
 
 
-def update_company(
+async def update_company(
         session: SessionDep, company: CompanyUpdate, company_id: int
 ) -> CompanyResponse:
     existing_company: Company = session.exec(
@@ -68,7 +68,19 @@ def update_company(
             status_code=status.HTTP_404_NOT_FOUND, detail=COMPANY_NOT_FOUND
         )
 
-    for key, value in company.model_dump(exclude_unset=True).items():
+    if company.image:
+        result = delete_file(existing_company.image_id)
+
+        if not result:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
+
+        image_name = f'{company.title if company.title else existing_company.title}.png'
+        image_data: dict = await upload_file(image_name, company.image)
+        existing_company.image_link = image_data.get('url')
+        existing_company.image_id = image_data.get('image_id')
+
+    update_data = {k: v for k, v in company.model_dump(exclude_unset=True, exclude={'image'}).items() if v is not None}
+    for key, value in update_data.items():
         setattr(existing_company, key, value)
 
     session.merge(existing_company)
@@ -88,7 +100,7 @@ def remove_company(session: SessionDep, company_id: int) -> CompanyResponse:
             status_code=status.HTTP_404_NOT_FOUND, detail=COMPANY_NOT_FOUND
         )
 
-    result = delete_from_cloudinary(existing_company.image_id)
+    result = delete_file(existing_company.image_id)
 
     if not result:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be deleted")

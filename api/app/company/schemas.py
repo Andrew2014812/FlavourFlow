@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import Form
+from fastapi import Form, UploadFile, File
 from sqlmodel import Field, SQLModel
 
 
@@ -22,16 +22,25 @@ class CompanyResponse(CompanyBase):
 class CompanyCreate(SQLModel):
     title: str
     description: str
+    image: Optional[UploadFile] = File(...)
     country_id: int = 1
     kitchen_id: int = 1
+
 
     @classmethod
     def as_form(cls,
                 title: str = Form(...),
                 description: str = Form(...),
+                image: Optional[UploadFile] = File(...),
                 country_id: int = Form(1),
                 kitchen_id: int = Form(1)):
-        return cls(title=title, description=description, country_id=country_id, kitchen_id=kitchen_id)
+        return cls(
+            title=title,
+            description=description,
+            image=image,
+            country_id=country_id,
+            kitchen_id=kitchen_id
+        )
 
 
 class CompanyUpdate(CompanyCreate):
@@ -41,7 +50,26 @@ class CompanyUpdate(CompanyCreate):
 class CompanyPatch(SQLModel):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)
-    image_link: Optional[str] = Field(default=None)
+    image: Optional[UploadFile] = File(default=None)
     rating: Optional[float] = Field(default=None)
     country_id: Optional[int] = Field(default=None)
     kitchen_id: Optional[int] = Field(default=None)
+
+    @classmethod
+    def as_form(
+            cls,
+            title: Optional[str] = Form(None),
+            description: Optional[str] = Form(None),
+            image: Optional[UploadFile] = File(None),
+            rating: Optional[float] = Form(None),
+            country_id: Optional[int] = Form(None),
+            kitchen_id: Optional[int] = Form(None),
+    ):
+        return cls(
+            title=title,
+            description=description,
+            image=image,
+            rating=rating,
+            country_id=country_id,
+            kitchen_id=kitchen_id,
+        )

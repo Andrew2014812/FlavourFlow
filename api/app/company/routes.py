@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, Depends
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.crud import (
@@ -34,23 +34,22 @@ def company_detail(company_id: int, session: SessionDep) -> CompanyResponse:
 
 @router.post("/")
 async def post_company(session: SessionDep,
-                 company: CompanyCreate = Depends(CompanyCreate.as_form),
-                 image: UploadFile = File(...)) -> CompanyResponse:
-    return await create_company(session=session, company=company, image=image)
+                       company: CompanyCreate = Depends(CompanyCreate.as_form)) -> CompanyResponse:
+    return await create_company(session=session, company=company)
 
 
 @router.put("/{company_id}/")
-def put_company(
+async def put_company(
         company_id: int, session: SessionDep, company: CompanyUpdate
 ) -> CompanyResponse:
-    return update_company(session=session, company=company, company_id=company_id)
+    return await update_company(session=session, company=company, company_id=company_id)
 
 
 @router.patch("/{company_id}/")
-def patch_company(
-        company_id: int, session: SessionDep, company: CompanyPatch
+async def patch_company(
+        company_id: int, session: SessionDep, company: CompanyPatch = Depends(CompanyPatch.as_form)
 ) -> CompanyResponse:
-    return update_company(session=session, company=company, company_id=company_id)
+    return await update_company(session=session, company=company, company_id=company_id)
 
 
 @router.delete("/{company_id}/")
