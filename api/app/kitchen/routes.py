@@ -3,17 +3,95 @@ from typing import List
 from fastapi import APIRouter
 
 from api.app.common.dependencies import SessionDep
-from api.app.kitchen.crud import get_kitchen_list, create_kitchen
-from api.app.kitchen.schemas import KitchenResponse, KitchenCreate
+from api.app.kitchen.crud import (
+    get_kitchen_list,
+    create_kitchen,
+    update_kitchen,
+    remove_kitchen,
+    get_kitchen_by_id,
+)
+from api.app.kitchen.schemas import KitchenResponse, KitchenCreate, KitchenUpdate
 
 router = APIRouter()
 
 
 @router.get("/")
 def kitchen_list(session: SessionDep) -> List[KitchenResponse]:
+    """
+    Retrieve a list of all kitchens.
+
+    Args:
+        session (SessionDep): The database session.
+
+    Returns:
+        List[KitchenResponse]: A list of kitchen details.
+    """
+
     return get_kitchen_list(session)
+
+
+@router.get("/{kitchen_id}/")
+def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
+    """
+    Get a kitchen by its ID.
+
+    Args:
+        session (SessionDep): The database session.
+        kitchen_id (int): The ID of the kitchen to retrieve.
+
+    Returns:
+        KitchenResponse: The retrieved kitchen.
+    """
+
+    return get_kitchen_by_id(session, kitchen_id)
 
 
 @router.post("/")
 def post_country(session: SessionDep, country: KitchenCreate) -> KitchenResponse:
+    """
+    Create a new kitchen in the database.
+
+    Args:
+        session (SessionDep): The database session.
+        country (KitchenCreate): The kitchen to be created.
+
+    Returns:
+        KitchenResponse: The created kitchen.
+    """
+
     return create_kitchen(session, country)
+
+
+@router.put("/{kitchen_id}/")
+def put_country(
+    session: SessionDep, kitchen_id: int, country: KitchenUpdate
+) -> KitchenResponse:
+    """
+    Update an existing kitchen in the database.
+
+    Args:
+        session (SessionDep): The database session.
+        kitchen_id (int): The ID of the kitchen to update.
+        country (KitchenUpdate): The kitchen details to update.
+
+    Returns:
+        KitchenResponse: The updated kitchen.
+    """
+
+    return update_kitchen(session, kitchen_id, country)
+
+
+@router.delete("/{kitchen_id}/")
+def delete_country(session: SessionDep, kitchen_id: int) -> dict:
+    """
+    Delete an existing kitchen from the database.
+
+    Args:
+        session (SessionDep): The database session.
+        kitchen_id (int): The ID of the kitchen to delete.
+
+    Returns:
+        dict: A message indicating the success or failure of the deletion.
+    """
+
+    return remove_kitchen(session, kitchen_id)
