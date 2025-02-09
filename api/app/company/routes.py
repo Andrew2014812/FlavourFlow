@@ -13,7 +13,6 @@ from api.app.company.crud import (
 from api.app.company.schemas import (
     CompanyCreate,
     CompanyResponse,
-    CompanyUpdate,
     CompanyPatch,
 )
 
@@ -40,7 +39,7 @@ async def post_company(session: SessionDep,
 
 @router.put("/{company_id}/")
 async def put_company(
-        company_id: int, session: SessionDep, company: CompanyUpdate
+        company_id: int, session: SessionDep, company: CompanyCreate = Depends(CompanyCreate.as_form)
 ) -> CompanyResponse:
     return await update_company(session=session, company=company, company_id=company_id)
 

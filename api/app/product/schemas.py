@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import Form
+from fastapi import Form, UploadFile, File
 from sqlmodel import Field, SQLModel
 
 
@@ -43,3 +43,34 @@ class ProductCreate(SQLModel):
 
 class ProductResponse(ProductBase):
     id: int
+
+
+class ProductPatch(SQLModel):
+    title: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None)
+    composition: Optional[str] = Field(default=None)
+    product_category: Optional[str] = Field(default=None)
+    price: Optional[float] = Field(default=None)
+    image: Optional[UploadFile] = File(default=None)
+    company_id: Optional[int] = Field(default=None)
+
+    @classmethod
+    def as_form(
+            cls,
+            title: Optional[str] = Form(None),
+            description: Optional[str] = Form(None),
+            composition: Optional[str] = Form(None),
+            product_category: Optional[str] = Form(None),
+            price: Optional[float] = Form(None),
+            company_id: Optional[int] = Form(None),
+            image: Optional[UploadFile] = File(None),
+    ):
+        return cls(
+            title=title,
+            description=description,
+            composition=composition,
+            image=image,
+            product_category=product_category,
+            price=price,
+            company_id=company_id,
+        )

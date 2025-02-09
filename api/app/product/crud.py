@@ -6,7 +6,7 @@ from sqlmodel import select
 from api.app.common.dependencies import SessionDep
 from api.app.product.models import Product
 from api.app.product.schemas import ProductCreate, ProductResponse
-from api.app.utils import upload_file
+from api.app.utils import upload_file, delete_file
 
 PRODUCT_NOT_FOUND = "Product not found"
 
@@ -22,7 +22,7 @@ async def create_product(session: SessionDep, product: ProductCreate, image: Upl
         )
 
     image_name = f'{product.title}.png'
-    image_data: dict = await upload_file(image_name, image)
+    image_data: dict = await upload_file(filename=image_name, folder='product', file=image)
 
     db_product = Product(
         title=product.title,
@@ -57,3 +57,58 @@ def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
         )
 
     return db_product
+
+
+async def update_product(
+        session: SessionDep, product: ProductCreate, product_id: int
+) -> ProductResponse:
+    existing_product: Product = session.exec(
+        select(Product).where(Product.id == product_id)
+    ).first()
+
+    if not existing_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=PRODUCT_NOT_FOUND
+        )
+
+    if product.image:
+        result = delete_file(existing_product.image_id)
+
+        if not result:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
+
+        image_name = f'{product.title if product.title else existing_product.title}.png'
+        image_data: dict = await upload_file(filename=image_name, folder='product', file=product.image)
+        existing_product.image_link = image_data.get('url')
+        existing_product.image_id = image_data.get('image_id')
+
+    update_data = {k: v for k, v in product.model_dump(exclude_unset=True, exclude={'image'}).items() if v is not None}
+    for key, value in update_data.items():
+        setattr(existing_product, key, value)
+
+    session.merge(existing_product)
+    session.commit()
+    session.refresh(existing_product)
+
+    return existing_product
+
+
+def remove_product(session: SessionDep, product_id: int) -> ProductResponse:
+    existing_product: Product = session.exec(
+        select(Product).where(Product.id == product_id)
+    ).first()
+
+    if not existing_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=PRODUCT_NOT_FOUND
+        )
+
+    result = delete_file(existing_product.image_id)
+
+    if not result:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be deleted")
+
+    session.delete(existing_product)
+    session.commit()
+
+    return {"message": "Product deleted successfully", "product_id": product_id}

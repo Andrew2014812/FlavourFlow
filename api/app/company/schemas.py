@@ -42,11 +42,6 @@ class CompanyCreate(SQLModel):
             kitchen_id=kitchen_id
         )
 
-
-class CompanyUpdate(CompanyCreate):
-    pass
-
-
 class CompanyPatch(SQLModel):
     title: Optional[str] = Field(default=None)
     description: Optional[str] = Field(default=None)

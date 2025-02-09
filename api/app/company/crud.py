@@ -5,7 +5,7 @@ from sqlmodel import select
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
-from api.app.company.schemas import CompanyCreate, CompanyResponse, CompanyUpdate
+from api.app.company.schemas import CompanyCreate, CompanyResponse
 from api.app.utils import upload_file, delete_file
 
 COMPANY_NOT_FOUND = "Company not found"
@@ -21,7 +21,7 @@ async def create_company(session: SessionDep, company: CompanyCreate) -> Company
             status_code=status.HTTP_400_BAD_REQUEST, detail="Company already exists"
         )
     image_name = f'{company.title}.png'
-    image_data: dict = await upload_file(image_name, company.image)
+    image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
 
     db_company = Company(
         title=company.title,
@@ -57,7 +57,7 @@ def get_company_by_id(session: SessionDep, company_id: int) -> CompanyResponse:
 
 
 async def update_company(
-        session: SessionDep, company: CompanyUpdate, company_id: int
+        session: SessionDep, company: CompanyCreate, company_id: int
 ) -> CompanyResponse:
     existing_company: Company = session.exec(
         select(Company).where(Company.id == company_id)
@@ -75,7 +75,7 @@ async def update_company(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
 
         image_name = f'{company.title if company.title else existing_company.title}.png'
-        image_data: dict = await upload_file(image_name, company.image)
+        image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
         existing_company.image_link = image_data.get('url')
         existing_company.image_id = image_data.get('image_id')
 
