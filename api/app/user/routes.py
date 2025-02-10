@@ -1,13 +1,17 @@
-from fastapi import APIRouter, status, Query
+from typing import List
+
+from fastapi import APIRouter, status, Query, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
-    authenticate_user,
+    authenticate_user, is_admin, get_current_user,
 )
-from api.app.user.schemas import UserLogin, TokenResponse
+from api.app.user.schemas import Token
+from .models import User
 from ..user.schemas import UserCreate, UserResponse
 
 router = APIRouter()
@@ -29,20 +33,20 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
     return create_user(user=user, session=session)
 
 
-@router.post("/login/")
-def user_auth(user: UserLogin, session: SessionDep) -> TokenResponse:
-    """
-    Authenticate a user and generate a token.
-
-    Args:
-        user (UserLogin): The login credentials for the user.
-        session (SessionDep): The database session.
-
-    Returns:
-        TokenResponse: The authentication token for the user.
-    """
-
-    return authenticate_user(user=user, session=session)
+# @router.post("/login/")
+# def user_auth(user: UserLogin, session: SessionDep) -> TokenResponse:
+#     """
+#     Authenticate a user and generate a token.
+#
+#     Args:
+#         user (UserLogin): The login credentials for the user.
+#         session (SessionDep): The database session.
+#
+#     Returns:
+#         TokenResponse: The authentication token for the user.
+#     """
+#
+#     return authenticate_user(user=user, session=session)
 
 
 @router.get("/")
@@ -51,7 +55,7 @@ def retrieve_user(
         phone_number: str = Query(default=None, description="Filter by phone_number"),
         telegram_id: int = Query(default=None, description="Filter by telegram id"),
         username: str = Query(default=None, description="Filter by username"),
-) -> UserResponse:
+) -> UserResponse | List[UserResponse]:
     """
     Retrieve a user by email, telegram_id, or username.
 
@@ -68,6 +72,21 @@ def retrieve_user(
     return get_user_by_params(
         phone_number=phone_number, telegram_id=telegram_id, username=username, session=session
     )
+
+
+@router.get("/admin/")
+async def admin_endpoint(current_user: User = Depends(is_admin)):
+    return {"message": "This is an admin-only endpoint", "user": current_user.username}
+
+
+@router.get("/me/", response_model=UserResponse)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/token/")
+async def login_for_access_token(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+    return authenticate_user(session, form_data.username, form_data.password)
 
 
 @router.get("/{user_id}/")

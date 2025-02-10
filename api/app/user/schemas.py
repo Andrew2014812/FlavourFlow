@@ -1,7 +1,9 @@
+from typing import Optional
+
 import phonenumbers
 from fastapi import HTTPException, status
 from phonenumbers import NumberParseException
-from pydantic import EmailStr, field_validator
+from pydantic import field_validator
 from sqlmodel import Field, SQLModel
 
 
@@ -11,7 +13,7 @@ class UserBase(SQLModel):
     redactor: str = Field(default='system')
     bonuses: float = Field(default=0)
     telegram_id: int = Field(unique=True, index=True)
-    is_admin: bool = Field(default=False)
+    role: str = Field(default='user')
 
     @field_validator('phone_number')
     @classmethod
@@ -25,7 +27,10 @@ class UserBase(SQLModel):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Invalid phone number format')
 
 
-class UserCreate(UserBase):
+class UserCreate(SQLModel):
+    username: str
+    phone_number: str
+    telegram_id: int
     password: str
 
 
@@ -34,9 +39,15 @@ class UserResponse(UserBase):
 
 
 class UserLogin(SQLModel):
-    email: EmailStr
+    username: str
     password: str
 
 
-class TokenResponse(SQLModel):
+class Token(SQLModel):
     access_token: str
+    token_type: str
+
+
+class TokenData(SQLModel):
+    username: Optional[str] = None
+    role: Optional[str] = None

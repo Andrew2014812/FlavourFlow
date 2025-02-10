@@ -1,9 +1,18 @@
-from fastapi import HTTPException, status
+from datetime import datetime, timedelta, timezone
+from typing import List
+
+import jwt
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer
+from jwt import PyJWTError
 from sqlmodel import select, or_
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.models import User
-from api.app.user.schemas import UserCreate, UserResponse, UserLogin, TokenResponse
+from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token
+from application.config import ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
 
 
 def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
@@ -25,8 +34,6 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     db_user = User(
         username=user.username,
         phone_number=user.phone_number,
-        redactor=user.redactor,
-        bonuses=user.bonuses,
         telegram_id=user.telegram_id,
     )
     db_user.password = user.password
@@ -38,29 +45,25 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     return UserResponse.model_validate(db_user)
 
 
-def authenticate_user(session: SessionDep, user: UserLogin) -> TokenResponse:
-    existing_user = session.exec(select(User).where(User.email == user.email)).first()
-
-    if not existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User with this email does not exist"
-        )
-
-    if not existing_user.verify_password(user.password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
-
-    return TokenResponse(access_token='Test')
-
-
-def get_user_by_params(session: SessionDep, phone_number: str, telegram_id: int, username: str) -> UserResponse:
+def get_user_by_params(session: SessionDep,
+                       phone_number: str,
+                       telegram_id: int,
+                       username: str) -> UserResponse | List[UserResponse]:
     if phone_number:
         return get_user_by_phone(session, phone_number)
 
-    if telegram_id:
+    elif telegram_id:
         return get_by_telegram_id(session, telegram_id)
 
-    if username:
+    elif username:
         return get_by_username(session, username)
+
+    else:
+        return get_all_users(session)
+
+
+def get_all_users(session: SessionDep) -> List[UserResponse]:
+    return session.exec(select(User)).all()
 
 
 def get_user_by_phone(session: SessionDep, phone_number: str) -> UserResponse:
@@ -113,3 +116,71 @@ def is_authenticated(session: SessionDep, telegram_id: int):
 def change_telegram_id(session: SessionDep, username: str, telegram_id: int):
     existing_user: User = session.exec(select(User).where(User.username == username)).first()
     existing_user.telegram_id = telegram_id
+
+
+def authenticate_user(session: SessionDep, username: str, password: str) -> Token:
+    existing_user = session.exec(select(User).where(User.username == username)).first()
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email does not exist",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    if not existing_user.verify_password(password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
+
+    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(
+        data={"sub": existing_user.username, "role": existing_user.role}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    to_encode = data.copy()
+
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=ALGORITHM)
+
+    return encoded_jwt
+
+
+async def get_current_user(session: SessionDep, token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        role: str = payload.get("role")
+
+        if username is None or role is None:
+            raise credentials_exception
+
+        token_data = TokenData(username=username, role=role)
+
+    except PyJWTError:
+        raise credentials_exception
+
+    user = get_by_username(session, username=token_data.username)
+
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+def is_admin(user: User = Depends(get_current_user)):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return user
