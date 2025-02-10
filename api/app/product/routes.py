@@ -23,9 +23,8 @@ def company_detail(product_id: int, session: SessionDep) -> ProductResponse:
 
 @router.post("/")
 async def post_product(session: SessionDep,
-                       product: ProductCreate = Depends(ProductCreate.as_form),
-                       image: UploadFile = File(...)) -> ProductResponse:
-    return await create_product(session=session, product=product, image=image)
+                       product: ProductCreate = Depends(ProductCreate.as_form)) -> ProductResponse:
+    return await create_product(session=session, product=product)
 
 
 @router.put("/{product_id}/")

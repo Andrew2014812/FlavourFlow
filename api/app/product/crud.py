@@ -1,6 +1,7 @@
 from typing import List
 
-from fastapi import UploadFile, HTTPException, status
+from cloudinary.exceptions import GeneralError
+from fastapi import HTTPException, status
 from sqlmodel import select
 
 from api.app.common.dependencies import SessionDep
@@ -11,7 +12,7 @@ from api.app.utils import upload_file, delete_file
 PRODUCT_NOT_FOUND = "Product not found"
 
 
-async def create_product(session: SessionDep, product: ProductCreate, image: UploadFile) -> ProductResponse:
+async def create_product(session: SessionDep, product: ProductCreate) -> ProductResponse:
     existing_product = session.exec(
         select(Product).filter(Product.title == product.title)
     ).first()
@@ -21,23 +22,34 @@ async def create_product(session: SessionDep, product: ProductCreate, image: Upl
             status_code=status.HTTP_400_BAD_REQUEST, detail="Product already exists"
         )
 
-    image_name = f'{product.title}.png'
-    image_data: dict = await upload_file(filename=image_name, folder='product', file=image)
-
     db_product = Product(
         title=product.title,
         description=product.description,
         composition=product.composition,
         product_category=product.product_category,
         price=product.price,
-        image_link=image_data.get('url'),
-        image_id=image_data.get('image_id'),
         company_id=product.company_id,
     )
 
     session.add(db_product)
     session.commit()
     session.refresh(db_product)
+
+    try:
+        image_name = f'PRODUCT_ID-{db_product.id}'
+        image_data: dict = await upload_file(filename=image_name, folder='product', file=product.image)
+
+        db_product.image_id = image_data.get('image_id')
+        db_product.image_link = image_data.get('url')
+
+        session.commit()
+    except GeneralError:
+        session.rollback()
+        session.delete(db_product)
+        session.commit()
+
+        raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                            detail="Failed to create a product. Error during file upload.")
 
     return db_product
 
@@ -77,7 +89,7 @@ async def update_product(
         if not result:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
 
-        image_name = f'{product.title if product.title else existing_product.title}.png'
+        image_name = f'PRODUCT_ID-{existing_product.id}'
         image_data: dict = await upload_file(filename=image_name, folder='product', file=product.image)
         existing_product.image_link = image_data.get('url')
         existing_product.image_id = image_data.get('image_id')

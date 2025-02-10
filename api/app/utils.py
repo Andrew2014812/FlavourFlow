@@ -2,7 +2,7 @@ import os
 from typing import Dict
 
 import cloudinary.uploader
-from cloudinary.exceptions import Error as CloudinaryError
+from cloudinary.exceptions import Error as CloudinaryError, GeneralError
 from fastapi import UploadFile, File
 
 from application.cloudinary_config import configure_cloudinary
@@ -21,8 +21,8 @@ def upload_to_cloudinary(file_path: str, folder: str = "default_folder", public_
         )
         return result
 
-    except Exception as e:
-        raise Exception(f"Failed to upload file to Cloudinary: {str(e)}")
+    except CloudinaryError as e:
+        raise GeneralError(f"Failed to upload file to Cloudinary: {str(e)}")
 
 
 async def upload_file(filename: str, folder: str, file: UploadFile = File(...)) -> Dict[str, str]:
@@ -46,8 +46,4 @@ def delete_file(public_id: str) -> bool:
 
     except CloudinaryError as e:
         print(f"Cloudinary error: {str(e)}")
-        return False
-
-    except Exception as e:
-        print(f"Error: {str(e)}")
         return False

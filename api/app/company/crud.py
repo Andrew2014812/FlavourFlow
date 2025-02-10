@@ -1,11 +1,13 @@
 from typing import List
 
+from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
 from sqlmodel import select
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
 from api.app.company.schemas import CompanyCreate, CompanyResponse
+from api.app.product.crud import remove_product
 from api.app.utils import upload_file, delete_file
 
 COMPANY_NOT_FOUND = "Company not found"
@@ -20,14 +22,10 @@ async def create_company(session: SessionDep, company: CompanyCreate) -> Company
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Company already exists"
         )
-    image_name = f'{company.title}.png'
-    image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
 
     db_company = Company(
         title=company.title,
         description=company.description,
-        image_link=image_data.get('url'),
-        image_id=image_data.get('image_id'),
         country_id=company.country_id,
         kitchen_id=company.kitchen_id,
     )
@@ -35,6 +33,22 @@ async def create_company(session: SessionDep, company: CompanyCreate) -> Company
     session.add(db_company)
     session.commit()
     session.refresh(db_company)
+
+    try:
+        image_name = f'COMPANY_ID-{db_company.id}'
+        image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
+
+        db_company.image_id = image_data.get('image_id')
+        db_company.image_link = image_data.get('url')
+
+        session.commit()
+    except GeneralError:
+        session.rollback()
+        session.delete(db_company)
+        session.commit()
+
+        raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                            detail="Failed to create a company. Error during file upload.")
 
     return db_company
 
@@ -74,10 +88,10 @@ async def update_company(
         if not result:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
 
-        image_name = f'{company.title if company.title else existing_company.title}.png'
+        image_name = f'COMPANY_ID-{existing_company.id}'
         image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
-        existing_company.image_link = image_data.get('url')
         existing_company.image_id = image_data.get('image_id')
+        existing_company.image_link = image_data.get('url')
 
     update_data = {k: v for k, v in company.model_dump(exclude_unset=True, exclude={'image'}).items() if v is not None}
     for key, value in update_data.items():
@@ -104,6 +118,10 @@ def remove_company(session: SessionDep, company_id: int) -> CompanyResponse:
 
     if not result:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be deleted")
+
+    if existing_company.products:
+        for product in existing_company.products:
+            remove_product(session, product.id)
 
     session.delete(existing_company)
     session.commit()

@@ -8,8 +8,8 @@ class ProductBase(SQLModel):
     title: str = Field(max_length=100)
     description: str = Field(max_length=255)
     composition: str = Field(max_length=255)
-    image_link: str = Field(max_length=255)
-    image_id: str = Field(max_length=255)
+    image_link: str = Field(max_length=255, nullable=True, unique=True)
+    image_id: str = Field(max_length=255, nullable=True, unique=True)
     product_category: str = Field(max_length=30)
     price: float = Field(default=1)
 
@@ -23,6 +23,7 @@ class ProductCreate(SQLModel):
     product_category: str
     price: float
     company_id: int = 1
+    image: UploadFile = File(...)
 
     @classmethod
     def as_form(cls,
@@ -31,13 +32,16 @@ class ProductCreate(SQLModel):
                 composition: str = Form(...),
                 product_category: str = Form(...),
                 price: float = Form(...),
-                company_id: int = Form(1)):
+                company_id: int = Form(1),
+                image: UploadFile = File(...)):
         return cls(
             title=title,
             description=description,
             composition=composition,
             product_category=product_category,
-            price=price, company_id=company_id
+            price=price,
+            company_id=company_id,
+            image=image
         )
 
 
