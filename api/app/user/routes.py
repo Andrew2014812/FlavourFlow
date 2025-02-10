@@ -8,7 +8,9 @@ from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
-    authenticate_user, is_admin, get_current_user,
+    authenticate_user,
+    is_admin,
+    get_current_user,
 )
 from api.app.user.schemas import Token
 from .models import User
@@ -20,10 +22,10 @@ router = APIRouter()
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
 def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
     """
-    Create a new user in the database.
+    Create a new user
 
     Args:
-        user (UserCreate): The user to be created
+        user (UserCreate): The user data to register
         session (SessionDep): The database session
 
     Returns:
@@ -31,22 +33,6 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
     """
 
     return create_user(user=user, session=session)
-
-
-# @router.post("/login/")
-# def user_auth(user: UserLogin, session: SessionDep) -> TokenResponse:
-#     """
-#     Authenticate a user and generate a token.
-#
-#     Args:
-#         user (UserLogin): The login credentials for the user.
-#         session (SessionDep): The database session.
-#
-#     Returns:
-#         TokenResponse: The authentication token for the user.
-#     """
-#
-#     return authenticate_user(user=user, session=session)
 
 
 @router.get("/")
@@ -57,20 +43,23 @@ def retrieve_user(
         username: str = Query(default=None, description="Filter by username"),
 ) -> UserResponse | List[UserResponse]:
     """
-    Retrieve a user by email, telegram_id, or username.
+    Retrieve a user or list of users by optional filters phone_number, telegram_id, or username.
 
     Args:
-        session (SessionDep): The database session.
-        phone_number (str, optional): The phone_number to filter by.
-        telegram_id (int, optional): The telegram id to filter by.
-        username (str, optional): The username to filter by.
+        session (SessionDep): The database session
+        phone_number (str): Filter by phone_number
+        telegram_id (int): Filter by telegram id
+        username (str): Filter by username
 
     Returns:
-        UserResponse: The retrieved user based on the provided filters.
+        UserResponse | List[UserResponse]: The retrieved user(s)
     """
 
     return get_user_by_params(
-        phone_number=phone_number, telegram_id=telegram_id, username=username, session=session
+        phone_number=phone_number,
+        telegram_id=telegram_id,
+        username=username,
+        session=session,
     )
 
 
@@ -85,7 +74,20 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/token/")
-async def login_for_access_token(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+async def login_for_access_token(
+        session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()
+) -> Token:
+    """
+    Login to retrieve an access token.
+
+    Args:
+        session (SessionDep): The database session
+        form_data (OAuth2PasswordRequestForm): The username and password to authenticate
+
+    Returns:
+        Token: The access token
+    """
+
     return authenticate_user(session, form_data.username, form_data.password)
 
 
