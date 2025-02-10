@@ -104,7 +104,7 @@ async def update_company(
     return existing_company
 
 
-def remove_company(session: SessionDep, company_id: int) -> CompanyResponse:
+def remove_company(session: SessionDep, company_id: int) -> dict:
     existing_company: Company = session.exec(
         select(Company).where(Company.id == company_id)
     ).first()

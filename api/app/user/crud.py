@@ -177,6 +177,7 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
 
     if user is None:
         raise credentials_exception
+
     return user
 
 

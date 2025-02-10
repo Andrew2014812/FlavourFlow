@@ -15,6 +15,7 @@ class UserBase(SQLModel):
     telegram_id: int = Field(unique=True, index=True)
     role: str = Field(default='user')
 
+
     @field_validator('phone_number')
     @classmethod
     def validate_phone_number(cls, value):

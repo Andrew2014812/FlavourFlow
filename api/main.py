@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from api.app.cart.routes import router as cart_router
 from api.app.common.database import create_db_and_tables
 from api.app.company.routes import router as company_router
 from api.app.country.routes import router as country_router
@@ -25,6 +26,7 @@ app.include_router(country_router, prefix="/country", tags=["countries"])
 app.include_router(kitchen_router, prefix="/kitchen", tags=["kitchens"])
 app.include_router(company_router, prefix="/company", tags=["companies"])
 app.include_router(product_router, prefix="/product", tags=["products"])
+app.include_router(cart_router, prefix="/cart", tags=["cards"])
 
 
 @app.get("/")

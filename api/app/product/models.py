@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlmodel import Field, Relationship
 
@@ -10,3 +10,4 @@ class Product(ProductBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     company: Optional[Company] = Relationship(back_populates="products")
+    cart_items: List["CartItem"] = Relationship(back_populates="product")
