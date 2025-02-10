@@ -6,6 +6,7 @@ import api.app.country.models  # noqa
 import api.app.kitchen.models  # noqa
 import api.app.product.models  # noqa
 import api.app.user.models  # noqa
+import api.app.wishlist.models  # noqa
 from application.config import db_name, db_user, db_password, db_host, db_port
 
 SQLALCHEMY_DATABASE_URL = (

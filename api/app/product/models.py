@@ -11,3 +11,4 @@ class Product(ProductBase, table=True):
 
     company: Optional[Company] = Relationship(back_populates="products")
     cart_items: List["CartItem"] = Relationship(back_populates="product")
+    wishlist_items: List["WishlistItem"] = Relationship(back_populates="product")

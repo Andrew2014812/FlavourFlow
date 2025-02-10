@@ -53,7 +53,7 @@ def post_cart_item(
 @router.delete("/remove/{item_id}")
 def delete_cart_item(
         session: SessionDep, item_id: int, current_user: User = Depends(get_current_user)
-):
+) -> dict:
     """
     Remove an item from the user's cart.
 

@@ -34,7 +34,7 @@ def add_to_cart(session: SessionDep, user_id: int, new_item: CartItemCreate) -> 
     return cart_item
 
 
-def get_cart_items(session: SessionDep, user_id: int) -> List[CartItem]:
+def get_cart_items(session: SessionDep, user_id: int) -> List[CartItemResponse]:
     cart = session.exec(select(Cart).filter(Cart.user_id == user_id)).first()
 
     if not cart:
@@ -45,6 +45,7 @@ def get_cart_items(session: SessionDep, user_id: int) -> List[CartItem]:
 
 def get_item_by_id(session: SessionDep, item_id: int) -> CartItemResponse:
     item = session.exec(select(CartItem).filter(CartItem.id == item_id)).first()
+
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
