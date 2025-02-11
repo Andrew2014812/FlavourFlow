@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.crud import get_current_user
@@ -28,10 +28,10 @@ def post_cart_item(
     return add_to_wishlist(session=session, user_id=current_user.id, new_item=new_item)
 
 
-@router.delete("/remove/{item_id}")
+@router.delete("/remove/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_cart_item(
         session: SessionDep,
         item_id: int,
         current_user: User = Depends(get_current_user),
-) -> dict:
-    return remove_wishlist_item(session=session, user_id=current_user.id, item_id=item_id)
+):
+    remove_wishlist_item(session=session, user_id=current_user.id, item_id=item_id)

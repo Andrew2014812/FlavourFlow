@@ -3,9 +3,9 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlmodel import select
 
+from api.app.common.dependencies import SessionDep
 from api.app.wishlist.models import Wishlist, WishlistItem
 from api.app.wishlist.schemas import WishlistItemCreate, WishlistItemResponse
-from api.app.common.dependencies import SessionDep
 
 
 def add_to_wishlist(session: SessionDep, user_id: int, new_item: WishlistItemCreate) -> WishlistItemResponse | dict:
@@ -19,7 +19,8 @@ def add_to_wishlist(session: SessionDep, user_id: int, new_item: WishlistItemCre
 
     wishlist_item = (
         session.exec(select(WishlistItem)
-                     .filter(WishlistItem.wishlist_id == wishlist.id, WishlistItem.product_id == new_item.product_id)).first()
+                     .filter(WishlistItem.wishlist_id == wishlist.id,
+                             WishlistItem.product_id == new_item.product_id)).first()
     )
 
     if wishlist_item:
@@ -54,7 +55,7 @@ def get_item_by_id(session: SessionDep, item_id: int) -> WishlistItemResponse:
     return item
 
 
-def remove_wishlist_item(session: SessionDep, user_id: int, item_id: int) -> dict:
+def remove_wishlist_item(session: SessionDep, user_id: int, item_id: int):
     wishlist = session.exec(select(Wishlist).filter(Wishlist.user_id == user_id)).first()
 
     if not wishlist:
@@ -67,5 +68,3 @@ def remove_wishlist_item(session: SessionDep, user_id: int, item_id: int) -> dic
     session.delete(item_to_delete)
     session.commit()
     session.refresh(wishlist)
-
-    return {'msg': 'Item removed', 'item_id': item_id}

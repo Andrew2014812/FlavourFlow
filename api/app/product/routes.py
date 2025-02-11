@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.product.crud import (
@@ -114,12 +114,12 @@ async def patch_company(
     return await update_product(session=session, product=product, product_id=product_id)
 
 
-@router.delete("/{product_id}/")
+@router.delete("/{product_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_company(
         product_id: int,
         session: SessionDep,
         _: None = Depends(is_admin)
-) -> dict:
+):
     """
     Delete a product from the database.
 
@@ -131,4 +131,4 @@ def delete_company(
         dict: A message indicating the success or failure of the deletion.
     """
 
-    return remove_product(session=session, product_id=product_id)
+    remove_product(session=session, product_id=product_id)

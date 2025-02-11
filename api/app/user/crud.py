@@ -9,7 +9,7 @@ from sqlmodel import select, or_
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.models import User
-from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token
+from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token, UserPatch
 from application.config import ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
@@ -28,7 +28,8 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="User with this credentials already registered"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this credentials already registered",
         )
 
     db_user = User(
@@ -42,13 +43,38 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     session.commit()
     session.refresh(db_user)
 
-    return UserResponse.model_validate(db_user)
+    return db_user
 
 
-def get_user_by_params(session: SessionDep,
-                       phone_number: str,
-                       telegram_id: int,
-                       username: str) -> UserResponse | List[UserResponse]:
+def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponse:
+    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+
+    for key, value in user_update.model_dump(exclude_unset=True, exclude={'password'}).items():
+        setattr(existing_user, key, value)
+
+    if user_update.password:
+        existing_user.password = user_update.password
+
+    session.add(existing_user)
+    session.commit()
+    session.refresh(existing_user)
+
+    return existing_user
+
+
+def remove_user(session: SessionDep, user_id: int):
+    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    session.delete(existing_user)
+    session.commit()
+
+
+def get_user_by_params(
+        session: SessionDep, phone_number: str, telegram_id: int, username: str
+) -> UserResponse | List[UserResponse]:
     if phone_number:
         return get_user_by_phone(session, phone_number)
 
@@ -67,11 +93,14 @@ def get_all_users(session: SessionDep) -> List[UserResponse]:
 
 
 def get_user_by_phone(session: SessionDep, phone_number: str) -> UserResponse:
-    existing_user = session.exec(select(User).where(User.phone_number == phone_number)).first()
+    existing_user = session.exec(
+        select(User).where(User.phone_number == phone_number)
+    ).first()
 
     if not existing_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User with this phone_number does not exist"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this phone_number does not exist",
         )
 
     return UserResponse.model_validate(existing_user)
@@ -81,16 +110,24 @@ def get_user_by_id(session: SessionDep, user_id: int) -> UserResponse:
     existing_user = session.exec(select(User).where(User.id == user_id)).first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with this id does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this id does not exist",
+        )
 
     return UserResponse.model_validate(existing_user)
 
 
 def get_by_telegram_id(session: SessionDep, telegram_id: int):
-    existing_user = session.exec(select(User).where(User.telegram_id == telegram_id)).first()
+    existing_user = session.exec(
+        select(User).where(User.telegram_id == telegram_id)
+    ).first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with telegram id does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with telegram id does not exist",
+        )
 
     return UserResponse.model_validate(existing_user)
 
@@ -99,22 +136,32 @@ def get_by_username(session: SessionDep, username: str):
     existing_user = session.exec(select(User).where(User.username == username)).first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with this username does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this username does not exist",
+        )
 
     return UserResponse.model_validate(existing_user)
 
 
 def is_authenticated(session: SessionDep, telegram_id: int):
-    existing_user = session.exec(select(User).where(User.telegram_id == telegram_id)).first()
+    existing_user = session.exec(
+        select(User).where(User.telegram_id == telegram_id)
+    ).first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User with telegram id does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with telegram id does not exist",
+        )
 
     return True
 
 
 def change_telegram_id(session: SessionDep, username: str, telegram_id: int):
-    existing_user: User = session.exec(select(User).where(User.username == username)).first()
+    existing_user: User = session.exec(
+        select(User).where(User.username == username)
+    ).first()
     existing_user.telegram_id = telegram_id
 
 
@@ -125,15 +172,18 @@ def authenticate_user(session: SessionDep, username: str, password: str) -> Toke
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User with this email does not exist",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not existing_user.verify_password(password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials"
+        )
 
     access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_access_token(
-        data={"sub": existing_user.username, "role": existing_user.role}, expires_delta=access_token_expires
+        data={"sub": existing_user.username, "role": existing_user.role},
+        expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
 

@@ -51,7 +51,7 @@ def update_country(session: SessionDep, country_id: int, country: CountryUpdate)
     return existing_country
 
 
-def remove_country(session: SessionDep, country_id: int) -> dict:
+def remove_country(session: SessionDep, country_id: int):
     existing_country: Country = session.exec(select(Country).filter(Country.id == country_id)).first()
 
     if not existing_country:
@@ -59,5 +59,3 @@ def remove_country(session: SessionDep, country_id: int) -> dict:
 
     session.delete(existing_country)
     session.commit()
-
-    return {"message": "Country deleted successfully", "country_id": country_id}

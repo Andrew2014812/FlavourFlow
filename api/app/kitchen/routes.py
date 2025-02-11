@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.kitchen.crud import (
@@ -89,12 +89,12 @@ def put_country(
     return update_kitchen(session=session, kitchen_id=kitchen_id, kitchen=kitchen)
 
 
-@router.delete("/{kitchen_id}/")
+@router.delete("/{kitchen_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_country(
         session: SessionDep,
         kitchen_id: int,
         _: None = Depends(is_admin),
-) -> dict:
+):
     """
     Delete an existing kitchen from the database.
 
@@ -106,4 +106,4 @@ def delete_country(
         dict: A message indicating the success or failure of the deletion.
     """
 
-    return remove_kitchen(session=session, kitchen_id=kitchen_id)
+    remove_kitchen(session=session, kitchen_id=kitchen_id)

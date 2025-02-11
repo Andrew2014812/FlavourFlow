@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.country.crud import (
@@ -90,12 +90,12 @@ def put_country(
     return update_country(session=session, country_id=country_id, country=country)
 
 
-@router.delete("/{country_id}/")
+@router.delete("/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_country(
         session: SessionDep,
         country_id: int,
         _: None = Depends(is_admin),
-) -> dict:
+):
     """
     Delete an existing country in the database.
 
@@ -107,4 +107,4 @@ def delete_country(
         dict: A message indicating success or failure of the deletion.
     """
 
-    return remove_country(session=session, country_id=country_id)
+    remove_country(session=session, country_id=country_id)

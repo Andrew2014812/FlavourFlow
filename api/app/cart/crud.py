@@ -52,7 +52,7 @@ def get_item_by_id(session: SessionDep, item_id: int) -> CartItemResponse:
     return item
 
 
-def remove_cart_item(session: SessionDep, user_id: int, item_id: int) -> dict:
+def remove_cart_item(session: SessionDep, user_id: int, item_id: int):
     cart = session.exec(select(Cart).filter(Cart.user_id == user_id)).first()
 
     if not cart:
@@ -64,6 +64,3 @@ def remove_cart_item(session: SessionDep, user_id: int, item_id: int) -> dict:
 
     session.delete(item_to_delete)
     session.commit()
-    session.refresh(cart)
-
-    return {'msg': 'Item removed', 'item_id': item_id}

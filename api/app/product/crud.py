@@ -105,7 +105,7 @@ async def update_product(
     return existing_product
 
 
-def remove_product(session: SessionDep, product_id: int) -> ProductResponse:
+def remove_product(session: SessionDep, product_id: int):
     existing_product: Product = session.exec(
         select(Product).where(Product.id == product_id)
     ).first()
@@ -122,5 +122,3 @@ def remove_product(session: SessionDep, product_id: int) -> ProductResponse:
 
     session.delete(existing_product)
     session.commit()
-
-    return {"message": "Product deleted successfully", "product_id": product_id}

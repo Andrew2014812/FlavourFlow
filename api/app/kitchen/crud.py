@@ -52,7 +52,7 @@ def update_kitchen(session: SessionDep, kitchen_id: int, kitchen: KitchenUpdate)
     return existing_kitchen
 
 
-def remove_kitchen(session: SessionDep, kitchen_id: int) -> dict:
+def remove_kitchen(session: SessionDep, kitchen_id: int):
     existing_kitchen: Kitchen = session.exec(select(Kitchen).filter(Kitchen.id == kitchen_id)).first()
 
     if not existing_kitchen:
@@ -60,5 +60,3 @@ def remove_kitchen(session: SessionDep, kitchen_id: int) -> dict:
 
     session.delete(existing_kitchen)
     session.commit()
-
-    return {"message": "Kitchen deleted successfully", "kitchen_id": kitchen_id}

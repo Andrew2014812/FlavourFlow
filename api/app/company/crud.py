@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
-from api.app.company.schemas import CompanyCreate, CompanyResponse
+from api.app.company.schemas import CompanyCreate, CompanyResponse, CompanyPatch
 from api.app.product.crud import remove_product
 from api.app.utils import upload_file, delete_file
 
@@ -71,7 +71,7 @@ def get_company_by_id(session: SessionDep, company_id: int) -> CompanyResponse:
 
 
 async def update_company(
-        session: SessionDep, company: CompanyCreate, company_id: int
+        session: SessionDep, company: CompanyCreate | CompanyPatch, company_id: int
 ) -> CompanyResponse:
     existing_company: Company = session.exec(
         select(Company).where(Company.id == company_id)
@@ -104,7 +104,7 @@ async def update_company(
     return existing_company
 
 
-def remove_company(session: SessionDep, company_id: int) -> dict:
+def remove_company(session: SessionDep, company_id: int):
     existing_company: Company = session.exec(
         select(Company).where(Company.id == company_id)
     ).first()
@@ -125,5 +125,3 @@ def remove_company(session: SessionDep, company_id: int) -> dict:
 
     session.delete(existing_company)
     session.commit()
-
-    return {"message": "Company deleted successfully", "company_id": company_id}

@@ -8,31 +8,12 @@ from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
-    authenticate_user,
-    is_admin,
-    get_current_user,
+    authenticate_user, update_user, get_current_user, is_admin, remove_user,
 )
-from api.app.user.schemas import Token
-from .models import User
+from api.app.user.schemas import Token, UserPatch
 from ..user.schemas import UserCreate, UserResponse
 
 router = APIRouter()
-
-
-@router.post("/register/", status_code=status.HTTP_201_CREATED)
-def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
-    """
-    Create a new user
-
-    Args:
-        user (UserCreate): The user data to register
-        session (SessionDep): The database session
-
-    Returns:
-        UserResponse: The created user
-    """
-
-    return create_user(user=user, session=session)
 
 
 @router.get("/")
@@ -41,6 +22,7 @@ def retrieve_user(
         phone_number: str = Query(default=None, description="Filter by phone_number"),
         telegram_id: int = Query(default=None, description="Filter by telegram id"),
         username: str = Query(default=None, description="Filter by username"),
+        _: None = Depends(is_admin),
 ) -> UserResponse | List[UserResponse]:
     """
     Retrieve a user or list of users by optional filters phone_number, telegram_id, or username.
@@ -63,14 +45,67 @@ def retrieve_user(
     )
 
 
-@router.get("/admin/")
-async def admin_endpoint(current_user: User = Depends(is_admin)):
-    return {"message": "This is an admin-only endpoint", "user": current_user.username}
+@router.post("/register/", status_code=status.HTTP_201_CREATED)
+def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
+    """
+    Create a new user
+
+    Args:
+        user (UserCreate): The user data to register
+        session (SessionDep): The database session
+
+    Returns:
+        UserResponse: The created user
+    """
+
+    return create_user(user=user, session=session)
 
 
-@router.get("/me/", response_model=UserResponse)
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
+@router.put("/update/me/", status_code=status.HTTP_200_OK)
+def put_user(
+        session: SessionDep,
+        user: UserCreate,
+        current_user: UserResponse = Depends(get_current_user),
+) -> UserResponse:
+    return update_user(session=session, user_update=user, user_id=current_user.id)
+
+
+@router.patch("/update/me/", status_code=status.HTTP_200_OK)
+def put_user(
+        session: SessionDep,
+        user: UserPatch,
+        current_user: UserResponse = Depends(get_current_user),
+) -> UserResponse:
+    return update_user(session=session, user_update=user, user_id=current_user.id)
+
+
+@router.put("/update", status_code=status.HTTP_200_OK)
+def put_user_via_admin(
+        user_id: int,
+        session: SessionDep,
+        user: UserCreate,
+        _: None = Depends(is_admin)
+) -> UserResponse:
+    return update_user(session=session, user_update=user, user_id=user_id)
+
+
+@router.patch("/update", status_code=status.HTTP_200_OK)
+def patch_user_via_admin(
+        user_id: int,
+        session: SessionDep,
+        user: UserPatch,
+        _: None = Depends(is_admin),
+) -> UserResponse:
+    return update_user(session=session, user_update=user, user_id=user_id)
+
+
+@router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+        user_id: int,
+        session: SessionDep,
+        _: None = Depends(is_admin),
+):
+    remove_user(session=session, user_id=user_id)
 
 
 @router.post("/token/")

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.crud import (
@@ -120,15 +120,16 @@ async def patch_company(
     Returns:
         CompanyResponse: The updated company.
     """
+
     return await update_company(session=session, company=company, company_id=company_id)
 
 
-@router.delete("/{company_id}/")
+@router.delete("/{company_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_company(
         company_id: int,
         session: SessionDep,
         _: None = Depends(is_admin),
-) -> dict:
+):
     """
     Delete a company from the database.
 
@@ -140,4 +141,4 @@ def delete_company(
         dict: A message indicating success or failure of the deletion.
     """
 
-    return remove_company(session=session, company_id=company_id)
+    remove_company(session=session, company_id=company_id)

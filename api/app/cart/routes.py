@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from api.app.cart.crud import add_to_cart, get_cart_items, remove_cart_item
 from api.app.cart.schemas import CartItemCreate, CartItemResponse
@@ -51,12 +51,12 @@ def post_cart_item(
     return add_to_cart(session=session, user_id=current_user.id, new_item=new_item)
 
 
-@router.delete("/remove/{item_id}")
+@router.delete("/remove/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_cart_item(
         session: SessionDep,
         item_id: int,
         current_user: User = Depends(get_current_user),
-) -> dict:
+):
     """
     Remove an item from the user's cart.
 
@@ -69,4 +69,4 @@ def delete_cart_item(
         dict: A message indicating the success of the removal.
     """
 
-    return remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)
+    remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)
