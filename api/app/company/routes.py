@@ -15,40 +15,46 @@ from api.app.company.schemas import (
     CompanyResponse,
     CompanyPatch,
 )
+from api.app.user.crud import is_admin
 
 router = APIRouter()
 
 
 @router.get("/")
 def company_list(
-        session: SessionDep, page: int = 1, limit: int = 10
+        session: SessionDep,
+        page: int = 1,
+        limit: int = 10,
 ) -> List[CompanyResponse]:
     """
-    Return a list of all companies.
+    Retrieve a list of all companies.
 
     Args:
-        session (SessionDep): A SQLAlchemy session object.
-        page (int, optional): The page number of the companies to return, starting from 1. Defaults to 1.
-        limit (int, optional): The number of companies to return per page. Defaults to 10.
+        session (SessionDep): The database session.
+        page (int, optional): The page number. Defaults to 1.
+        limit (int, optional): The page size. Defaults to 10.
 
     Returns:
-        List[CompanyResponse]: A list of CompanyResponse objects representing the companies.
+        List[CompanyResponse]: A list of company details.
     """
 
     return get_all_companies(session=session, page=page, limit=limit)
 
 
 @router.get("/{company_id}/")
-def company_detail(company_id: int, session: SessionDep) -> CompanyResponse:
+def company_detail(
+        company_id: int,
+        session: SessionDep,
+) -> CompanyResponse:
     """
-    Retrieve details of a specific company by its ID.
+    Retrieve a company by its ID.
 
     Args:
         company_id (int): The ID of the company to retrieve.
-        session (SessionDep): A SQLAlchemy session object.
+        session (SessionDep): The database session.
 
     Returns:
-        CompanyResponse: An object containing the details of the specified company.
+        CompanyResponse: The retrieved company.
     """
 
     return get_company_by_id(session=session, company_id=company_id)
@@ -56,17 +62,19 @@ def company_detail(company_id: int, session: SessionDep) -> CompanyResponse:
 
 @router.post("/")
 async def post_company(
-        session: SessionDep, company: CompanyCreate = Depends(CompanyCreate.as_form)
+        session: SessionDep,
+        company: CompanyCreate = Depends(CompanyCreate.as_form),
+        _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
     Create a new company in the database.
 
     Args:
-        session (SessionDep): A SQLAlchemy session object.
-        company (CompanyCreate, optional): The company data to create. Defaults to data from form.
+        session (SessionDep): The database session.
+        company (CompanyCreate): The company to be created.
 
     Returns:
-        CompanyResponse: An object containing the details of the newly created company.
+        CompanyResponse: The created company.
     """
 
     return await create_company(session=session, company=company)
@@ -77,17 +85,18 @@ async def put_company(
         company_id: int,
         session: SessionDep,
         company: CompanyCreate = Depends(CompanyCreate.as_form),
+        _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
-    Update a company in the database.
+    Update an existing company in the database.
 
     Args:
+        session (SessionDep): The database session.
         company_id (int): The ID of the company to update.
-        session (SessionDep): A SQLAlchemy session object.
-        company (CompanyCreate, optional): The new company data to update. Defaults to data from form.
+        company (CompanyCreate): The company details to update.
 
     Returns:
-        CompanyResponse: An object containing the details of the updated company.
+        CompanyResponse: The updated company.
     """
 
     return await update_company(session=session, company=company, company_id=company_id)
@@ -98,33 +107,37 @@ async def patch_company(
         company_id: int,
         session: SessionDep,
         company: CompanyPatch = Depends(CompanyPatch.as_form),
+        _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
-    Partially update a company's details in the database.
+    Partially update a company in the database.
 
     Args:
+        session (SessionDep): The database session.
         company_id (int): The ID of the company to update.
-        session (SessionDep): A SQLAlchemy session object.
-        company (CompanyPatch, optional): The partial company data to update. Defaults to data from form.
+        company (CompanyPatch): The company details to update.
 
     Returns:
-        CompanyResponse: An object containing the details of the updated company.
+        CompanyResponse: The updated company.
     """
-
     return await update_company(session=session, company=company, company_id=company_id)
 
 
 @router.delete("/{company_id}/")
-def delete_company(company_id: int, session: SessionDep) -> dict:
+def delete_company(
+        company_id: int,
+        session: SessionDep,
+        _: None = Depends(is_admin),
+) -> dict:
     """
     Delete a company from the database.
 
     Args:
+        session (SessionDep): The database session.
         company_id (int): The ID of the company to delete.
-        session (SessionDep): A SQLAlchemy session object.
 
     Returns:
-        dict: A dictionary containing a message about the deletion.
+        dict: A message indicating success or failure of the deletion.
     """
 
     return remove_company(session=session, company_id=company_id)

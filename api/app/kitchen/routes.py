@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.app.common.dependencies import SessionDep
 from api.app.kitchen.crud import (
@@ -11,6 +11,7 @@ from api.app.kitchen.crud import (
     get_kitchen_by_id,
 )
 from api.app.kitchen.schemas import KitchenResponse, KitchenCreate, KitchenUpdate
+from api.app.user.crud import is_admin
 
 router = APIRouter()
 
@@ -47,7 +48,11 @@ def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
 
 
 @router.post("/")
-def post_country(session: SessionDep, kitchen: KitchenCreate) -> KitchenResponse:
+def post_country(
+        session: SessionDep,
+        kitchen: KitchenCreate,
+        _: None = Depends(is_admin),
+) -> KitchenResponse:
     """
     Create a new kitchen in the database.
 
@@ -64,7 +69,10 @@ def post_country(session: SessionDep, kitchen: KitchenCreate) -> KitchenResponse
 
 @router.put("/{kitchen_id}/")
 def put_country(
-    session: SessionDep, kitchen_id: int, kitchen: KitchenUpdate
+        session: SessionDep,
+        kitchen_id: int,
+        kitchen: KitchenUpdate,
+        _: None = Depends(is_admin),
 ) -> KitchenResponse:
     """
     Update an existing kitchen in the database.
@@ -82,7 +90,11 @@ def put_country(
 
 
 @router.delete("/{kitchen_id}/")
-def delete_country(session: SessionDep, kitchen_id: int) -> dict:
+def delete_country(
+        session: SessionDep,
+        kitchen_id: int,
+        _: None = Depends(is_admin),
+) -> dict:
     """
     Delete an existing kitchen from the database.
 

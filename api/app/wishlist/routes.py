@@ -13,7 +13,8 @@ router = APIRouter()
 
 @router.get("/")
 def get_cart(
-        session: SessionDep, current_user: User = Depends(get_current_user)
+        session: SessionDep,
+        current_user: User = Depends(get_current_user),
 ) -> List[WishlistItemResponse]:
     return get_wishlist_items(session=session, user_id=current_user.id)
 
@@ -29,6 +30,8 @@ def post_cart_item(
 
 @router.delete("/remove/{item_id}")
 def delete_cart_item(
-        session: SessionDep, item_id: int, current_user: User = Depends(get_current_user)
+        session: SessionDep,
+        item_id: int,
+        current_user: User = Depends(get_current_user),
 ) -> dict:
     return remove_wishlist_item(session=session, user_id=current_user.id, item_id=item_id)

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, Depends
 
 from api.app.common.dependencies import SessionDep
 from api.app.product.crud import (
@@ -11,6 +11,7 @@ from api.app.product.crud import (
     remove_product,
 )
 from api.app.product.schemas import ProductCreate, ProductResponse, ProductPatch
+from api.app.user.crud import is_admin
 
 router = APIRouter()
 
@@ -52,7 +53,8 @@ def company_detail(product_id: int, session: SessionDep) -> ProductResponse:
 
 @router.post("/")
 async def post_product(
-        session: SessionDep, product: ProductCreate = Depends(ProductCreate.as_form)
+        session: SessionDep, product: ProductCreate = Depends(ProductCreate.as_form),
+        _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Create a new product in the database.
@@ -73,6 +75,7 @@ async def put_company(
         product_id: int,
         session: SessionDep,
         product: ProductCreate = Depends(ProductCreate.as_form),
+        _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Update a product in the database.
@@ -94,6 +97,7 @@ async def patch_company(
         product_id: int,
         session: SessionDep,
         product: ProductPatch = Depends(ProductPatch.as_form),
+        _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Patch a product in the database.
@@ -111,7 +115,11 @@ async def patch_company(
 
 
 @router.delete("/{product_id}/")
-def delete_company(product_id: int, session: SessionDep) -> dict:
+def delete_company(
+        product_id: int,
+        session: SessionDep,
+        _: None = Depends(is_admin)
+) -> dict:
     """
     Delete a product from the database.
 

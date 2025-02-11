@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.app.common.dependencies import SessionDep
 from api.app.country.crud import (
@@ -11,6 +11,7 @@ from api.app.country.crud import (
     get_country_by_id,
 )
 from api.app.country.schemas import CountryResponse, CountryCreate, CountryUpdate
+from api.app.user.crud import is_admin
 
 router = APIRouter()
 
@@ -31,7 +32,11 @@ def get_countries(session: SessionDep) -> List[CountryResponse]:
 
 
 @router.post("/")
-def post_country(session: SessionDep, country: CountryCreate) -> CountryResponse:
+def post_country(
+        session: SessionDep,
+        country: CountryCreate,
+        _: None = Depends(is_admin),
+) -> CountryResponse:
     """
     Create a new country in the database.
 
@@ -47,7 +52,8 @@ def post_country(session: SessionDep, country: CountryCreate) -> CountryResponse
 
 
 @router.get("/{country_id}/")
-def kitchen_get(session: SessionDep, country_id: int) -> CountryResponse:
+def kitchen_get(
+        session: SessionDep, country_id: int) -> CountryResponse:
     """
     Retrieve a country by id.
 
@@ -64,7 +70,10 @@ def kitchen_get(session: SessionDep, country_id: int) -> CountryResponse:
 
 @router.put("/{country_id}/")
 def put_country(
-        session: SessionDep, country_id: int, country: CountryUpdate
+        session: SessionDep,
+        country_id: int,
+        country: CountryUpdate,
+        _: None = Depends(is_admin),
 ) -> CountryResponse:
     """
     Update an existing country in the database.
@@ -82,7 +91,11 @@ def put_country(
 
 
 @router.delete("/{country_id}/")
-def delete_country(session: SessionDep, country_id: int) -> dict:
+def delete_country(
+        session: SessionDep,
+        country_id: int,
+        _: None = Depends(is_admin),
+) -> dict:
     """
     Delete an existing country in the database.
 

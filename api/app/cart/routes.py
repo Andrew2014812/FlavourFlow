@@ -13,10 +13,11 @@ router = APIRouter()
 
 @router.get("/")
 def get_cart(
-        session: SessionDep, current_user: User = Depends(get_current_user)
+        session: SessionDep,
+        current_user: User = Depends(get_current_user),
 ) -> List[CartItemResponse]:
     """
-    Get the items in the user's cart.
+    Retrieve the items in the user's cart.
 
     Args:
         session (SessionDep): The database session.
@@ -36,7 +37,7 @@ def post_cart_item(
         current_user: User = Depends(get_current_user),
 ) -> CartItemResponse:
     """
-    Add an item to the cart.
+    Add a new item to the user's cart.
 
     Args:
         new_item (CartItemCreate): The item to add.
@@ -52,18 +53,20 @@ def post_cart_item(
 
 @router.delete("/remove/{item_id}")
 def delete_cart_item(
-        session: SessionDep, item_id: int, current_user: User = Depends(get_current_user)
+        session: SessionDep,
+        item_id: int,
+        current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Remove an item from the user's cart.
 
     Args:
         session (SessionDep): The database session.
-        item_id (int): The ID of the item to remove from the cart.
-        current_user (User, optional): The user whose cart item is being removed. Defaults to the current user.
+        item_id (int): The ID of the item to remove.
+        current_user (User, optional): The user to remove the item for. Defaults to the current user.
 
     Returns:
-        dict: A message indicating the success or failure of the removal.
+        dict: A message indicating the success of the removal.
     """
 
     return remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)
