@@ -10,7 +10,7 @@ from sqlmodel import select, or_
 from api.app.common.dependencies import SessionDep
 from api.app.user.models import User
 from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token, UserPatch
-from application.config import ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
+from bot.config import ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
 

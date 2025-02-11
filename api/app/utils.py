@@ -5,7 +5,7 @@ import cloudinary.uploader
 from cloudinary.exceptions import Error as CloudinaryError, GeneralError
 from fastapi import UploadFile, File
 
-from application.cloudinary_config import configure_cloudinary
+from api.app.cloudinary_config import configure_cloudinary
 
 configure_cloudinary()
 
