@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 
 import phonenumbers
@@ -48,6 +49,11 @@ class UserPatch(UserCreate):
     phone_number: Optional[str] = Field(default=None)
     telegram_id: Optional[int] = Field(default=None)
     password: Optional[str] = Field(default=None)
+
+
+class UserRole(Enum):
+    ADMIN = "admin"
+    USER = "user"
 
 
 class Token(SQLModel):

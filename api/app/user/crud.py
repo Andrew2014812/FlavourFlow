@@ -72,6 +72,19 @@ def remove_user(session: SessionDep, user_id: int):
     session.commit()
 
 
+def change_user_role(session: SessionDep, user_id: int, role: str) -> UserResponse:
+    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    existing_user.role = role
+    session.commit()
+    session.refresh(existing_user)
+
+    return existing_user
+
+
 def get_user_by_params(
         session: SessionDep, phone_number: str, telegram_id: int, username: str
 ) -> UserResponse | List[UserResponse]:

@@ -8,9 +8,9 @@ from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
-    authenticate_user, update_user, get_current_user, is_admin, remove_user,
+    authenticate_user, update_user, get_current_user, is_admin, remove_user, change_user_role,
 )
-from api.app.user.schemas import Token, UserPatch
+from api.app.user.schemas import Token, UserPatch, UserRole
 from ..user.schemas import UserCreate, UserResponse
 
 router = APIRouter()
@@ -140,3 +140,21 @@ def retrieve_user_by_id(user_id: int, session: SessionDep) -> UserResponse:
     """
 
     return get_user_by_id(user_id=user_id, session=session)
+
+
+@router.post("/promote/")
+def promote_user(
+        user_id: int,
+        session: SessionDep,
+        _: None = Depends(is_admin),
+) -> UserResponse:
+    return change_user_role(session=session, user_id=user_id, role=UserRole.ADMIN.value)
+
+
+@router.post("/demote/")
+def demote_user(
+        user_id: int,
+        session: SessionDep,
+        _: None = Depends(is_admin),
+) -> UserResponse:
+    return change_user_role(session=session, user_id=user_id, role=UserRole.USER.value)
