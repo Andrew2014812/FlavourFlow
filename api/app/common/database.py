@@ -7,10 +7,10 @@ import api.app.kitchen.models  # noqa
 import api.app.product.models  # noqa
 import api.app.user.models  # noqa
 import api.app.wishlist.models  # noqa
-from bot.config import db_name, db_user, db_password, db_host, db_port
+from bot.config import PG_DB_NAME, PG_DB_USER, PG_DB_PASSWORD, PG_DB_HOST, PG_DB_PORT
 
 SQLALCHEMY_DATABASE_URL = (
-    f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    f"postgresql://{PG_DB_USER}:{PG_DB_PASSWORD}@{PG_DB_HOST}:{PG_DB_PORT}/{PG_DB_NAME}"
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

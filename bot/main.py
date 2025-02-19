@@ -9,11 +9,13 @@ from bot.config import TG_TOKEN
 from bot.handlers.command_handlers import register_command_handler
 
 # from application.handlers.input_handler import register_input_handler
+from bot.common.database import create_db_and_tables
 
 API_TOKEN = TG_TOKEN
 
 
 async def main():
+    create_db_and_tables()
     logging.basicConfig(level=logging.INFO)
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())

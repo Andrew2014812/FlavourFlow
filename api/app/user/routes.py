@@ -1,7 +1,6 @@
 from typing import List
 
 from fastapi import APIRouter, status, Query, Depends
-from fastapi.security import OAuth2PasswordRequestForm
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.crud import (
@@ -10,7 +9,7 @@ from api.app.user.crud import (
     get_user_by_id,
     authenticate_user, update_user, get_current_user, is_admin, remove_user, change_user_role,
 )
-from api.app.user.schemas import Token, UserPatch, UserRole
+from api.app.user.schemas import Token, UserPatch, UserRole, UserLogin
 from ..user.schemas import UserCreate, UserResponse
 
 router = APIRouter()
@@ -21,26 +20,21 @@ def retrieve_user(
         session: SessionDep,
         phone_number: str = Query(default=None, description="Filter by phone_number"),
         telegram_id: int = Query(default=None, description="Filter by telegram id"),
-        username: str = Query(default=None, description="Filter by username"),
         _: None = Depends(is_admin),
 ) -> UserResponse | List[UserResponse]:
     """
-    Retrieve a user or list of users by optional filters phone_number, telegram_id, or username.
+    Get a user by params.
 
-    Args:
-        session (SessionDep): The database session
-        phone_number (str): Filter by phone_number
-        telegram_id (int): Filter by telegram id
-        username (str): Filter by username
+    If `phone_number` and `telegram_id` are `None`, return all users.
+    If `phone_number` is provided, return a user with the phone number.
+    If `telegram_id` is provided, return a user with the telegram id.
 
-    Returns:
-        UserResponse | List[UserResponse]: The retrieved user(s)
+    Requires admin privileges.
     """
 
     return get_user_by_params(
         phone_number=phone_number,
         telegram_id=telegram_id,
-        username=username,
         session=session,
     )
 
@@ -58,7 +52,7 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
         UserResponse: The created user
     """
 
-    return create_user(user=user, session=session)
+    return create_user(session=session, user=user)
 
 
 @router.put("/update/me/", status_code=status.HTTP_200_OK)
@@ -110,20 +104,21 @@ def delete_user(
 
 @router.post("/token/")
 async def login_for_access_token(
-        session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()
+        session: SessionDep,
+        user: UserLogin,
 ) -> Token:
     """
-    Login to retrieve an access token.
+    Login to get an access token.
 
     Args:
         session (SessionDep): The database session
-        form_data (OAuth2PasswordRequestForm): The username and password to authenticate
+        user (UserLogin): The user data to login
 
     Returns:
         Token: The access token
     """
 
-    return authenticate_user(session, form_data.username, form_data.password)
+    return authenticate_user(session, user)
 
 
 @router.get("/{user_id}/")

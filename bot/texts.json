@@ -1,23 +1,23 @@
 {
   "buttons": {
-    "ua": [
-      "Профіль 😊",
-      "Про нас 🏠",
-      "Ресторани 🍴",
-      "Напишіть нам ✉️",
-      "Доставка та оплата 🚛",
-      "Замовлення 📦",
-      "Список бажань ⭐️"
-    ],
-    "en": [
-      "Profile 😊",
-      "About 🏠",
-      "Restaurants 🍴",
-      "Write to us ✉️",
-      "Delivery and Payment 🚛",
-      "Orders 📦",
-      "Wishlist ⭐️"
-    ]
+    "ua": {
+      "profile": "Профіль 😊",
+      "about_us": "Про нас 🏠",
+      "restaurants": "Ресторани 🍴",
+      "contact_us": "Напишіть нам ✉️",
+      "delivery_and_payment": "Доставка та оплата 🚛",
+      "orders": "Замовлення 📦",
+      "wishlist": "Список бажань ⭐️"
+    },
+    "en": {
+      "profile": "Profile 😊",
+      "about_us": "About 🏠",
+      "restaurants": "Restaurants 🍴",
+      "contact_us": "Write to us ✉️",
+      "delivery_and_payment": "Delivery and Payment 🚛",
+      "orders": "Orders 📦",
+      "wishlist": "Wishlist ⭐️"
+    }
   },
   "language_buttons": [
     "🇺🇦 Українська",
@@ -30,7 +30,7 @@
       "request_phone": "Будь ласка, введіть свій номер телефону або поділіться контактом:",
       "share_contact": "Натисніть кнопку, щоб поділитися своїм контактом:",
       "send_contact": "Поділитися контактом",
-      "contact_received": "Дякуємо! Ось ваша інформація:\nІм'я: {first_name}\nПрізвище: {last_name}\nТелефон: {phone_number}",
+      "contact_received": "Дякуємо! Ви зареєстровані!",
       "settings_message": "Ви заходите в налаштування.",
       "profile_message": "Це ваш профіль.",
       "help_message": "Як можу вам допомогти?",
@@ -43,7 +43,7 @@
       "request_phone": "Please enter your phone number or share your contact:",
       "share_contact": "Tap the button to share your contact:",
       "send_contact": "Share contact",
-      "contact_received": "Thank you! Here is your information:\nName: {first_name}\nLast name: {last_name}\nPhone: {phone_number}",
+      "contact_received": "Thank you! You are registered!",
       "settings_message": "You are entering settings.",
       "profile_message": "This is your profile.",
       "help_message": "How can I help you?",

@@ -3,6 +3,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import KeyboardButton, Message
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from api.app.user.schemas import UserCreate
+from bot.common.crud import register_user
 from bot.common.utils import get_text, load_texts_from_json
 from bot.config import texts_json_path
 from bot.handlers.button_handlers import button_handlers
@@ -16,7 +18,7 @@ buttons, language_buttons = load_texts_from_json(texts_json_path)
 
 def get_reply_keyboard(language: str):
     builder = ReplyKeyboardBuilder()
-    for button in buttons.get(language, []):
+    for button in buttons.get(language, {}).values():
         builder.add(KeyboardButton(text=button))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
@@ -54,8 +56,7 @@ async def handle_language_choice(message: Message):
     user_languages[user_id] = language_code
 
     await message.answer(
-        get_text("request_phone", language_code),
-        reply_markup=None
+        get_text("request_phone", language_code)
     )
 
     await message.answer(
@@ -69,16 +70,17 @@ async def handle_contact(message: Message):
     user_id = message.from_user.id
     language = user_languages.get(user_id, "ua")
 
-    first_name = message.contact.first_name
-    last_name = message.contact.last_name or ""
-    phone_number = message.contact.phone_number
+    user_create = UserCreate(
+        first_name=message.contact.first_name,
+        last_name=message.contact.last_name,
+        phone_number=message.contact.phone_number,
+        telegram_id=message.from_user.id
+    )
+
+    await register_user(user_create)
 
     await message.answer(
-        get_text("contact_received", language).format(
-            first_name=first_name,
-            last_name=last_name,
-            phone_number=phone_number
-        ),
+        get_text("contact_received", language),
         reply_markup=get_reply_keyboard(language)
     )
 
@@ -88,7 +90,7 @@ async def handle_buttons(message: Message):
     user_id = message.from_user.id
     language = user_languages.get(user_id, "ua")
 
-    if message.text in buttons.get(language, []):
+    if message.text in buttons.get(language, {}).values():
 
         handler = button_handlers.get(message.text)
         if handler:
