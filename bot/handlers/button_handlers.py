@@ -18,7 +18,7 @@ def register_button_handler(*button_texts):
     return decorator
 
 
-@register_button_handler("Настройки")
+@register_button_handler("Настройк")
 async def handle_settings(message: Message, language: str):
     await message.answer(get_text("settings_message", language))
 
