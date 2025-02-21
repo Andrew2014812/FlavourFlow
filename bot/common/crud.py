@@ -38,7 +38,7 @@ async def login_user(user_data: UserLogin):
 def create_user_info(user_id: int, token: str):
     with Session(engine) as session:
         existing_user = session.exec(select(UserInfo).where(UserInfo.user_id == user_id)).first()
-        print('test')
+
         if existing_user:
             return False
 
