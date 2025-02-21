@@ -169,11 +169,12 @@ def authenticate_user(session: SessionDep, user_login: UserLogin) -> Token:
     access_token = create_access_token(
         data={
             "phone_number": existing_user.phone_number,
+            "telegram_id": existing_user.telegram_id,
             "role": existing_user.role,
         },
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token, token_type="bearer")
+    return Token(access_token=access_token, token_type="bearer", telegram_id=existing_user.telegram_id)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

@@ -42,6 +42,7 @@ class UserRole(Enum):
 class Token(SQLModel):
     access_token: str
     token_type: str
+    telegram_id: int
 
 
 class TokenData(SQLModel):

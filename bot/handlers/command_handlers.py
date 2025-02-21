@@ -77,10 +77,15 @@ async def handle_contact(message: Message):
         telegram_id=message.from_user.id
     )
 
-    await register_user(user_create)
+    result = await register_user(user_create)
+
+    if result:
+        message_text = "contact_received"
+    else:
+        message_text = "contact_already_registered"
 
     await message.answer(
-        get_text("contact_received", language),
+        get_text(message_text, language),
         reply_markup=get_reply_keyboard(language)
     )
 
