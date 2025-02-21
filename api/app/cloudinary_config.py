@@ -1,5 +1,5 @@
 import cloudinary
-from application.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+from bot.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 
 def configure_cloudinary():
     cloudinary.config(

@@ -1,0 +1,56 @@
+{
+  "buttons": {
+    "ua": {
+      "profile": "Профіль 😊",
+      "about_us": "Про нас 🏠",
+      "restaurants": "Ресторани 🍴",
+      "contact_us": "Напишіть нам ✉️",
+      "delivery_and_payment": "Доставка та оплата 🚛",
+      "orders": "Замовлення 📦",
+      "wishlist": "Список бажань ⭐️"
+    },
+    "en": {
+      "profile": "Profile 😊",
+      "about_us": "About 🏠",
+      "restaurants": "Restaurants 🍴",
+      "contact_us": "Write to us ✉️",
+      "delivery_and_payment": "Delivery and Payment 🚛",
+      "orders": "Orders 📦",
+      "wishlist": "Wishlist ⭐️"
+    }
+  },
+  "language_buttons": [
+    "🇺🇦 Українська",
+    "🇬🇧 English"
+  ],
+  "texts": {
+    "ua": {
+      "select_language": "Будь ласка, виберіть мову:",
+      "language_set": "Мова встановлена! Тепер ви можете користуватися ботом.",
+      "request_phone": "Будь ласка, введіть свій номер телефону або поділіться контактом:",
+      "share_contact": "Натисніть кнопку, щоб поділитися своїм контактом:",
+      "send_contact": "Поділитися контактом",
+      "contact_received": "Дякуємо! Ви зареєстровані!",
+      "contact_already_registered": "Ви вже зареєстровані. Ради бачити Вас знову!",
+      "settings_message": "Ви заходите в налаштування.",
+      "profile_message": "Це ваш профіль.",
+      "help_message": "Як можу вам допомогти?",
+      "unknown_option": "Невідома опція.",
+      "use_buttons": "Будь ласка, використовуйте кнопки нижче."
+    },
+    "en": {
+      "select_language": "Please select a language:",
+      "language_set": "Language set! You can now use the bot.",
+      "request_phone": "Please enter your phone number or share your contact:",
+      "share_contact": "Tap the button to share your contact:",
+      "send_contact": "Share contact",
+      "contact_received": "Thank you! You are registered!",
+      "contact_already_registered": "You're already registered. Welcome back!",
+      "settings_message": "You are entering settings.",
+      "profile_message": "This is your profile.",
+      "help_message": "How can I help you?",
+      "unknown_option": "Unknown option.",
+      "use_buttons": "Please use the buttons below."
+    }
+  }
+}
