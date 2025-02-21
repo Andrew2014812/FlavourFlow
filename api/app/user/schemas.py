@@ -1,15 +1,16 @@
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
+from sqlalchemy import BigInteger, Column
 from sqlmodel import Field, SQLModel
 
 
 class UserBase(SQLModel):
     first_name: str
-    last_name: str = Field(nullable=True)
+    last_name: Optional[str] = Field(nullable=True, default=None)
     phone_number: str = Field(unique=True, index=True)
     bonuses: float = Field(default=0)
-    telegram_id: int = Field(unique=True, index=True)
+    telegram_id: int = Field(sa_column=Column(BigInteger))
     role: str = Field(default='user')
 
 
@@ -18,6 +19,7 @@ class UserCreate(SQLModel):
     last_name: Optional[str] = Field(default=None)
     phone_number: str
     telegram_id: int
+
 
 class UserLogin(SQLModel):
     phone_number: str

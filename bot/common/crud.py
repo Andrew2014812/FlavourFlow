@@ -2,7 +2,7 @@ from enum import Enum
 
 from sqlmodel import Session, select
 
-from api.app.user.schemas import UserCreate, UserResponse, Token, UserLogin
+from api.app.user.schemas import UserCreate, Token, UserLogin
 from bot.common.database import engine
 from bot.common.models import UserInfo
 from bot.common.utils import make_request
