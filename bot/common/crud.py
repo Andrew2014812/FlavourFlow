@@ -1,5 +1,7 @@
 from enum import Enum
 
+from fastapi import status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.app.user.schemas import UserCreate, Token, UserLogin
@@ -20,7 +22,7 @@ async def register_user(user_data: UserCreate):
                                             user_data.model_dump(),
                                             APIRequests.POST.value)
 
-    if response_status == 201 or response_status == 400:
+    if response_status == status.HTTP_201_CREATED or response_status == status.HTTP_400_BAD_REQUEST:
         user = UserLogin(phone_number=user_data.phone_number)
         return await login_user(user)
 
@@ -42,9 +44,15 @@ def create_user_info(user_id: int, token: str):
         if existing_user:
             return False
 
-        user_info = UserInfo(user_id=user_id, token=token)
-        session.add(user_info)
-        session.commit()
-        session.close()
+        try:
+            user_info = UserInfo(user_id=user_id, token=token)
+            session.add(user_info)
+            session.commit()
+
+        except IntegrityError:
+            session.rollback()
+            return False
+        finally:
+            session.close()
 
         return True

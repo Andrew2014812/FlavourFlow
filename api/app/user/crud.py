@@ -222,6 +222,6 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
 
 def is_admin(user: User = Depends(get_current_user)):
     if user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
     return user
