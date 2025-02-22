@@ -1,6 +1,6 @@
 from aiogram import Router, Dispatcher, F
 from aiogram.filters import CommandStart
-from aiogram.types import KeyboardButton, Message
+from aiogram.types import KeyboardButton, Message, CallbackQuery
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from api.app.user.schemas import UserCreate
@@ -9,6 +9,7 @@ from bot.common.bot_crud import create_user_info, get_user_info, update_user_inf
 from bot.common.utils import get_text
 from bot.config import buttons, language_buttons
 from bot.handlers.button_handlers import button_handlers
+from bot.handlers.callback_handlers import callback_handlers
 
 router = Router()
 
@@ -103,6 +104,19 @@ async def handle_buttons(message: Message):
             await message.answer(get_text("unknown_option", language_code))
     else:
         await message.answer(get_text("use_buttons", language_code))
+
+
+@router.callback_query()
+async def handle_callbacks(callback: CallbackQuery):
+    telegram_id = callback.from_user.id
+    language_code = get_user_info(telegram_id).language_code
+
+    for prefix, handler in callback_handlers.items():
+        if callback.data.startswith(prefix):
+            await handler(callback, language_code)
+            return
+
+    await callback.answer("Unknown action")
 
 
 def register_command_handler(dp: Dispatcher):

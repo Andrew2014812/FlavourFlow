@@ -1,4 +1,4 @@
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from api.app.user.schemas import UserResponseMe
 from bot.common.api_crud import get_user
@@ -36,7 +36,12 @@ async def handle_profile(message: Message, language: str):
 
     profile_text = get_text("profile_message", language).format(**profile_data)
 
-    await message.answer(profile_text)
+    edit_text = "Редагувати профіль" if language == "ua" else "Edit profile"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=edit_text, callback_data="edit_profile")]
+    ])
+
+    await message.answer(profile_text, reply_markup=keyboard)
 
 
 @register_button_handler("Помощь")

@@ -59,7 +59,6 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
 def get_me(
         current_user: UserResponseMe = Depends(get_current_user),
 ) -> UserResponseMe:
-    print(current_user)
     return current_user
 
 
