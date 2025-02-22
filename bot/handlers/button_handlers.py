@@ -1,12 +1,9 @@
 from aiogram.types import Message
 
-from bot.common.utils import load_texts_from_json
-from bot.config import texts_json_path
+from bot.config import buttons
 from bot.handlers.command_handlers import get_text
 
 button_handlers = {}
-
-buttons, _ = load_texts_from_json(texts_json_path)
 
 
 def register_button_handler(*button_texts):

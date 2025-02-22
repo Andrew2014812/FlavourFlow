@@ -1,3 +1,4 @@
+import json
 import os
 
 from dotenv import load_dotenv
@@ -17,6 +18,17 @@ def get_env_variable(var_name: str, default_var_name: str = None) -> str:
     return value
 
 
+def load_texts_from_json(param: str):
+    with open(texts_json_path, encoding='utf-8') as file:
+        data: dict = json.load(file)
+        texts = data.get(param)
+
+    return texts
+
+
+texts = load_texts_from_json('texts')
+buttons = load_texts_from_json('buttons')
+language_buttons = load_texts_from_json('language_buttons')
 TG_TOKEN = get_env_variable("TG_TOKEN")
 GROUP_ID = get_env_variable("GROUP_ID")
 ADMIN_ID = get_env_variable("ADMIN_ID")

@@ -4,16 +4,13 @@ from aiogram.types import KeyboardButton, Message
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from api.app.user.schemas import UserCreate
-from bot.common.crud import register_user
-from bot.common.utils import get_text, load_texts_from_json
-from bot.config import texts_json_path
+from bot.common.api import register_user, login_user
+from bot.common.crud import create_user_info, get_user_info, update_user_info
+from bot.common.utils import get_text
+from bot.config import buttons, language_buttons
 from bot.handlers.button_handlers import button_handlers
 
 router = Router()
-
-user_languages = {}
-
-buttons, language_buttons = load_texts_from_json(texts_json_path)
 
 
 def get_reply_keyboard(language: str):
@@ -26,7 +23,6 @@ def get_reply_keyboard(language: str):
 
 def get_language_keyboard():
     builder = ReplyKeyboardBuilder()
-    print(language_buttons)
     for button in language_buttons:
         builder.add(KeyboardButton(text=button))
     builder.adjust(2)
@@ -51,9 +47,9 @@ async def cmd_start(message: Message):
 
 @router.message(F.text.in_(language_buttons))
 async def handle_language_choice(message: Message):
-    user_id = message.from_user.id
+    telegram_id = message.from_user.id
     language_code = "ua" if message.text == "🇺🇦 Українська" else "en"
-    user_languages[user_id] = language_code
+    create_user_info(telegram_id, language_code)
 
     await message.answer(
         get_text("request_phone", language_code)
@@ -68,43 +64,47 @@ async def handle_language_choice(message: Message):
 @router.message(F.content_type == "contact")
 async def handle_contact(message: Message):
     user_id = message.from_user.id
-    language = user_languages.get(user_id, "ua")
+    user_info = get_user_info(user_id)
 
-    user_create = UserCreate(
-        first_name=message.contact.first_name,
-        last_name=message.contact.last_name,
-        phone_number=message.contact.phone_number,
-        telegram_id=message.from_user.id
-    )
 
-    result = await register_user(user_create)
+    if not user_info.is_registered:
+        user_create = UserCreate(
+            first_name=message.contact.first_name,
+            last_name=message.contact.last_name,
+            phone_number=message.contact.phone_number,
+            telegram_id=message.from_user.id
+        )
 
-    if result:
-        message_text = "contact_received"
-    else:
-        message_text = "contact_already_registered"
+        user = await register_user(user_create)
+        user_info = update_user_info(user.telegram_id, is_registered=True, phone_number=user.phone_number)
+
+    token = await login_user(user_info)
+    update_user_info(user_info.telegram_id, access_token=token.access_token, token_type=token.token_type)
+    message_text = "contact_received"
+
+
 
     await message.answer(
-        get_text(message_text, language),
-        reply_markup=get_reply_keyboard(language)
+        get_text(message_text, user_info.language_code),
+        reply_markup=get_reply_keyboard(user_info.language_code)
     )
 
 
 @router.message()
 async def handle_buttons(message: Message):
     user_id = message.from_user.id
-    language = user_languages.get(user_id, "ua")
+    language_code = get_user_info(user_id).language_code
 
-    if message.text in buttons.get(language, {}).values():
+    if message.text in buttons.get(language_code, {}).values():
 
         handler = button_handlers.get(message.text)
         if handler:
 
-            await handler(message, language)
+            await handler(message, language_code)
         else:
-            await message.answer(get_text("unknown_option", language))
+            await message.answer(get_text("unknown_option", language_code))
     else:
-        await message.answer(get_text("use_buttons", language))
+        await message.answer(get_text("use_buttons", language_code))
 
 
 def register_command_handler(dp: Dispatcher):

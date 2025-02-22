@@ -59,7 +59,7 @@ def remove_cart_item(session: SessionDep, user_id: int, item_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart not found")
 
     item_to_delete = get_item_by_id(session, item_id)
-    if item_to_delete.cart.user_id != user_id:
+    if item_to_delete.cart.telegram_id != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="You can delete only your own item")
 
     session.delete(item_to_delete)

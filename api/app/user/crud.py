@@ -174,7 +174,7 @@ def authenticate_user(session: SessionDep, user_login: UserLogin) -> Token:
         },
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token, token_type="bearer", telegram_id=existing_user.telegram_id)
+    return Token(access_token=access_token, token_type="Bearer", telegram_id=existing_user.telegram_id)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
