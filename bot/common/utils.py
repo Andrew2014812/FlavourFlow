@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Dict
 
 from aiohttp import ClientSession
 
@@ -14,7 +14,7 @@ async def make_request(
         method: str,
         body: Dict = None,
         params: Dict = None,
-        headers: Dict = None
+        headers: Dict = None,
 ) -> Dict:
     async with ClientSession() as session:
         method_func = getattr(session, method)

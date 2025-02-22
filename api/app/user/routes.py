@@ -10,7 +10,7 @@ from api.app.user.crud import (
     authenticate_user, update_user, get_current_user, is_admin, remove_user, change_user_role,
 )
 from api.app.user.schemas import Token, UserPatch, UserRole, UserLogin
-from ..user.schemas import UserCreate, UserResponse
+from ..user.schemas import UserCreate, UserResponse, UserResponseMe
 
 router = APIRouter()
 
@@ -53,6 +53,14 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
     """
 
     return create_user(session=session, user=user)
+
+
+@router.get("/me/")
+def get_me(
+        current_user: UserResponseMe = Depends(get_current_user),
+) -> UserResponseMe:
+    print(current_user)
+    return current_user
 
 
 @router.put("/update/me/", status_code=status.HTTP_200_OK)

@@ -4,8 +4,8 @@ from aiogram.types import KeyboardButton, Message
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from api.app.user.schemas import UserCreate
-from bot.common.api import register_user, login_user
-from bot.common.crud import create_user_info, get_user_info, update_user_info
+from bot.common.api_crud import register_user, login_user
+from bot.common.bot_crud import create_user_info, get_user_info, update_user_info
 from bot.common.utils import get_text
 from bot.config import buttons, language_buttons
 from bot.handlers.button_handlers import button_handlers
@@ -66,7 +66,6 @@ async def handle_contact(message: Message):
     user_id = message.from_user.id
     user_info = get_user_info(user_id)
 
-
     if not user_info.is_registered:
         user_create = UserCreate(
             first_name=message.contact.first_name,
@@ -82,8 +81,6 @@ async def handle_contact(message: Message):
     update_user_info(user_info.telegram_id, access_token=token.access_token, token_type=token.token_type)
     message_text = "contact_received"
 
-
-
     await message.answer(
         get_text(message_text, user_info.language_code),
         reply_markup=get_reply_keyboard(user_info.language_code)
@@ -92,15 +89,16 @@ async def handle_contact(message: Message):
 
 @router.message()
 async def handle_buttons(message: Message):
-    user_id = message.from_user.id
-    language_code = get_user_info(user_id).language_code
+    telegram_id = message.from_user.id
+    language_code = get_user_info(telegram_id).language_code
 
     if message.text in buttons.get(language_code, {}).values():
 
         handler = button_handlers.get(message.text)
-        if handler:
 
+        if handler:
             await handler(message, language_code)
+
         else:
             await message.answer(get_text("unknown_option", language_code))
     else:

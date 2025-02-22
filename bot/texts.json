@@ -33,10 +33,11 @@
       "contact_received": "Дякуємо! Ви в авторизовані!",
       "contact_failed": "Виникла помилка, спробуйте пізніше",
       "settings_message": "Ви заходите в налаштування.",
-      "profile_message": "Це ваш профіль.",
       "help_message": "Як можу вам допомогти?",
       "unknown_option": "Невідома опція.",
-      "use_buttons": "Будь ласка, використовуйте кнопки нижче."
+      "use_buttons": "Будь ласка, використовуйте кнопки нижче.",
+      "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}"
+
     },
     "en": {
       "select_language": "Please select a language:",
@@ -47,10 +48,10 @@
       "contact_received": "Thank you! You are authorized!",
       "contact_failed": "Error occured. Try again later",
       "settings_message": "You are entering settings.",
-      "profile_message": "This is your profile.",
       "help_message": "How can I help you?",
       "unknown_option": "Unknown option.",
-      "use_buttons": "Please use the buttons below."
+      "use_buttons": "Please use the buttons below.",
+      "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}"
     }
   }
 }
