@@ -23,22 +23,21 @@ async def handle_settings(message: Message, language: str):
 
 
 @register_button_handler(buttons["en"]["profile"], buttons["ua"]["profile"])
-async def handle_profile(message: Message, language: str):
+async def handle_profile(message: Message, language_code: str):
     user_data: UserResponseMe = await get_user(message.from_user.id)
 
     last_name = user_data.last_name if user_data.last_name else ""
     profile_data = {
         "name": f'{user_data.first_name} {last_name}',
-        "language": "Українська" if language == "ua" else "English",
+        "language": "Українська" if language_code == "ua" else "English",
         "bonuses": user_data.bonuses,
         "phone": user_data.phone_number
     }
 
-    profile_text = get_text("profile_message", language).format(**profile_data)
+    profile_text = get_text("profile_message", language_code).format(**profile_data)
 
-    edit_text = "Редагувати профіль" if language == "ua" else "Edit profile"
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=edit_text, callback_data="edit_profile")]
+        [InlineKeyboardButton(text=get_text('profile_edit', language_code), callback_data="edit_profile")]
     ])
 
     await message.answer(profile_text, reply_markup=keyboard)

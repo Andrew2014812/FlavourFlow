@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 
 from dotenv import load_dotenv
 
@@ -24,6 +25,18 @@ def load_texts_from_json(param: str):
         texts = data.get(param)
 
     return texts
+
+
+class APIMethods(Enum):
+    GET = "get"
+    POST = "post"
+    PUT = "put"
+    DELETE = "delete"
+    PATCH = "patch"
+
+
+class APIAuth(Enum):
+    AUTH = 'Authorization'
 
 
 texts = load_texts_from_json('texts')

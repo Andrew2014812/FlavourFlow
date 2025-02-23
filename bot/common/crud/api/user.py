@@ -6,14 +6,10 @@ from api.app.user.schemas import UserCreate, Token, UserLogin
 from api.app.user.schemas import UserResponseMe, UserResponse
 from bot.common.crud.bot.user_info import get_user_info
 from bot.common.utils import make_request
+from bot.config import APIAuth, APIMethods
 
 
-class APIRequests(Enum):
-    GET = "get"
-    POST = "post"
-    PUT = "put"
-    DELETE = "delete"
-    PATCH = "patch"
+class UserEndpoints(Enum):
     USER_GET_ME = "users/me/"
     USER_UPDATE_ME = "users/update/me/"
     USER_REGISTER = "users/register/"
@@ -27,9 +23,9 @@ async def get_user(telegram_id: int) -> UserResponseMe | None:
         return None
 
     response = await make_request(
-        sub_url=APIRequests.USER_GET_ME.value,
-        method=APIRequests.GET.value,
-        headers={'Authorization': f'{user_info.token_type} {user_info.access_token}'},
+        sub_url=UserEndpoints.USER_GET_ME.value,
+        method=APIMethods.GET.value,
+        headers={APIAuth.AUTH.value: f'{user_info.token_type} {user_info.access_token}'},
     )
 
     return UserResponseMe.model_validate(response.get('data'))
@@ -42,9 +38,9 @@ async def update_user(telegram_id: int, **fields) -> UserResponseMe | None:
         return None
 
     response = await make_request(
-        sub_url=APIRequests.USER_UPDATE_ME.value,
-        method=APIRequests.PATCH.value,
-        headers={'Authorization': f'{user_info.token_type} {user_info.access_token}'},
+        sub_url=UserEndpoints.USER_UPDATE_ME.value,
+        method=APIMethods.PATCH.value,
+        headers={APIAuth.AUTH.value: f'{user_info.token_type} {user_info.access_token}'},
         body=fields
     )
 
@@ -53,9 +49,9 @@ async def update_user(telegram_id: int, **fields) -> UserResponseMe | None:
 
 async def register_user(user_data: UserCreate) -> UserResponse:
     response = await make_request(
-        sub_url=APIRequests.USER_REGISTER.value,
+        sub_url=UserEndpoints.USER_REGISTER.value,
         body=user_data.model_dump(),
-        method=APIRequests.POST.value
+        method=APIMethods.POST.value
     )
 
     status_code = response.get('status')
@@ -66,9 +62,9 @@ async def register_user(user_data: UserCreate) -> UserResponse:
 
 async def login_user(user_data: UserLogin):
     response = await make_request(
-        sub_url=APIRequests.USER_LOGIN.value,
+        sub_url=UserEndpoints.USER_LOGIN.value,
         body=user_data.model_dump(),
-        method=APIRequests.POST.value
+        method=APIMethods.POST.value
     )
 
     token = Token.model_validate(response.get('data'))

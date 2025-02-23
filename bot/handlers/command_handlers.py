@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from bot.common.utils import get_text
-from bot.handlers.display_handlers import get_language_keyboard
+from bot.handlers.keyboard_handlers import get_language_keyboard
 
 router = Router()
 
