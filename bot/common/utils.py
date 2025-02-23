@@ -13,6 +13,7 @@ async def make_request(
         sub_url: str,
         method: str,
         body: Dict = None,
+        data: Dict = None,
         params: Dict = None,
         headers: Dict = None,
 ) -> Dict:
@@ -21,5 +22,5 @@ async def make_request(
 
         url = f"{API_BASE_URL}/{sub_url}"
 
-        async with method_func(url, json=body, params=params, headers=headers) as response:
+        async with method_func(url, json=body, data=data, params=params, headers=headers) as response:
             return {"status": response.status, "data": await response.json()}

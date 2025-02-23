@@ -32,8 +32,7 @@ async def create_company(session: SessionDep, company_create: CompanyCreate) -> 
         setattr(db_company, key, value)
 
     session.add(db_company)
-    session.commit()
-    session.refresh(db_company)
+    session.flush()
 
     try:
         image_name = f'COMPANY_ID-{db_company.id}'
@@ -46,8 +45,6 @@ async def create_company(session: SessionDep, company_create: CompanyCreate) -> 
 
     except GeneralError:
         session.rollback()
-        session.delete(db_company)
-        session.commit()
 
         raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
                             detail="Failed to create a company. Error during file upload.")

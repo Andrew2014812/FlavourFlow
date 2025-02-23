@@ -31,8 +31,7 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
         setattr(db_product, key, value)
 
     session.add(db_product)
-    session.commit()
-    session.refresh(db_product)
+    session.flush()
 
     try:
         image_name = f'PRODUCT_ID-{db_product.id}'
@@ -44,8 +43,6 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
         session.commit()
     except GeneralError:
         session.rollback()
-        session.delete(db_product)
-        session.commit()
 
         raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
                             detail="Failed to create a product. Error during file upload.")

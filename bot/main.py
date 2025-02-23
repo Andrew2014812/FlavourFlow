@@ -10,6 +10,7 @@ from bot.handlers.command_handlers import register_command_handlers
 from bot.handlers.callback_handlers import register_callback_handlers
 from bot.handlers.main_message_handlers import register_main_message_handlers
 from bot.handlers.profile.handlers import register_profile_handlers
+from bot.handlers.company.handlers import register_company_handlers
 
 
 async def main():
@@ -18,6 +19,7 @@ async def main():
     bot = Bot(token=TG_TOKEN)
     dispatcher = Dispatcher(storage=MemoryStorage())
 
+    register_company_handlers(dispatcher)
     register_profile_handlers(dispatcher)
     register_command_handlers(dispatcher)
     register_callback_handlers(dispatcher)
