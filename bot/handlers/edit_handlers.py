@@ -2,6 +2,7 @@ from aiogram import types, Router, Dispatcher
 from aiogram.types import CallbackQuery
 
 from bot.common.bot_crud import get_user_info
+from bot.common.utils import get_text
 
 router = Router()
 callback_handlers = {}
@@ -30,26 +31,9 @@ async def handle_callbacks(callback: CallbackQuery):
 
 @register_callback_handler("edit_profile")
 async def start_edit_profile(callback: types.CallbackQuery, language_code: str):
-    instruction = (
-        "Enter the fields you want to update in one message. Use this format:\n"
-        "Name: [new name]\n"
-        "Phone: [new phone number]\n"
-        "Bonuses: [new bonuses]\n\n"
-        "Example (update only what you need):\n"
-        "Phone: +380991234567\n"
-        "Bonuses: 200"
-        if language_code == "en" else
-        "Введіть поля, які хочете оновити, в одному повідомленні. Використовуйте цей формат:\n"
-        "Ім'я: [нове ім'я]\n"
-        "Телефон: [новий номер телефону]\n"
-        "Бонуси: [нові бонуси]\n\n"
-        "Приклад (оновіть лише потрібне):\n"
-        "Телефон: +380991234567\n"
-        "Бонуси: 200"
-    )
-    await callback.message.answer(instruction)
+    await callback.message.answer(get_text("update_profile_instruction", language_code))
     await callback.answer()
 
 
-def register_callback_handlers(dispatcher: Dispatcher):
+def register_edit_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

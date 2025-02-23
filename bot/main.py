@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.common.database import create_db_and_tables
 from bot.config import TG_TOKEN
-from bot.handlers.callback_handlers import register_callback_handlers
+from bot.handlers.edit_handlers import register_edit_handlers
 from bot.handlers.command_handlers import register_command_handlers
 from bot.handlers.message_handlers import register_message_handlers
 
@@ -19,7 +19,7 @@ async def main():
 
     register_command_handlers(dispatcher)
     register_message_handlers(dispatcher)
-    register_callback_handlers(dispatcher)
+    register_edit_handlers(dispatcher)
 
     await dispatcher.start_polling(bot)
 

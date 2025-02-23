@@ -9,7 +9,7 @@ from sqlmodel import select, or_
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.models import User
-from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token, UserPatch, UserLogin
+from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token, UserPatch, UserLogin, UserResponseMe
 from bot.config import JWT_ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
@@ -45,7 +45,7 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     return db_user
 
 
-def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponse:
+def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponseMe:
     existing_user = session.exec(select(User).where(User.id == user_id)).first()
 
     for key, value in user_update.model_dump(exclude_unset=True).items():

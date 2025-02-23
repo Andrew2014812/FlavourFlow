@@ -37,7 +37,10 @@
       "unknown_option": "Невідома опція.",
       "use_buttons": "Будь ласка, використовуйте кнопки нижче.",
       "settings_updated": "Налаштування оновлені. Приємного користування",
-      "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}"
+      "invalid_format": "Помилка Будь ласка використовуйте такий формат: 'Ім'я: Іван'",
+      "profile_updated": "Профіль оновлено!",
+      "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}",
+      "update_profile_instruction": "Ви можете оновити лише своє ім’я та прізвище. Використовуйте такий формат:\nІм’я: [нове ім’я]\nПрізвище: [нове прізвище]\n\nПриклад (оновіть лише потрібне):\n\nІм'я: Іван\nПрізвище: Іванов"
 
     },
     "en": {
@@ -52,7 +55,10 @@
       "unknown_option": "Unknown option.",
       "use_buttons": "Please use the buttons below.",
       "settings_updated": "Settings updated. Enjoy your use.",
-      "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}"
+      "invalid_format": "Error: Please use the correct format (e.g., 'First name: John').",
+      "profile_updated": "Profile updated!",
+      "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}",
+      "update_profile_instruction": "You can update only your first and last names. Use this format:\nFirst name: [new name]\nLast name: [last name]\n\nExample (update only what you need):\n\nFirst name: John\nLast name: Doe"
     }
   }
 }

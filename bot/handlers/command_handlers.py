@@ -15,6 +15,5 @@ async def cmd_start(message: Message):
         reply_markup=get_language_keyboard()
     )
 
-
 def register_command_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

@@ -75,8 +75,8 @@ def put_user(
 def put_user(
         session: SessionDep,
         user: UserPatch,
-        current_user: UserResponse = Depends(get_current_user),
-) -> UserResponse:
+        current_user: UserResponseMe = Depends(get_current_user),
+) -> UserResponseMe:
     return update_user(session=session, user_update=user, user_id=current_user.id)
 
 
