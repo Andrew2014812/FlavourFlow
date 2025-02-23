@@ -5,9 +5,15 @@ from sqlmodel import Field, SQLModel
 
 
 class ProductBase(SQLModel):
-    title: str = Field(max_length=100)
-    description: str = Field(max_length=255)
-    composition: str = Field(max_length=255)
+    title_ua: str = Field(max_length=100)
+    title_en: str = Field(max_length=100)
+
+    description_ua: str = Field(max_length=255)
+    description_en: str = Field(max_length=255)
+
+    composition_ua: str = Field(max_length=255)
+    composition_en: str = Field(max_length=255)
+
     image_link: str = Field(max_length=255, nullable=True, unique=True)
     image_id: str = Field(max_length=255, nullable=True, unique=True)
     product_category: str = Field(max_length=30)

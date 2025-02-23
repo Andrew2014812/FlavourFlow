@@ -2,8 +2,8 @@ from aiogram import F, Router, Dispatcher
 from aiogram.types import Message
 
 from api.app.user.schemas import UserCreate
-from bot.common.api_crud import register_user, login_user, get_user, update_user
-from bot.common.bot_crud import create_user_info, get_user_info, update_user_info
+from bot.common.crud.api.user import register_user, login_user, get_user, update_user
+from bot.common.crud.bot.user_info import create_user_info, get_user_info, update_user_info
 from bot.common.utils import get_text
 from bot.config import language_buttons, buttons
 from bot.handlers.button_handlers import button_handlers, handle_profile

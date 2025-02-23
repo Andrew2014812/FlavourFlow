@@ -2,7 +2,8 @@ from sqlmodel import Field, SQLModel
 
 
 class CountryBase(SQLModel):
-    title: str = Field(max_length=100, unique=True)
+    title_ua: str = Field(max_length=100, unique=True)
+    title_en: str = Field(max_length=100)
 
 
 class CountryResponse(CountryBase):

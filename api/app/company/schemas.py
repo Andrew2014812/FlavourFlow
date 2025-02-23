@@ -5,8 +5,12 @@ from sqlmodel import Field, SQLModel
 
 
 class CompanyBase(SQLModel):
-    title: str = Field(max_length=100, unique=True, nullable=False, index=True)
-    description: str = Field(max_length=255, nullable=False)
+    title_ua: str = Field(max_length=100, unique=True, nullable=False, index=True)
+    title_en: str = Field(max_length=100, unique=True, nullable=False, index=True)
+
+    description_ua: str = Field(max_length=255, nullable=False)
+    description_en: str = Field(max_length=255, nullable=False)
+
     image_link: str = Field(max_length=255, default='in progress', nullable=True)
     image_id: str = Field(max_length=255, default='in progress', nullable=True)
     rating: float = Field(default=0)
@@ -26,7 +30,6 @@ class CompanyCreate(SQLModel):
     country_id: int = 1
     kitchen_id: int = 1
 
-
     @classmethod
     def as_form(cls,
                 title: str = Form(...),
@@ -41,6 +44,7 @@ class CompanyCreate(SQLModel):
             country_id=country_id,
             kitchen_id=kitchen_id
         )
+
 
 class CompanyPatch(SQLModel):
     title: Optional[str] = Field(default=None)

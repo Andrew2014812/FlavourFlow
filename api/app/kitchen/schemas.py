@@ -2,7 +2,8 @@ from sqlmodel import Field, SQLModel
 
 
 class KitchenBase(SQLModel):
-    title: str = Field(max_length=100, unique=True)
+    title_ua: str = Field(max_length=100, unique=True)
+    title_en: str = Field(max_length=100, unique=True)
 
 
 class KitchenResponse(KitchenBase):
