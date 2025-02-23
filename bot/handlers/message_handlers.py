@@ -2,7 +2,7 @@ from aiogram import F, Router, Dispatcher
 from aiogram.types import Message
 
 from api.app.user.schemas import UserCreate
-from bot.common.api_crud import register_user, login_user
+from bot.common.api_crud import register_user, login_user, get_user
 from bot.common.bot_crud import create_user_info, get_user_info, update_user_info
 from bot.common.utils import get_text
 from bot.config import language_buttons, buttons
@@ -16,16 +16,25 @@ router = Router()
 async def handle_language_choice(message: Message):
     telegram_id = message.from_user.id
     language_code = "ua" if message.text == "🇺🇦 Українська" else "en"
-    create_user_info(telegram_id, language_code)
+    existing_user = await get_user(telegram_id)
 
-    await message.answer(
-        get_text("request_phone", language_code)
-    )
+    if existing_user:
+        update_user_info(telegram_id, language_code=language_code)
 
-    await message.answer(
-        get_text("share_contact", language_code),
-        reply_markup=get_contact_keyboard(language_code)
-    )
+        await message.answer(get_text("settings_updated", language_code),
+                             reply_markup=get_reply_keyboard(language_code))
+
+    else:
+        create_user_info(telegram_id, language_code)
+
+        await message.answer(
+            get_text("request_phone", language_code)
+        )
+
+        await message.answer(
+            get_text("share_contact", language_code),
+            reply_markup=get_contact_keyboard(language_code)
+        )
 
 
 @router.message(F.content_type == "contact")

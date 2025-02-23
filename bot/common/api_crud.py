@@ -16,8 +16,12 @@ class APIRequests(Enum):
     USER_LOGIN = "users/token/"
 
 
-async def get_user(telegram_id: int) -> UserResponseMe:
+async def get_user(telegram_id: int) -> UserResponseMe | None:
     user_info = get_user_info(telegram_id)
+
+    if not user_info or not user_info.is_registered:
+        return None
+
     response = await make_request(
         sub_url=APIRequests.USER_GET_ME.value,
         method=APIRequests.GET.value,

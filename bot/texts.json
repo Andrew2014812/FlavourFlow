@@ -25,7 +25,7 @@
   ],
   "texts": {
     "ua": {
-      "select_language": "Будь ласка, виберіть мову:",
+      "select_language": "Будь ласка, виберіть мову: | Please select a language:",
       "language_set": "Мова встановлена! Тепер ви можете користуватися ботом.",
       "request_phone": "Будь ласка, введіть свій номер телефону або поділіться контактом:",
       "share_contact": "Натисніть кнопку, щоб поділитися своїм контактом:",
@@ -36,11 +36,11 @@
       "help_message": "Як можу вам допомогти?",
       "unknown_option": "Невідома опція.",
       "use_buttons": "Будь ласка, використовуйте кнопки нижче.",
+      "settings_updated": "Налаштування оновлені. Приємного користування",
       "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}"
 
     },
     "en": {
-      "select_language": "Please select a language:",
       "language_set": "Language set! You can now use the bot.",
       "request_phone": "Please enter your phone number or share your contact:",
       "share_contact": "Tap the button to share your contact:",
@@ -51,6 +51,7 @@
       "help_message": "How can I help you?",
       "unknown_option": "Unknown option.",
       "use_buttons": "Please use the buttons below.",
+      "settings_updated": "Settings updated. Enjoy your use.",
       "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}"
     }
   }
