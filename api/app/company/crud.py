@@ -2,7 +2,7 @@ from typing import List
 
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
-from sqlmodel import select
+from sqlmodel import select, func
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
@@ -13,22 +13,23 @@ from api.app.utils import upload_file, delete_file
 COMPANY_NOT_FOUND = "Company not found"
 
 
-async def create_company(session: SessionDep, company: CompanyCreate) -> CompanyResponse:
-    existing_company = session.exec(
-        select(Company).filter(Company.title == company.title)
-    ).first()
+async def create_company(session: SessionDep, company_create: CompanyCreate) -> CompanyResponse:
+    statement = select(Company).filter(
+        Company.title_ua == company_create.title_ua,
+        Company.title_en == company_create.title_en
+    )
+
+    existing_company = session.exec(statement).first()
 
     if existing_company:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Company already exists"
         )
 
-    db_company = Company(
-        title=company.title,
-        description=company.description,
-        country_id=company.country_id,
-        kitchen_id=company.kitchen_id,
-    )
+    db_company = Company()
+
+    for key, value in company_create.model_dump(exclude='image').items():
+        setattr(db_company, key, value)
 
     session.add(db_company)
     session.commit()
@@ -36,12 +37,13 @@ async def create_company(session: SessionDep, company: CompanyCreate) -> Company
 
     try:
         image_name = f'COMPANY_ID-{db_company.id}'
-        image_data: dict = await upload_file(filename=image_name, folder='company', file=company.image)
+        image_data: dict = await upload_file(filename=image_name, folder='company', file=company_create.image)
 
         db_company.image_id = image_data.get('image_id')
         db_company.image_link = image_data.get('url')
 
         session.commit()
+
     except GeneralError:
         session.rollback()
         session.delete(db_company)
@@ -55,8 +57,16 @@ async def create_company(session: SessionDep, company: CompanyCreate) -> Company
 
 def get_all_companies(
         session: SessionDep, page: int = 1, limit: int = 10
-) -> List[CompanyResponse]:
-    return session.exec(select(Company).limit(limit).offset((page - 1) * limit)).all()
+) -> tuple[List[CompanyResponse], int]:
+    total_records = session.exec(select(func.count()).select_from(Company)).one()
+
+    total_pages = (total_records + limit - 1) // limit
+
+    companies = session.exec(
+        select(Company).limit(limit).offset((page - 1) * limit)
+    ).all()
+
+    return companies, total_pages
 
 
 def get_company_by_id(session: SessionDep, company_id: int) -> CompanyResponse:

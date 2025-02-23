@@ -2,18 +2,26 @@ from typing import List
 
 from fastapi import HTTPException, status
 from sqlmodel import select
+
 from api.app.common.dependencies import SessionDep
 from api.app.country.models import Country
 from api.app.country.schemas import CountryResponse, CountryCreate, CountryUpdate
 
 
-def create_country(session: SessionDep, country: CountryCreate) -> CountryResponse:
-    existing_country: Country = session.exec(select(Country).filter(Country.title == country.title)).first()
+def create_country(session: SessionDep, country_create: CountryCreate) -> CountryResponse:
+    statement = select(Country).filter(
+        Country.title_ua == country_create.title_ua,
+        Country.title_en == country_create.title_en,
+    )
+    existing_country: Country = session.exec(statement).first()
 
     if existing_country:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Country already exists")
 
-    db_country = Country(title=country.title)
+    db_country = Country()
+
+    for key, value in country_create.model_dump().items():
+        setattr(db_country, key, value)
 
     session.add(db_country)
     session.commit()
@@ -36,13 +44,14 @@ def get_country_by_id(session: SessionDep, country_id: int) -> CountryResponse:
     return existing_country
 
 
-def update_country(session: SessionDep, country_id: int, country: CountryUpdate) -> CountryResponse:
+def update_country(session: SessionDep, country_id: int, country_update: CountryUpdate) -> CountryResponse:
     existing_country = session.exec(select(Country).filter(Country.id == country_id)).first()
 
     if not existing_country:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Country not found")
 
-    existing_country.title = country.title
+    for key, value in country_update.model_dump().items():
+        setattr(existing_country, key, value)
 
     session.merge(existing_country)
     session.commit()

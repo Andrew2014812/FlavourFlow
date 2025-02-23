@@ -87,7 +87,7 @@ def put_country(
         CountryResponse: The updated country.
     """
 
-    return update_country(session=session, country_id=country_id, country=country)
+    return update_country(session=session, country_id=country_id, country_update=country)
 
 
 @router.delete("/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)

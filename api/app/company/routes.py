@@ -25,7 +25,7 @@ def company_list(
         session: SessionDep,
         page: int = 1,
         limit: int = 10,
-) -> List[CompanyResponse]:
+) -> tuple[List[CompanyResponse], int]:
     """
     Retrieve a list of all companies.
 
@@ -77,7 +77,7 @@ async def post_company(
         CompanyResponse: The created company.
     """
 
-    return await create_company(session=session, company=company)
+    return await create_company(session=session, company_create=company)
 
 
 @router.put("/{company_id}/")

@@ -8,12 +8,14 @@ from bot.common.crud.bot.user_info import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIAuth, APIMethods
 
+user_prefix = 'users'
+
 
 class UserEndpoints(Enum):
-    USER_GET_ME = "users/me/"
-    USER_UPDATE_ME = "users/update/me/"
-    USER_REGISTER = "users/register/"
-    USER_LOGIN = "users/token/"
+    USER_GET_ME = f"{user_prefix}/me/"
+    USER_UPDATE_ME = f"{user_prefix}/update/me/"
+    USER_REGISTER = f"{user_prefix}/register/"
+    USER_LOGIN = f"{user_prefix}/token/"
 
 
 async def get_user(telegram_id: int) -> UserResponseMe | None:

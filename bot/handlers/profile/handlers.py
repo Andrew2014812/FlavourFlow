@@ -1,4 +1,4 @@
-from aiogram import F, Router, Dispatcher
+from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
 from bot.common.crud.api.user import update_user
@@ -10,10 +10,10 @@ router = Router()
 
 
 @router.message(
-    F.text.contains("Прізвище:") |
-    F.text.contains("Ім'я:") |
-    F.text.contains("First name:") |
-    F.text.contains("Last name:")
+    FILTER.text.contains("Прізвище:") |
+    FILTER.text.contains("Ім'я:") |
+    FILTER.text.contains("First name:") |
+    FILTER.text.contains("Last name:")
 )
 async def process_profile_update(message: Message):
     language_code = get_user_info(message.from_user.id).language_code
@@ -51,5 +51,5 @@ async def process_profile_update(message: Message):
     await handle_profile(message, language_code)
 
 
-def register_profile_edit_handlers(dispatcher: Dispatcher):
+def register_profile_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

@@ -17,11 +17,12 @@ def add_to_wishlist(session: SessionDep, user_id: int, new_item: WishlistItemCre
         session.commit()
         session.refresh(wishlist)
 
-    wishlist_item = (
-        session.exec(select(WishlistItem)
-                     .filter(WishlistItem.wishlist_id == wishlist.id,
-                             WishlistItem.product_id == new_item.product_id)).first()
+    statement = select(WishlistItem).filter(
+        WishlistItem.wishlist_id == wishlist.id,
+        WishlistItem.product_id == new_item.product_id
     )
+
+    wishlist_item = session.exec(statement).first()
 
     if wishlist_item:
         session.delete(wishlist_item)

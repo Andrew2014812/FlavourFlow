@@ -23,27 +23,38 @@ class ProductBase(SQLModel):
 
 
 class ProductCreate(SQLModel):
-    title: str
-    description: str
-    composition: str
+    title_ua: str
+    title_en: str
+    description_ua: str
+    description_en: str
+    composition_ua: str
+    composition_en: str
     product_category: str
     price: float
     company_id: int = 1
     image: UploadFile = File(...)
 
     @classmethod
-    def as_form(cls,
-                title: str = Form(...),
-                description: str = Form(...),
-                composition: str = Form(...),
-                product_category: str = Form(...),
-                price: float = Form(...),
-                company_id: int = Form(1),
-                image: UploadFile = File(...)):
+    def as_form(
+            cls,
+            title_ua: str = Form(...),
+            title_en: str = Form(...),
+            description_ua: str = Form(...),
+            description_en: str = Form(...),
+            composition_ua: str = Form(...),
+            composition_en: str = Form(...),
+            product_category: str = Form(...),
+            price: float = Form(...),
+            company_id: int = Form(1),
+            image: UploadFile = File(...)
+    ):
         return cls(
-            title=title,
-            description=description,
-            composition=composition,
+            title_ua=title_ua,
+            title_en=title_en,
+            description_ua=description_ua,
+            description_en=description_en,
+            composition_ua=composition_ua,
+            composition_en=composition_en,
             product_category=product_category,
             price=price,
             company_id=company_id,
@@ -56,9 +67,12 @@ class ProductResponse(ProductBase):
 
 
 class ProductPatch(SQLModel):
-    title: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    composition: Optional[str] = Field(default=None)
+    title_ua: Optional[str] = Field(default=None)
+    title_en: Optional[str] = Field(default=None)
+    description_ua: Optional[str] = Field(default=None)
+    description_en: Optional[str] = Field(default=None)
+    composition_ua: Optional[str] = Field(default=None)
+    composition_en: Optional[str] = Field(default=None)
     product_category: Optional[str] = Field(default=None)
     price: Optional[float] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
@@ -67,18 +81,24 @@ class ProductPatch(SQLModel):
     @classmethod
     def as_form(
             cls,
-            title: Optional[str] = Form(None),
-            description: Optional[str] = Form(None),
-            composition: Optional[str] = Form(None),
+            title_ua: Optional[str] = Form(None),
+            title_en: Optional[str] = Form(None),
+            description_ua: Optional[str] = Form(None),
+            description_en: Optional[str] = Form(None),
+            composition_ua: Optional[str] = Form(None),
+            composition_en: Optional[str] = Form(None),
             product_category: Optional[str] = Form(None),
             price: Optional[float] = Form(None),
             company_id: Optional[int] = Form(None),
             image: Optional[UploadFile] = File(None),
     ):
         return cls(
-            title=title,
-            description=description,
-            composition=composition,
+            title_ua=title_ua,
+            title_en=title_en,
+            description_ua=description_ua,
+            description_en=description_en,
+            composition_ua=composition_ua,
+            composition_en=composition_en,
             image=image,
             product_category=product_category,
             price=price,

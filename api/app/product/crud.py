@@ -12,24 +12,23 @@ from api.app.utils import upload_file, delete_file
 PRODUCT_NOT_FOUND = "Product not found"
 
 
-async def create_product(session: SessionDep, product: ProductCreate) -> ProductResponse:
-    existing_product = session.exec(
-        select(Product).filter(Product.title == product.title)
-    ).first()
+async def create_product(session: SessionDep, product_create: ProductCreate) -> ProductResponse:
+    statement = select(Product).filter(
+        Product.title_ua == product_create.title_ua,
+        Product.title_en == product_create.title_en,
+    )
+
+    existing_product = session.exec(statement).first()
 
     if existing_product:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Product already exists"
         )
 
-    db_product = Product(
-        title=product.title,
-        description=product.description,
-        composition=product.composition,
-        product_category=product.product_category,
-        price=product.price,
-        company_id=product.company_id,
-    )
+    db_product = Product()
+
+    for key, value in product_create.model_dump(exclude='image').items():
+        setattr(db_product, key, value)
 
     session.add(db_product)
     session.commit()
@@ -37,7 +36,7 @@ async def create_product(session: SessionDep, product: ProductCreate) -> Product
 
     try:
         image_name = f'PRODUCT_ID-{db_product.id}'
-        image_data: dict = await upload_file(filename=image_name, folder='product', file=product.image)
+        image_data: dict = await upload_file(filename=image_name, folder='product', file=product_create.image)
 
         db_product.image_id = image_data.get('image_id')
         db_product.image_link = image_data.get('url')

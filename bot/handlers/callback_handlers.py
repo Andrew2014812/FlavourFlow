@@ -35,5 +35,5 @@ async def start_edit_profile(callback: types.CallbackQuery, language_code: str):
     await callback.answer()
 
 
-def register_edit_handlers(dispatcher: Dispatcher):
+def register_callback_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

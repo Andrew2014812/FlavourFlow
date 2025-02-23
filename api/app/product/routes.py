@@ -67,7 +67,7 @@ async def post_product(
         ProductResponse: The created product.
     """
 
-    return await create_product(session=session, product=product)
+    return await create_product(session=session, product_create=product)
 
 
 @router.put("/{product_id}/")

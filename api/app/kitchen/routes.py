@@ -64,7 +64,7 @@ def post_country(
         KitchenResponse: The created kitchen.
     """
 
-    return create_kitchen(session=session, kitchen=kitchen)
+    return create_kitchen(session=session, kitchen_create=kitchen)
 
 
 @router.put("/{kitchen_id}/")
@@ -86,7 +86,7 @@ def put_country(
         KitchenResponse: The updated kitchen.
     """
 
-    return update_kitchen(session=session, kitchen_id=kitchen_id, kitchen=kitchen)
+    return update_kitchen(session=session, kitchen_id=kitchen_id, kitchen_update=kitchen)
 
 
 @router.delete("/{kitchen_id}/", status_code=status.HTTP_204_NO_CONTENT)

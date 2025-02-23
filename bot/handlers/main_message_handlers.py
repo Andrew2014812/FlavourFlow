@@ -1,4 +1,4 @@
-from aiogram import F, Router, Dispatcher
+from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
 from api.app.user.schemas import UserCreate
@@ -12,7 +12,7 @@ from bot.handlers.reply_buttons_handlers import button_handlers
 router = Router()
 
 
-@router.message(F.text.in_(language_buttons))
+@router.message(FILTER.text.in_(language_buttons))
 async def handle_language_choice(message: Message):
     telegram_id = message.from_user.id
     language_code = "ua" if message.text == "🇺🇦 Українська" else "en"
@@ -37,7 +37,7 @@ async def handle_language_choice(message: Message):
         )
 
 
-@router.message(F.content_type == "contact")
+@router.message(FILTER.content_type == "contact")
 async def handle_contact(message: Message):
     user_id = message.from_user.id
     user_info = get_user_info(user_id)
