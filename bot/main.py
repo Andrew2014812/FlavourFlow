@@ -19,7 +19,7 @@ async def main():
     bot = Bot(token=TG_TOKEN)
     dispatcher = Dispatcher(storage=MemoryStorage())
 
-    register_company_handlers(dispatcher)
+    # register_company_handlers(dispatcher)
     register_profile_handlers(dispatcher)
     register_command_handlers(dispatcher)
     register_callback_handlers(dispatcher)
