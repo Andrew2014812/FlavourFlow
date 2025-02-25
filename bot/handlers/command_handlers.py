@@ -2,7 +2,7 @@ from aiogram import Router, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from bot.common.utils import get_text
+from bot.common.services.text_service import text_service
 from bot.handlers.keyboard_handlers import get_language_keyboard
 
 router = Router()
@@ -11,7 +11,7 @@ router = Router()
 @router.message(Command(commands=["start", "language"]))
 async def cmd_start(message: Message):
     await message.answer(
-        get_text("select_language", "ua"),
+        text_service.get_text("select_language", "ua"),
         reply_markup=get_language_keyboard()
     )
 

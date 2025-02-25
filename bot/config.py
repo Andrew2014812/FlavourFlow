@@ -1,4 +1,3 @@
-import json
 import os
 from enum import Enum
 
@@ -8,7 +7,7 @@ current_dir = os.path.dirname(__file__)
 texts_json_path = os.path.join(current_dir, 'texts.json')
 
 dotenv_path = os.path.join(current_dir, '..', 'dev.env')
-sqlite_path = os.path.join(current_dir, 'bot.db')
+sqlite_path = os.path.join(current_dir, 'properties', 'bot.db')
 load_dotenv(dotenv_path=dotenv_path)
 
 
@@ -17,14 +16,6 @@ def get_env_variable(var_name: str, default_var_name: str = None) -> str:
     if value is None:
         raise RuntimeError(f"The environment variable '{var_name}' is not set.")
     return value
-
-
-def load_texts_from_json(param: str):
-    with open(texts_json_path, encoding='utf-8') as file:
-        data: dict = json.load(file)
-        texts = data.get(param)
-
-    return texts
 
 
 class APIMethods(Enum):
@@ -39,9 +30,6 @@ class APIAuth(Enum):
     AUTH = 'Authorization'
 
 
-texts = load_texts_from_json('texts')
-buttons = load_texts_from_json('buttons')
-language_buttons = load_texts_from_json('language_buttons')
 TG_TOKEN = get_env_variable("TG_TOKEN")
 GROUP_ID = get_env_variable("GROUP_ID")
 ADMIN_ID = get_env_variable("ADMIN_ID")

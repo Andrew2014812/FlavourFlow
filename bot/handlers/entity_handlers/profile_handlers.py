@@ -1,9 +1,9 @@
 from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
+from bot.common.services.text_service import text_service
 from bot.common.services.user_service import update_user
 from bot.common.services.user_info_service import get_user_info
-from bot.common.utils import get_text
 from bot.handlers.reply_buttons_handlers import handle_profile
 
 router = Router()
@@ -32,20 +32,20 @@ async def process_profile_update(message: Message):
         raw_dict = dict(item.split(': ', 1) for item in lines if ': ' in item)
     except ValueError:
         await message.answer(
-            get_text("invalid_format", language_code)
+            text_service.get_text("invalid_format", language_code)
         )
         return
 
     data_for_update = {field_mappings.get(k + ":", k): v for k, v in raw_dict.items() if v != ''}
 
     if not data_for_update:
-        await message.answer(get_text("invalid_format", language_code))
+        await message.answer(text_service.get_text("invalid_format", language_code))
         return
 
     await update_user(message.from_user.id, **data_for_update)
 
     await message.answer(
-        get_text('profile_updated', language_code)
+        text_service.get_text('profile_updated', language_code)
     )
 
     await handle_profile(message, language_code)

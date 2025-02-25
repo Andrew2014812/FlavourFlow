@@ -2,11 +2,7 @@ from typing import Dict
 
 from aiohttp import ClientSession
 
-from bot.config import API_BASE_URL, texts
-
-
-def get_text(key: str, language: str):
-    return texts.get(language, {}).get(key, "")
+from bot.config import API_BASE_URL
 
 
 async def make_request(

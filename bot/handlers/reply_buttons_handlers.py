@@ -1,9 +1,8 @@
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from api.app.user.schemas import UserResponseMe
+from bot.common.services.text_service import text_service
 from bot.common.services.user_service import get_user
-from bot.config import buttons
-from bot.handlers.command_handlers import get_text
 
 button_handlers = {}
 
@@ -19,10 +18,10 @@ def register_button_handler(*button_texts):
 
 @register_button_handler("Настройк")
 async def handle_settings(message: Message, language: str):
-    await message.answer(get_text("settings_message", language))
+    await message.answer(text_service.get_text("settings_message", language))
 
 
-@register_button_handler(buttons["en"]["profile"], buttons["ua"]["profile"])
+@register_button_handler(text_service.buttons["en"]["profile"], text_service.buttons["ua"]["profile"])
 async def handle_profile(message: Message, language_code: str):
     user_data: UserResponseMe = await get_user(message.from_user.id)
 
@@ -34,10 +33,10 @@ async def handle_profile(message: Message, language_code: str):
         "phone": user_data.phone_number
     }
 
-    profile_text = get_text("profile_message", language_code).format(**profile_data)
+    profile_text = text_service.get_text("profile_message", language_code).format(**profile_data)
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text('profile_edit', language_code), callback_data="edit_profile")]
+        [InlineKeyboardButton(text=text_service.get_text('profile_edit', language_code), callback_data="edit_profile")]
     ])
 
     await message.answer(profile_text, reply_markup=keyboard)
@@ -45,4 +44,4 @@ async def handle_profile(message: Message, language_code: str):
 
 @register_button_handler("Помощь")
 async def handle_help(message: Message, language: str):
-    await message.answer(get_text("help_message", language))
+    await message.answer(text_service.get_text("help_message", language))

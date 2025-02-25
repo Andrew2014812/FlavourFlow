@@ -1,13 +1,12 @@
 from aiogram.types import KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from bot.common.utils import get_text
-from bot.config import buttons, language_buttons
+from bot.common.services.text_service import text_service
 
 
 def get_reply_keyboard(language: str):
     builder = ReplyKeyboardBuilder()
-    for button in buttons.get(language, {}).values():
+    for button in text_service.buttons.get(language, {}).values():
         builder.add(KeyboardButton(text=button))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
@@ -15,7 +14,7 @@ def get_reply_keyboard(language: str):
 
 def get_language_keyboard():
     builder = ReplyKeyboardBuilder()
-    for button in language_buttons:
+    for button in text_service.language_buttons:
         builder.add(KeyboardButton(text=button))
     builder.adjust(2)
 
@@ -24,6 +23,6 @@ def get_language_keyboard():
 
 def get_contact_keyboard(language: str):
     builder = ReplyKeyboardBuilder()
-    contact_button_text = get_text("send_contact", language)
+    contact_button_text = text_service.get_text("send_contact", language)
     builder.add(KeyboardButton(text=contact_button_text, request_contact=True))
     return builder.as_markup(resize_keyboard=True)

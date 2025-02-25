@@ -1,8 +1,8 @@
 from aiogram import types, Router, Dispatcher
 from aiogram.types import CallbackQuery
 
+from bot.common.services.text_service import text_service
 from bot.common.services.user_info_service import get_user_info
-from bot.common.utils import get_text
 
 router = Router()
 callback_handlers = {}
@@ -31,7 +31,7 @@ async def handle_callbacks(callback: CallbackQuery):
 
 @register_callback_handler("edit_profile")
 async def start_edit_profile(callback: types.CallbackQuery, language_code: str):
-    await callback.message.answer(get_text("update_profile_instruction", language_code))
+    await callback.message.answer(text_service.get_text("update_profile_instruction", language_code))
     await callback.answer()
 
 
