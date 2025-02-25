@@ -4,7 +4,7 @@ from fastapi import status
 
 from api.app.user.schemas import UserCreate, Token, UserLogin
 from api.app.user.schemas import UserResponseMe, UserResponse
-from bot.common.services.bot.user_info_service import get_user_info
+from bot.common.services.user_info_service import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIAuth, APIMethods
 

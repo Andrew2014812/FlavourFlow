@@ -1,7 +1,7 @@
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from api.app.user.schemas import UserResponseMe
-from bot.common.services.api.user_service import get_user
+from bot.common.services.user_service import get_user
 from bot.config import buttons
 from bot.handlers.command_handlers import get_text
 

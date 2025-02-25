@@ -1,7 +1,7 @@
 from aiogram import types, Router, Dispatcher
 from aiogram.types import CallbackQuery
 
-from bot.common.services.bot.user_info_service import get_user_info
+from bot.common.services.user_info_service import get_user_info
 from bot.common.utils import get_text
 
 router = Router()

@@ -9,8 +9,7 @@ from bot.config import TG_TOKEN
 from bot.handlers.command_handlers import register_command_handlers
 from bot.handlers.callback_handlers import register_callback_handlers
 from bot.handlers.main_message_handlers import register_main_message_handlers
-from bot.handlers.profile.handlers import register_profile_handlers
-from bot.handlers.company.handlers import register_company_handlers
+from bot.handlers.entity_handlers.profile_handlers import register_profile_handlers
 
 
 async def main():

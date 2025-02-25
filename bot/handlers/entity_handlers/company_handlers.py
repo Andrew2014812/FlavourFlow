@@ -1,7 +1,7 @@
 from aiogram import Router, Dispatcher
 from aiogram.types import Message, PhotoSize
 
-from bot.common.services.bot.user_info_service import get_user_info
+from bot.common.services.user_info_service import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIAuth
 
