@@ -1,11 +1,13 @@
-from sqlmodel import create_engine, SQLModel
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import SQLModel
 
 from bot.common.models import UserInfo  # noqa
 from bot.config import sqlite_path
 
-SQLITE_DATABASE_URL = f"sqlite:///{sqlite_path}"
-engine = create_engine(SQLITE_DATABASE_URL)
+SQLITE_DATABASE_URL = f"sqlite+aiosqlite:///{sqlite_path}"
+engine = create_async_engine(SQLITE_DATABASE_URL)
 
 
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)

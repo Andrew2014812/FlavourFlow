@@ -10,7 +10,7 @@ router = Router()
 
 @router.message()
 async def handle_image(message: Message):
-    user_info = get_user_info(message.from_user.id)
+    user_info = await get_user_info(message.from_user.id)
 
     if message.photo:
         photo: PhotoSize = message.photo[-1]

@@ -13,7 +13,7 @@ from bot.handlers.entity_handlers.profile_handlers import register_profile_handl
 
 
 async def main():
-    create_db_and_tables()
+    await create_db_and_tables()
     logging.basicConfig(level=logging.INFO)
     bot = Bot(token=TG_TOKEN)
     dispatcher = Dispatcher(storage=MemoryStorage())

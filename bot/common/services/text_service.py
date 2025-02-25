@@ -1,18 +1,19 @@
 import json
 import os
-from typing import Dict
+from typing import Dict, List
 
 
 class TextService:
     _instance = None
     _texts: Dict = {}
     _buttons: Dict = {}
-    _language_buttons: Dict = {}
+    _language_buttons: List = []
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(TextService, cls).__new__(cls)
             cls._instance._load_data()
+
         return cls._instance
 
     def _load_data(self) -> None:
@@ -23,16 +24,10 @@ class TextService:
             data = json.load(file)
             self._texts = data.get('texts', {})
             self._buttons = data.get('buttons', {})
-            self._language_buttons = data.get('language_buttons', {})
+            self._language_buttons = data.get('language_buttons', [])
 
     def get_text(self, key: str, language: str) -> str:
         return self._texts.get(language, {}).get(key, "")
-
-    def get_button(self, key: str, language: str) -> str:
-        return self._buttons.get(language, {}).get(key, "")
-
-    def get_language_button(self, key: str) -> str:
-        return self._language_buttons.get(key, "")
 
     @property
     def texts(self) -> Dict:
@@ -43,7 +38,7 @@ class TextService:
         return self._buttons
 
     @property
-    def language_buttons(self) -> Dict:
+    def language_buttons(self) -> List:
         return self._language_buttons
 
 

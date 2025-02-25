@@ -19,7 +19,8 @@ def register_callback_handler(callback_prefix: str):
 @router.callback_query()
 async def handle_callbacks(callback: CallbackQuery):
     telegram_id = callback.from_user.id
-    language_code = get_user_info(telegram_id).language_code
+    user_info = await get_user_info(telegram_id)
+    language_code = user_info.language_code
 
     for prefix, handler in callback_handlers.items():
         if callback.data.startswith(prefix):

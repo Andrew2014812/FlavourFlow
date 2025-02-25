@@ -19,7 +19,7 @@ class UserEndpoints(Enum):
 
 
 async def get_user(telegram_id: int) -> UserResponseMe | None:
-    user_info = get_user_info(telegram_id)
+    user_info = await get_user_info(telegram_id)
 
     if not user_info or not user_info.is_registered:
         return None
@@ -34,7 +34,7 @@ async def get_user(telegram_id: int) -> UserResponseMe | None:
 
 
 async def update_user(telegram_id: int, **fields) -> UserResponseMe | None:
-    user_info = get_user_info(telegram_id)
+    user_info = await get_user_info(telegram_id)
 
     if not user_info or not user_info.is_registered:
         return None

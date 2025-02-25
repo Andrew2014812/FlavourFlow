@@ -2,8 +2,8 @@ from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
 from bot.common.services.text_service import text_service
-from bot.common.services.user_service import update_user
 from bot.common.services.user_info_service import get_user_info
+from bot.common.services.user_service import update_user
 from bot.handlers.reply_buttons_handlers import handle_profile
 
 router = Router()
@@ -16,7 +16,8 @@ router = Router()
     FILTER.text.contains("Last name:")
 )
 async def process_profile_update(message: Message):
-    language_code = get_user_info(message.from_user.id).language_code
+    user_info = await get_user_info(message.from_user.id)
+    language_code = user_info.language_code
 
     lines = message.text.strip().split("\n")
 

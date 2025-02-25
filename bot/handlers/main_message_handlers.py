@@ -18,13 +18,13 @@ async def handle_language_choice(message: Message):
     existing_user = await get_user(telegram_id)
 
     if existing_user:
-        update_user_info(telegram_id, language_code=language_code)
+        await update_user_info(telegram_id, language_code=language_code)
         await message.answer(
             text_service.get_text("settings_updated", language_code),
             reply_markup=get_reply_keyboard(language_code)
         )
     else:
-        create_user_info(telegram_id, language_code)
+        await create_user_info(telegram_id, language_code)
         await message.answer(text_service.get_text("request_phone", language_code))
         await message.answer(
             text_service.get_text("share_contact", language_code),
@@ -35,7 +35,7 @@ async def handle_language_choice(message: Message):
 @router.message(FILTER.content_type == "contact")
 async def handle_contact(message: Message):
     user_id = message.from_user.id
-    user_info = get_user_info(user_id)
+    user_info = await get_user_info(user_id)
 
     if not user_info.is_registered:
         user_create = UserCreate(
@@ -45,10 +45,10 @@ async def handle_contact(message: Message):
             telegram_id=message.from_user.id
         )
         user = await register_user(user_create)
-        user_info = update_user_info(user.telegram_id, is_registered=True, phone_number=user.phone_number)
+        user_info = await update_user_info(user.telegram_id, is_registered=True, phone_number=user.phone_number)
 
     token = await login_user(user_info)
-    update_user_info(user_info.telegram_id, access_token=token.access_token, token_type=token.token_type)
+    await update_user_info(user_info.telegram_id, access_token=token.access_token, token_type=token.token_type)
     message_text = "contact_received"
 
     await message.answer(
@@ -60,7 +60,7 @@ async def handle_contact(message: Message):
 @router.message()
 async def handle_buttons(message: Message):
     telegram_id = message.from_user.id
-    user_info = get_user_info(telegram_id)
+    user_info = await get_user_info(telegram_id)
     language_code = user_info.language_code
 
     if message.text in text_service.buttons.get(language_code, {}).values():
