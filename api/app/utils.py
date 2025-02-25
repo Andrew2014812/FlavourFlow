@@ -10,7 +10,7 @@ from api.app.cloudinary_config import configure_cloudinary
 configure_cloudinary()
 
 
-def upload_to_cloudinary(file_path: str, folder: str = "default_folder", public_id: str = None) -> dict:
+async def upload_to_cloudinary(file_path: str, folder: str = "default_folder", public_id: str = None) -> dict:
     try:
         result = cloudinary.uploader.upload(
             file_path,
@@ -29,14 +29,14 @@ async def upload_file(filename: str, folder: str, file: UploadFile = File(...)) 
     with open(file.filename, "wb") as buffer:
         buffer.write(await file.read())
 
-    result = upload_to_cloudinary(file_path=file.filename, folder=folder, public_id=filename)
+    result = await upload_to_cloudinary(file_path=file.filename, folder=folder, public_id=filename)
 
     os.remove(file.filename)
 
     return {'url': result["secure_url"], 'image_id': result["public_id"]}
 
 
-def delete_file(public_id: str) -> bool:
+async def delete_file(public_id: str) -> bool:
     try:
         result = cloudinary.uploader.destroy(public_id)
         if result.get("result") == "ok":

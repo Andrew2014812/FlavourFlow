@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def company_list(
+async def company_list(
         session: SessionDep,
         page: int = 1,
         limit: int = 10,
@@ -38,11 +38,11 @@ def company_list(
         List[CompanyResponse]: A list of company details.
     """
 
-    return get_all_companies(session=session, page=page, limit=limit)
+    return await get_all_companies(session=session, page=page, limit=limit)
 
 
 @router.get("/{company_id}/")
-def company_detail(
+async def company_detail(
         company_id: int,
         session: SessionDep,
 ) -> CompanyResponse:
@@ -57,7 +57,7 @@ def company_detail(
         CompanyResponse: The retrieved company.
     """
 
-    return get_company_by_id(session=session, company_id=company_id)
+    return await get_company_by_id(session=session, company_id=company_id)
 
 
 @router.post("/")
@@ -76,8 +76,8 @@ async def post_company(
     Returns:
         CompanyResponse: The created company.
     """
-
-    return await create_company(session=session, company_create=company)
+    created_company = await create_company(session=session, company_create=company)
+    return created_company
 
 
 @router.put("/{company_id}/")
@@ -125,7 +125,7 @@ async def patch_company(
 
 
 @router.delete("/{company_id}/", status_code=status.HTTP_204_NO_CONTENT)
-def delete_company(
+async def delete_company(
         company_id: int,
         session: SessionDep,
         _: None = Depends(is_admin),
@@ -141,4 +141,4 @@ def delete_company(
         dict: A message indicating success or failure of the deletion.
     """
 
-    remove_company(session=session, company_id=company_id)
+    await remove_company(session=session, company_id=company_id)

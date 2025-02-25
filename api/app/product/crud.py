@@ -18,7 +18,8 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
         Product.title_en == product_create.title_en,
     )
 
-    existing_product = session.exec(statement).first()
+    result = await session.exec(statement)
+    existing_product = result.first()
 
     if existing_product:
         raise HTTPException(
@@ -31,7 +32,7 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
         setattr(db_product, key, value)
 
     session.add(db_product)
-    session.flush()
+    await session.flush()
 
     try:
         image_name = f'PRODUCT_ID-{db_product.id}'
@@ -40,24 +41,29 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
         db_product.image_id = image_data.get('image_id')
         db_product.image_link = image_data.get('url')
 
-        session.commit()
+        await session.commit()
     except GeneralError:
-        session.rollback()
+        await session.rollback()
 
         raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
                             detail="Failed to create a product. Error during file upload.")
 
+    await session.refresh(db_product)
     return db_product
 
 
-def get_all_products(
+async def get_all_products(
         session: SessionDep, page: int = 1, limit: int = 10
 ) -> List[ProductResponse]:
-    return session.exec(select(Product).limit(limit).offset((page - 1) * limit)).all()
+    statement = select(Product).limit(limit).offset((page - 1) * limit)
+    result = await session.exec(statement)
+    return result.all()
 
 
 def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
-    db_product = session.exec(select(Product).filter(Product.id == product_id)).first()
+    statement = select(Product).filter(Product.id == product_id)
+    result = session.exec(statement)
+    db_product = result.first()
 
     if not db_product:
         raise HTTPException(
@@ -68,11 +74,13 @@ def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
 
 
 async def update_product(
-        session: SessionDep, product: ProductCreate, product_id: int
+        session: SessionDep,
+        product: ProductCreate,
+        product_id: int,
 ) -> ProductResponse:
-    existing_product: Product = session.exec(
-        select(Product).where(Product.id == product_id)
-    ).first()
+    statement = select(Product).where(Product.id == product_id)
+    result = await session.exec(statement)
+    existing_product: Product = result.first()
 
     if not existing_product:
         raise HTTPException(
@@ -94,17 +102,17 @@ async def update_product(
     for key, value in update_data.items():
         setattr(existing_product, key, value)
 
-    session.merge(existing_product)
-    session.commit()
-    session.refresh(existing_product)
+    await session.merge(existing_product)
+    await session.commit()
+    await session.refresh(existing_product)
 
     return existing_product
 
 
-def remove_product(session: SessionDep, product_id: int):
-    existing_product: Product = session.exec(
-        select(Product).where(Product.id == product_id)
-    ).first()
+async def remove_product(session: SessionDep, product_id: int):
+    statement = select(Product).where(Product.id == product_id)
+    result = await session.exec(statement)
+    existing_product: Product = result.first()
 
     if not existing_product:
         raise HTTPException(
@@ -116,5 +124,5 @@ def remove_product(session: SessionDep, product_id: int):
     if not result:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be deleted")
 
-    session.delete(existing_product)
-    session.commit()
+    await session.delete(existing_product)
+    await session.commit()

@@ -1,4 +1,5 @@
-from sqlmodel import create_engine, SQLModel
+from sqlalchemy.ext.asyncio.engine import create_async_engine
+from sqlmodel import SQLModel
 
 import api.app.cart.models  # noqa
 import api.app.company.models  # noqa
@@ -10,11 +11,12 @@ import api.app.wishlist.models  # noqa
 from bot.config import PG_DB_NAME, PG_DB_USER, PG_DB_PASSWORD, PG_DB_HOST, PG_DB_PORT
 
 SQLALCHEMY_DATABASE_URL = (
-    f"postgresql://{PG_DB_USER}:{PG_DB_PASSWORD}@{PG_DB_HOST}:{PG_DB_PORT}/{PG_DB_NAME}"
+    f"postgresql+asyncpg://{PG_DB_USER}:{PG_DB_PASSWORD}@{PG_DB_HOST}:{PG_DB_PORT}/{PG_DB_NAME}"
 )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
 
 
-def create_db_and_tables() -> None:
-    SQLModel.metadata.create_all(engine)
+async def create_db_and_tables() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)

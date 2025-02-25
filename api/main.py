@@ -15,8 +15,7 @@ from api.app.user.routes import router as users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> None:
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, create_db_and_tables)
+    await create_db_and_tables()
     yield
 
 
@@ -32,7 +31,7 @@ app.include_router(wishlist_router, prefix="/wishlist", tags=["wishlist"])
 
 
 @app.get("/")
-def read_root() -> dict:
+async def read_root() -> dict:
     """
     Simple root endpoint that returns a message.
 

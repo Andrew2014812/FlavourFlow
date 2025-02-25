@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def product_list(
+async def product_list(
         session: SessionDep, page: int = 1, limit: int = 10
 ) -> List[ProductResponse]:
     """
@@ -32,11 +32,11 @@ def product_list(
         List[ProductResponse]: A list of product details.
     """
 
-    return get_all_products(session=session, page=page, limit=limit)
+    return await get_all_products(session=session, page=page, limit=limit)
 
 
 @router.get("/{product_id}/")
-def company_detail(product_id: int, session: SessionDep) -> ProductResponse:
+async def company_detail(product_id: int, session: SessionDep) -> ProductResponse:
     """
     Retrieve a product by its ID.
 
@@ -48,7 +48,7 @@ def company_detail(product_id: int, session: SessionDep) -> ProductResponse:
         ProductResponse: The retrieved product.
     """
 
-    return get_product_by_id(session=session, product_id=product_id)
+    return await get_product_by_id(session=session, product_id=product_id)
 
 
 @router.post("/")
@@ -115,7 +115,7 @@ async def patch_company(
 
 
 @router.delete("/{product_id}/", status_code=status.HTTP_204_NO_CONTENT)
-def delete_company(
+async def delete_company(
         product_id: int,
         session: SessionDep,
         _: None = Depends(is_admin)
@@ -131,4 +131,4 @@ def delete_company(
         dict: A message indicating the success or failure of the deletion.
     """
 
-    remove_product(session=session, product_id=product_id)
+    await remove_product(session=session, product_id=product_id)

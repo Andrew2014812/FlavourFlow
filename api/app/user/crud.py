@@ -15,15 +15,15 @@ from bot.config import JWT_ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTE
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
 
 
-def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
-    existing_user = session.exec(
-        select(User).where(
-            or_(
-                User.phone_number == user.phone_number,
-                User.telegram_id == user.telegram_id,
+async def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
+    statement = select(User).where(
+        or_(
+            User.phone_number == user.phone_number,
+            User.telegram_id == user.telegram_id,
             )
-        )
-    ).first()
+    )
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if existing_user:
         raise HTTPException(
@@ -39,72 +39,79 @@ def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     )
 
     session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
+    await session.commit()
+    await session.refresh(db_user)
 
     return db_user
 
 
-def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponseMe:
-    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+async def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponseMe:
+    statement = select(User).where(User.id == user_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     for key, value in user_update.model_dump(exclude_unset=True).items():
         setattr(existing_user, key, value)
 
     session.add(existing_user)
-    session.commit()
-    session.refresh(existing_user)
+    await session.commit()
+    await session.refresh(existing_user)
 
     return existing_user
 
 
-def remove_user(session: SessionDep, user_id: int):
-    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+async def remove_user(session: SessionDep, user_id: int):
+    statement = select(User).where(User.id == user_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    session.delete(existing_user)
-    session.commit()
+    await session.delete(existing_user)
+    await session.commit()
 
 
-def change_user_role(session: SessionDep, user_id: int, role: str) -> UserResponse:
-    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+async def change_user_role(session: SessionDep, user_id: int, role: str) -> UserResponse:
+    statement = select(User).where(User.id == user_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     existing_user.role = role
 
-    session.commit()
-    session.refresh(existing_user)
+    await session.commit()
+    await session.refresh(existing_user)
 
     return existing_user
 
 
-def get_user_by_params(
+async def get_user_by_params(
         session: SessionDep,
         phone_number: str,
         telegram_id: int,
 ) -> UserResponse | List[UserResponse]:
     if phone_number:
-        return get_user_by_phone(session, phone_number)
+        return await get_user_by_phone(session, phone_number)
 
     elif telegram_id:
-        return get_by_telegram_id(session, telegram_id)
+        return await get_by_telegram_id(session, telegram_id)
 
     else:
-        return get_all_users(session)
+        return await get_all_users(session)
 
 
-def get_all_users(session: SessionDep) -> List[UserResponse]:
-    return session.exec(select(User)).all()
+async def get_all_users(session: SessionDep) -> List[UserResponse]:
+    result = await session.exec(select(User))
+    return result.all()
 
 
-def get_user_by_phone(session: SessionDep, phone_number: str) -> UserResponse:
-    existing_user = session.exec(
-        select(User).where(User.phone_number == phone_number)
-    ).first()
+async def get_user_by_phone(session: SessionDep, phone_number: str) -> UserResponse:
+    statement = select(User).where(User.phone_number == phone_number)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(
@@ -115,8 +122,10 @@ def get_user_by_phone(session: SessionDep, phone_number: str) -> UserResponse:
     return UserResponse.model_validate(existing_user)
 
 
-def get_user_by_id(session: SessionDep, user_id: int) -> UserResponse:
-    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+async def get_user_by_id(session: SessionDep, user_id: int) -> UserResponse:
+    statement = select(User).where(User.id == user_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(
@@ -127,10 +136,10 @@ def get_user_by_id(session: SessionDep, user_id: int) -> UserResponse:
     return UserResponse.model_validate(existing_user)
 
 
-def get_by_telegram_id(session: SessionDep, telegram_id: int):
-    existing_user = session.exec(
-        select(User).where(User.telegram_id == telegram_id)
-    ).first()
+async def get_by_telegram_id(session: SessionDep, telegram_id: int):
+    statement = select(User).where(User.telegram_id == telegram_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(
@@ -141,10 +150,10 @@ def get_by_telegram_id(session: SessionDep, telegram_id: int):
     return UserResponse.model_validate(existing_user)
 
 
-def is_authenticated(session: SessionDep, telegram_id: int):
-    existing_user = session.exec(
-        select(User).where(User.telegram_id == telegram_id)
-    ).first()
+async def is_authenticated(session: SessionDep, telegram_id: int):
+    statement = select(User).where(User.telegram_id == telegram_id)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(
@@ -155,8 +164,10 @@ def is_authenticated(session: SessionDep, telegram_id: int):
     return True
 
 
-def authenticate_user(session: SessionDep, user_login: UserLogin) -> Token:
-    existing_user: User = session.exec(select(User).where(User.phone_number == user_login.phone_number)).first()
+async def authenticate_user(session: SessionDep, user_login: UserLogin) -> Token:
+    statement = select(User).where(User.phone_number == user_login.phone_number)
+    result = await session.exec(statement)
+    existing_user = result.first()
 
     if not existing_user:
         raise HTTPException(
@@ -212,7 +223,7 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
     except PyJWTError:
         raise credentials_exception
 
-    current_user = get_user_by_phone(session, phone_number=token_data.phone_number)
+    current_user = await get_user_by_phone(session, phone_number=token_data.phone_number)
 
     if current_user is None:
         raise credentials_exception
@@ -220,7 +231,7 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
     return current_user
 
 
-def is_admin(user: User = Depends(get_current_user)):
+async def is_admin(user: User = Depends(get_current_user)):
     if user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 

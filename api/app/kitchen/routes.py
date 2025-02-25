@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def kitchen_list(session: SessionDep) -> List[KitchenResponse]:
+async def kitchen_list(session: SessionDep) -> List[KitchenResponse]:
     """
     Retrieve a list of all kitchens.
 
@@ -28,11 +28,11 @@ def kitchen_list(session: SessionDep) -> List[KitchenResponse]:
         List[KitchenResponse]: A list of kitchen details.
     """
 
-    return get_kitchen_list(session=session)
+    return await get_kitchen_list(session=session)
 
 
 @router.get("/{kitchen_id}/")
-def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
+async def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
     """
     Get a kitchen by its ID.
 
@@ -44,11 +44,11 @@ def kitchen_get(session: SessionDep, kitchen_id: int) -> KitchenResponse:
         KitchenResponse: The retrieved kitchen.
     """
 
-    return get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
+    return await get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
 
 
 @router.post("/")
-def post_country(
+async def post_kitchen(
         session: SessionDep,
         kitchen: KitchenCreate,
         _: None = Depends(is_admin),
@@ -64,11 +64,11 @@ def post_country(
         KitchenResponse: The created kitchen.
     """
 
-    return create_kitchen(session=session, kitchen_create=kitchen)
+    return await create_kitchen(session=session, kitchen_create=kitchen)
 
 
 @router.put("/{kitchen_id}/")
-def put_country(
+async def put_kitchen(
         session: SessionDep,
         kitchen_id: int,
         kitchen: KitchenUpdate,
@@ -86,11 +86,11 @@ def put_country(
         KitchenResponse: The updated kitchen.
     """
 
-    return update_kitchen(session=session, kitchen_id=kitchen_id, kitchen_update=kitchen)
+    return await update_kitchen(session=session, kitchen_id=kitchen_id, kitchen_update=kitchen)
 
 
 @router.delete("/{kitchen_id}/", status_code=status.HTTP_204_NO_CONTENT)
-def delete_country(
+async def delete_kitchen(
         session: SessionDep,
         kitchen_id: int,
         _: None = Depends(is_admin),
@@ -106,4 +106,4 @@ def delete_country(
         dict: A message indicating the success or failure of the deletion.
     """
 
-    remove_kitchen(session=session, kitchen_id=kitchen_id)
+    await remove_kitchen(session=session, kitchen_id=kitchen_id)

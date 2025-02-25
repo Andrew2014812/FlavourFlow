@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_countries(session: SessionDep) -> List[CountryResponse]:
+async def get_countries(session: SessionDep) -> List[CountryResponse]:
     """
     Retrieve a list of all countries.
 
@@ -28,11 +28,11 @@ def get_countries(session: SessionDep) -> List[CountryResponse]:
         List[CountryResponse]: A list of country details.
     """
 
-    return get_all_countries(session)
+    return await get_all_countries(session)
 
 
 @router.post("/")
-def post_country(
+async def post_country(
         session: SessionDep,
         country: CountryCreate,
         _: None = Depends(is_admin),
@@ -48,11 +48,11 @@ def post_country(
         CountryResponse: The created country.
     """
 
-    return create_country(session, country)
+    return await create_country(session, country)
 
 
 @router.get("/{country_id}/")
-def kitchen_get(
+async def kitchen_get(
         session: SessionDep, country_id: int) -> CountryResponse:
     """
     Retrieve a country by id.
@@ -65,11 +65,11 @@ def kitchen_get(
         CountryResponse: The retrieved country
     """
 
-    return get_country_by_id(session, country_id)
+    return await get_country_by_id(session, country_id)
 
 
 @router.put("/{country_id}/")
-def put_country(
+async def put_country(
         session: SessionDep,
         country_id: int,
         country: CountryUpdate,
@@ -87,11 +87,11 @@ def put_country(
         CountryResponse: The updated country.
     """
 
-    return update_country(session=session, country_id=country_id, country_update=country)
+    return await update_country(session=session, country_id=country_id, country_update=country)
 
 
 @router.delete("/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)
-def delete_country(
+async def delete_country(
         session: SessionDep,
         country_id: int,
         _: None = Depends(is_admin),
@@ -107,4 +107,4 @@ def delete_country(
         dict: A message indicating success or failure of the deletion.
     """
 
-    remove_country(session=session, country_id=country_id)
+    await remove_country(session=session, country_id=country_id)

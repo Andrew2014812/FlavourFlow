@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_cart(
+async def get_cart(
         session: SessionDep,
         current_user: User = Depends(get_current_user),
 ) -> List[CartItemResponse]:
@@ -27,11 +27,11 @@ def get_cart(
         List[CartItemResponse]: The items in the cart.
     """
 
-    return get_cart_items(session=session, user_id=current_user.id)
+    return await get_cart_items(session=session, user_id=current_user.id)
 
 
 @router.post("/add/")
-def post_cart_item(
+async def post_cart_item(
         new_item: CartItemCreate,
         session: SessionDep,
         current_user: User = Depends(get_current_user),
@@ -48,11 +48,11 @@ def post_cart_item(
         CartItemResponse: The added item.
     """
 
-    return add_to_cart(session=session, user_id=current_user.id, new_item=new_item)
+    return await add_to_cart(session=session, user_id=current_user.id, new_item=new_item)
 
 
 @router.delete("/remove/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_cart_item(
+async def delete_cart_item(
         session: SessionDep,
         item_id: int,
         current_user: User = Depends(get_current_user),
@@ -69,4 +69,4 @@ def delete_cart_item(
         dict: A message indicating the success of the removal.
     """
 
-    remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)
+    await remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)

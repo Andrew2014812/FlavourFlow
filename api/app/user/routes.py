@@ -7,7 +7,12 @@ from api.app.user.crud import (
     create_user,
     get_user_by_params,
     get_user_by_id,
-    authenticate_user, update_user, get_current_user, is_admin, remove_user, change_user_role,
+    authenticate_user,
+    update_user,
+    get_current_user,
+    is_admin,
+    remove_user,
+    change_user_role,
 )
 from api.app.user.schemas import Token, UserPatch, UserRole, UserLogin
 from ..user.schemas import UserCreate, UserResponse, UserResponseMe
@@ -16,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def retrieve_user(
+async def retrieve_user(
         session: SessionDep,
         phone_number: str = Query(default=None, description="Filter by phone_number"),
         telegram_id: int = Query(default=None, description="Filter by telegram id"),
@@ -32,7 +37,7 @@ def retrieve_user(
     Requires admin privileges.
     """
 
-    return get_user_by_params(
+    return await get_user_by_params(
         phone_number=phone_number,
         telegram_id=telegram_id,
         session=session,
@@ -40,7 +45,7 @@ def retrieve_user(
 
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
-def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
+async def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
     """
     Create a new user
 
@@ -52,61 +57,61 @@ def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
         UserResponse: The created user
     """
 
-    return create_user(session=session, user=user)
+    return await create_user(session=session, user=user)
 
 
 @router.get("/me/")
-def get_me(
+async def get_me(
         current_user: UserResponseMe = Depends(get_current_user),
 ) -> UserResponseMe:
     return current_user
 
 
 @router.put("/update/me/", status_code=status.HTTP_200_OK)
-def put_user(
+async def put_user(
         session: SessionDep,
         user: UserCreate,
         current_user: UserResponse = Depends(get_current_user),
 ) -> UserResponse:
-    return update_user(session=session, user_update=user, user_id=current_user.id)
+    return await update_user(session=session, user_update=user, user_id=current_user.id)
 
 
 @router.patch("/update/me/", status_code=status.HTTP_200_OK)
-def put_user(
+async def put_user(
         session: SessionDep,
         user: UserPatch,
         current_user: UserResponseMe = Depends(get_current_user),
 ) -> UserResponseMe:
-    return update_user(session=session, user_update=user, user_id=current_user.id)
+    return await update_user(session=session, user_update=user, user_id=current_user.id)
 
 
 @router.put("/update", status_code=status.HTTP_200_OK)
-def put_user_via_admin(
+async def put_user_via_admin(
         user_id: int,
         session: SessionDep,
         user: UserCreate,
         _: None = Depends(is_admin)
 ) -> UserResponse:
-    return update_user(session=session, user_update=user, user_id=user_id)
+    return await update_user(session=session, user_update=user, user_id=user_id)
 
 
 @router.patch("/update", status_code=status.HTTP_200_OK)
-def patch_user_via_admin(
+async def patch_user_via_admin(
         user_id: int,
         session: SessionDep,
         user: UserPatch,
         _: None = Depends(is_admin),
 ) -> UserResponse:
-    return update_user(session=session, user_update=user, user_id=user_id)
+    return await update_user(session=session, user_update=user, user_id=user_id)
 
 
 @router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(
+async def delete_user(
         user_id: int,
         session: SessionDep,
         _: None = Depends(is_admin),
 ):
-    remove_user(session=session, user_id=user_id)
+    await remove_user(session=session, user_id=user_id)
 
 
 @router.post("/token/")
@@ -125,11 +130,11 @@ async def login_for_access_token(
         Token: The access token
     """
 
-    return authenticate_user(session, user)
+    return await authenticate_user(session, user)
 
 
 @router.get("/{user_id}/")
-def retrieve_user_by_id(user_id: int, session: SessionDep) -> UserResponse:
+async def retrieve_user_by_id(user_id: int, session: SessionDep) -> UserResponse:
     """
     Retrieve a user by id.
 
@@ -141,22 +146,22 @@ def retrieve_user_by_id(user_id: int, session: SessionDep) -> UserResponse:
         UserResponse: The retrieved user
     """
 
-    return get_user_by_id(user_id=user_id, session=session)
+    return await get_user_by_id(user_id=user_id, session=session)
 
 
 @router.post("/promote/")
-def promote_user(
+async def promote_user(
         user_id: int,
         session: SessionDep,
         _: None = Depends(is_admin),
 ) -> UserResponse:
-    return change_user_role(session=session, user_id=user_id, role=UserRole.ADMIN.value)
+    return await change_user_role(session=session, user_id=user_id, role=UserRole.ADMIN.value)
 
 
 @router.post("/demote/")
-def demote_user(
+async def demote_user(
         user_id: int,
         session: SessionDep,
         _: None = Depends(is_admin),
 ) -> UserResponse:
-    return change_user_role(session=session, user_id=user_id, role=UserRole.USER.value)
+    return await change_user_role(session=session, user_id=user_id, role=UserRole.USER.value)
