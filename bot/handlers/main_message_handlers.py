@@ -2,8 +2,8 @@ from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
 from api.app.user.schemas import UserCreate
-from bot.common.crud.api.user import register_user, login_user, get_user
-from bot.common.crud.bot.user_info import create_user_info, get_user_info, update_user_info
+from bot.common.services.api.user_service import register_user, login_user, get_user
+from bot.common.services.bot.user_info_service import create_user_info, get_user_info, update_user_info
 from bot.common.utils import get_text
 from bot.config import language_buttons, buttons
 from bot.handlers.keyboard_handlers import get_contact_keyboard, get_reply_keyboard

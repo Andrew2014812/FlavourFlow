@@ -1,8 +1,8 @@
 from aiogram import Router, Dispatcher, F as FILTER
 from aiogram.types import Message
 
-from bot.common.crud.api.user import update_user
-from bot.common.crud.bot.user_info import get_user_info
+from bot.common.services.api.user_service import update_user
+from bot.common.services.bot.user_info_service import get_user_info
 from bot.common.utils import get_text
 from bot.handlers.reply_buttons_handlers import handle_profile
 

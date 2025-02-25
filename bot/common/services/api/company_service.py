@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict
 
 from api.app.company.schemas import CompanyResponse
-from bot.common.crud.bot.user_info import get_user_info
+from bot.common.services.bot.user_info_service import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIMethods, APIAuth
 
