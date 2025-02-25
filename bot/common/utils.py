@@ -18,9 +18,19 @@ async def make_request(
         headers: Dict = None,
 ) -> Dict:
     async with ClientSession() as session:
-        method_func = getattr(session, method)
-
         url = f"{API_BASE_URL}/{sub_url}"
 
-        async with method_func(url, json=body, data=data, params=params, headers=headers) as response:
-            return {"status": response.status, "data": await response.json()}
+        try:
+            async with session.request(
+                    method=method, url=url, json=body, data=data, params=params, headers=headers
+            ) as response:
+                status_code = response.status
+                data = await response.json()
+
+                if status_code >= 400:
+                    raise Exception(f"API error: {status_code} - {data}")
+
+                return {"status": status_code, "data": data}
+
+        except Exception as e:
+            raise Exception(f"Request failed: {str(e)}")

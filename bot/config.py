@@ -28,11 +28,11 @@ def load_texts_from_json(param: str):
 
 
 class APIMethods(Enum):
-    GET = "get"
-    POST = "post"
-    PUT = "put"
-    DELETE = "delete"
-    PATCH = "patch"
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    DELETE = "DELETE"
+    PATCH = "PATCH"
 
 
 class APIAuth(Enum):
