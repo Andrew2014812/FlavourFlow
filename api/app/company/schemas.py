@@ -11,8 +11,8 @@ class CompanyBase(SQLModel):
     description_ua: str = Field(max_length=255, nullable=False)
     description_en: str = Field(max_length=255, nullable=False)
 
-    image_link: str = Field(max_length=255, default='in progress', nullable=True)
-    image_id: str = Field(max_length=255, default='in progress', nullable=True)
+    image_link: str = Field(max_length=255, default="in progress", nullable=True)
+    image_id: str = Field(max_length=255, default="in progress", nullable=True)
     rating: float = Field(default=0)
 
     country_id: int = Field(foreign_key="country.id")
@@ -21,6 +21,11 @@ class CompanyBase(SQLModel):
 
 class CompanyResponse(CompanyBase):
     id: int
+
+
+class CompanyListResponse(SQLModel):
+    companies: list[CompanyResponse]
+    total_pages: int
 
 
 class CompanyCreate(SQLModel):
@@ -36,14 +41,14 @@ class CompanyCreate(SQLModel):
 
     @classmethod
     def as_form(
-            cls,
-            title_ua: str = Form(...),
-            title_en: str = Form(...),
-            description_ua: str = Form(...),
-            description_en: str = Form(...),
-            image: Optional[UploadFile] = File(...),
-            country_id: int = Form(1),
-            kitchen_id: int = Form(1),
+        cls,
+        title_ua: str = Form(...),
+        title_en: str = Form(...),
+        description_ua: str = Form(...),
+        description_en: str = Form(...),
+        image: Optional[UploadFile] = File(...),
+        country_id: int = Form(1),
+        kitchen_id: int = Form(1),
     ):
         return cls(
             title_ua=title_ua,
@@ -52,7 +57,7 @@ class CompanyCreate(SQLModel):
             description_en=description_en,
             image=image,
             country_id=country_id,
-            kitchen_id=kitchen_id
+            kitchen_id=kitchen_id,
         )
 
 
@@ -68,15 +73,15 @@ class CompanyPatch(SQLModel):
 
     @classmethod
     def as_form(
-            cls,
-            title_ua: Optional[str] = Form(None),
-            title_en: Optional[str] = Form(None),
-            description_ua: Optional[str] = Form(None),
-            description_en: Optional[str] = Form(None),
-            image: Optional[UploadFile] = File(None),
-            rating: Optional[float] = Form(None),
-            country_id: Optional[int] = Form(None),
-            kitchen_id: Optional[int] = Form(None),
+        cls,
+        title_ua: Optional[str] = Form(None),
+        title_en: Optional[str] = Form(None),
+        description_ua: Optional[str] = Form(None),
+        description_en: Optional[str] = Form(None),
+        image: Optional[UploadFile] = File(None),
+        rating: Optional[float] = Form(None),
+        country_id: Optional[int] = Form(None),
+        kitchen_id: Optional[int] = Form(None),
     ):
         return cls(
             title_ua=title_ua,

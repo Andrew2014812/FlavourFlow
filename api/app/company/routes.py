@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
@@ -12,6 +10,7 @@ from api.app.company.crud import (
 )
 from api.app.company.schemas import (
     CompanyCreate,
+    CompanyListResponse,
     CompanyResponse,
     CompanyPatch,
 )
@@ -22,10 +21,10 @@ router = APIRouter()
 
 @router.get("/")
 async def company_list(
-        session: SessionDep,
-        page: int = 1,
-        limit: int = 10,
-) -> tuple[List[CompanyResponse], int]:
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 10,
+) -> CompanyListResponse:
     """
     Retrieve a list of all companies.
 
@@ -43,8 +42,8 @@ async def company_list(
 
 @router.get("/{company_id}/")
 async def company_detail(
-        company_id: int,
-        session: SessionDep,
+    company_id: int,
+    session: SessionDep,
 ) -> CompanyResponse:
     """
     Retrieve a company by its ID.
@@ -62,9 +61,9 @@ async def company_detail(
 
 @router.post("/")
 async def post_company(
-        session: SessionDep,
-        company: CompanyCreate = Depends(CompanyCreate.as_form),
-        _: None = Depends(is_admin),
+    session: SessionDep,
+    company: CompanyCreate = Depends(CompanyCreate.as_form),
+    _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
     Create a new company in the database.
@@ -82,10 +81,10 @@ async def post_company(
 
 @router.put("/{company_id}/")
 async def put_company(
-        company_id: int,
-        session: SessionDep,
-        company: CompanyCreate = Depends(CompanyCreate.as_form),
-        _: None = Depends(is_admin),
+    company_id: int,
+    session: SessionDep,
+    company: CompanyCreate = Depends(CompanyCreate.as_form),
+    _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
     Update an existing company in the database.
@@ -104,10 +103,10 @@ async def put_company(
 
 @router.patch("/{company_id}/")
 async def patch_company(
-        company_id: int,
-        session: SessionDep,
-        company: CompanyPatch = Depends(CompanyPatch.as_form),
-        _: None = Depends(is_admin),
+    company_id: int,
+    session: SessionDep,
+    company: CompanyPatch = Depends(CompanyPatch.as_form),
+    _: None = Depends(is_admin),
 ) -> CompanyResponse:
     """
     Partially update a company in the database.
@@ -126,9 +125,9 @@ async def patch_company(
 
 @router.delete("/{company_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_company(
-        company_id: int,
-        session: SessionDep,
-        _: None = Depends(is_admin),
+    company_id: int,
+    session: SessionDep,
+    _: None = Depends(is_admin),
 ):
     """
     Delete a company from the database.
