@@ -1,5 +1,6 @@
 from typing import Callable, Union
-from aiogram import types, Router, Dispatcher
+
+from aiogram import Dispatcher, Router
 from aiogram.types import CallbackQuery
 
 from bot.common.services.text_service import text_service
@@ -37,7 +38,7 @@ async def handle_callbacks(callback: CallbackQuery):
 
 
 @register_callback_handler("edit_profile")
-async def start_edit_profile(callback: types.CallbackQuery, language_code: str):
+async def start_edit_profile(callback: CallbackQuery, language_code: str):
     await callback.message.answer(
         text_service.get_text("update_profile_instruction", language_code)
     )

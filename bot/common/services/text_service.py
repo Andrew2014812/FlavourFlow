@@ -18,13 +18,15 @@ class TextService:
 
     def _load_data(self) -> None:
         current_dir = os.path.dirname(__file__)
-        texts_json_path = os.path.join(current_dir, '..', '..', 'properties', 'texts.json')
+        texts_json_path = os.path.join(
+            current_dir, "..", "..", "properties", "texts.json"
+        )
 
-        with open(texts_json_path, encoding='utf-8') as file:
+        with open(texts_json_path, encoding="utf-8") as file:
             data = json.load(file)
-            self._texts = data.get('texts', {})
-            self._buttons = data.get('buttons', {})
-            self._language_buttons = data.get('language_buttons', [])
+            self._texts = data.get("texts", {})
+            self._buttons = data.get("buttons", {})
+            self._language_buttons = data.get("language_buttons", [])
 
     def get_text(self, key: str, language: str) -> str:
         return self._texts.get(language, {}).get(key, "")

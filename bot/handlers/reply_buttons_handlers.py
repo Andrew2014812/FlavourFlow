@@ -1,4 +1,4 @@
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.user.schemas import UserResponseMe
 from bot.common.services.text_service import text_service
