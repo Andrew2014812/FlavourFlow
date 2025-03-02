@@ -1,3 +1,4 @@
+from typing import Callable, Union
 from aiogram import types, Router, Dispatcher
 from aiogram.types import CallbackQuery
 
@@ -8,9 +9,14 @@ router = Router()
 callback_handlers = {}
 
 
-def register_callback_handler(callback_prefix: str):
+def register_callback_handler(filter_arg: Union[str, Callable]):
     def decorator(func):
-        callback_handlers[callback_prefix] = func
+        if isinstance(filter_arg, str):
+            filter_func = lambda data: data.startswith(filter_arg)
+        else:
+            filter_func = filter_arg
+
+        callback_handlers[func] = filter_func
         return func
 
     return decorator
@@ -22,8 +28,8 @@ async def handle_callbacks(callback: CallbackQuery):
     user_info = await get_user_info(telegram_id)
     language_code = user_info.language_code
 
-    for prefix, handler in callback_handlers.items():
-        if callback.data.startswith(prefix):
+    for handler, filter_func in callback_handlers.items():
+        if filter_func(callback.data):
             await handler(callback, language_code)
             return
 
