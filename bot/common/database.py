@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 
-from bot.common.models import UserInfo  # noqa
+from bot.common.models import UserInfo
 from bot.config import sqlite_path
+
+USER_INFO = UserInfo
 
 SQLITE_DATABASE_URL = f"sqlite+aiosqlite:///{sqlite_path}"
 engine = create_async_engine(SQLITE_DATABASE_URL)

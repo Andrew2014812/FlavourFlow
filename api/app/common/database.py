@@ -1,18 +1,25 @@
 from sqlalchemy.ext.asyncio.engine import create_async_engine
 from sqlmodel import SQLModel
 
-import api.app.cart.models  # noqa
-import api.app.company.models  # noqa
-import api.app.country.models  # noqa
-import api.app.kitchen.models  # noqa
-import api.app.product.models  # noqa
-import api.app.user.models  # noqa
-import api.app.wishlist.models  # noqa
-from bot.config import PG_DB_NAME, PG_DB_USER, PG_DB_PASSWORD, PG_DB_HOST, PG_DB_PORT
+from api.app.cart.models import Cart
+from api.app.company.models import Company
+from api.app.country.models import Country
+from api.app.kitchen.models import Kitchen
+from api.app.product.models import Product
+from api.app.user.models import User
+from api.app.wishlist.models import Wishlist, WishlistItem
+from bot.config import PG_DB_HOST, PG_DB_NAME, PG_DB_PASSWORD, PG_DB_PORT, PG_DB_USER
 
-SQLALCHEMY_DATABASE_URL = (
-    f"postgresql+asyncpg://{PG_DB_USER}:{PG_DB_PASSWORD}@{PG_DB_HOST}:{PG_DB_PORT}/{PG_DB_NAME}"
-)
+Cart_model = Cart
+Company_model = Company
+Country_model = Country
+Kitchen_model = Kitchen
+Product_model = Product
+User_model = User
+Wishlist_model = Wishlist
+WishlistItem_model = WishlistItem
+
+SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{PG_DB_USER}:{PG_DB_PASSWORD}@{PG_DB_HOST}:{PG_DB_PORT}/{PG_DB_NAME}"
 
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
 
