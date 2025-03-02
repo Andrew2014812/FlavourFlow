@@ -10,10 +10,10 @@ router = Router()
 
 
 @router.message(
-    FILTER.text.contains("Прізвище:") |
-    FILTER.text.contains("Ім'я:") |
-    FILTER.text.contains("First name:") |
-    FILTER.text.contains("Last name:")
+    FILTER.text.contains("Прізвище:")
+    | FILTER.text.contains("Ім'я:")
+    | FILTER.text.contains("First name:")
+    | FILTER.text.contains("Last name:")
 )
 async def process_profile_update(message: Message):
     user_info = await get_user_info(message.from_user.id)
@@ -24,20 +24,19 @@ async def process_profile_update(message: Message):
     field_mappings = {
         "First name:": "first_name",
         "Last name:": "last_name",
-
         "Ім'я:": "first_name",
         "Прізвище:": "last_name",
     }
 
     try:
-        raw_dict = dict(item.split(': ', 1) for item in lines if ': ' in item)
+        raw_dict = dict(item.split(": ", 1) for item in lines if ": " in item)
     except ValueError:
-        await message.answer(
-            text_service.get_text("invalid_format", language_code)
-        )
+        await message.answer(text_service.get_text("invalid_format", language_code))
         return
 
-    data_for_update = {field_mappings.get(k + ":", k): v for k, v in raw_dict.items() if v != ''}
+    data_for_update = {
+        field_mappings.get(k + ":", k): v for k, v in raw_dict.items() if v != ""
+    }
 
     if not data_for_update:
         await message.answer(text_service.get_text("invalid_format", language_code))
@@ -45,9 +44,7 @@ async def process_profile_update(message: Message):
 
     await update_user(message.from_user.id, **data_for_update)
 
-    await message.answer(
-        text_service.get_text('profile_updated', language_code)
-    )
+    await message.answer(text_service.get_text("profile_updated", language_code))
 
     await handle_profile(message, language_code)
 

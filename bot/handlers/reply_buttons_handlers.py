@@ -21,23 +21,34 @@ async def handle_settings(message: Message, language: str):
     await message.answer(text_service.get_text("settings_message", language))
 
 
-@register_button_handler(text_service.buttons["en"]["profile"], text_service.buttons["ua"]["profile"])
+@register_button_handler(
+    text_service.buttons["en"]["profile"], text_service.buttons["ua"]["profile"]
+)
 async def handle_profile(message: Message, language_code: str):
     user_data: UserResponseMe = await get_user(message.from_user.id)
 
     last_name = user_data.last_name if user_data.last_name else ""
     profile_data = {
-        "name": f'{user_data.first_name} {last_name}',
+        "name": f"{user_data.first_name} {last_name}",
         "language": "Українська" if language_code == "ua" else "English",
         "bonuses": user_data.bonuses,
-        "phone": user_data.phone_number
+        "phone": user_data.phone_number,
     }
 
-    profile_text = text_service.get_text("profile_message", language_code).format(**profile_data)
+    profile_text = text_service.get_text("profile_message", language_code).format(
+        **profile_data
+    )
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=text_service.get_text('profile_edit', language_code), callback_data="edit_profile")]
-    ])
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=text_service.get_text("profile_edit", language_code),
+                    callback_data="edit_profile",
+                )
+            ]
+        ]
+    )
 
     await message.answer(profile_text, reply_markup=keyboard)
 

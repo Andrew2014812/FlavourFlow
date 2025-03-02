@@ -34,11 +34,17 @@ async def handle_image(message: Message):
         "description_en": "Test",
         "image": image_bytes,
         "kitchen_id": "1",
-        "country_id": "1"
+        "country_id": "1",
     }
 
-    response = await make_request("company/", "post", data=data,
-                                  headers={APIAuth.AUTH.value: f'{user_info.token_type} {user_info.access_token}'}, )
+    response = await make_request(
+        "company/",
+        "post",
+        data=data,
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
+    )
     print(response)
 
 

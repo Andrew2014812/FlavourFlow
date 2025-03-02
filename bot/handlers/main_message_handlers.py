@@ -3,9 +3,13 @@ from aiogram.types import Message
 
 from api.app.user.schemas import UserCreate
 from bot.common.services.text_service import text_service
-from bot.common.services.user_info_service import create_user_info, get_user_info, update_user_info
+from bot.common.services.user_info_service import (
+    create_user_info,
+    get_user_info,
+    update_user_info,
+)
 from bot.common.services.user_service import register_user, login_user, get_user
-from bot.handlers.keyboard_handlers import get_contact_keyboard, get_reply_keyboard
+from bot.handlers.main_keyboard_handlers import get_contact_keyboard, get_reply_keyboard
 from bot.handlers.reply_buttons_handlers import button_handlers
 
 router = Router()
@@ -21,14 +25,14 @@ async def handle_language_choice(message: Message):
         await update_user_info(telegram_id, language_code=language_code)
         await message.answer(
             text_service.get_text("settings_updated", language_code),
-            reply_markup=get_reply_keyboard(language_code)
+            reply_markup=get_reply_keyboard(language_code),
         )
     else:
         await create_user_info(telegram_id, language_code)
         await message.answer(text_service.get_text("request_phone", language_code))
         await message.answer(
             text_service.get_text("share_contact", language_code),
-            reply_markup=get_contact_keyboard(language_code)
+            reply_markup=get_contact_keyboard(language_code),
         )
 
 
@@ -42,18 +46,24 @@ async def handle_contact(message: Message):
             first_name=message.contact.first_name,
             last_name=message.contact.last_name,
             phone_number=message.contact.phone_number,
-            telegram_id=message.from_user.id
+            telegram_id=message.from_user.id,
         )
         user = await register_user(user_create)
-        user_info = await update_user_info(user.telegram_id, is_registered=True, phone_number=user.phone_number)
+        user_info = await update_user_info(
+            user.telegram_id, is_registered=True, phone_number=user.phone_number
+        )
 
     token = await login_user(user_info)
-    await update_user_info(user_info.telegram_id, access_token=token.access_token, token_type=token.token_type)
+    await update_user_info(
+        user_info.telegram_id,
+        access_token=token.access_token,
+        token_type=token.token_type,
+    )
     message_text = "contact_received"
 
     await message.answer(
         text_service.get_text(message_text, user_info.language_code),
-        reply_markup=get_reply_keyboard(user_info.language_code)
+        reply_markup=get_reply_keyboard(user_info.language_code),
     )
 
 
