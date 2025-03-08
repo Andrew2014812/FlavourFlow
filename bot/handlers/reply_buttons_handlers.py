@@ -48,7 +48,7 @@ async def handle_profile(message: Message, language_code: str):
                 ),
                 InlineKeyboardButton(
                     text="Test company pagination",
-                    callback_data="company_page_1",
+                    callback_data="select_category",
                 ),
                 InlineKeyboardButton(
                     text="Test product pagination",

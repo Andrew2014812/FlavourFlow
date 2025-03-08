@@ -5,7 +5,11 @@ from aiogram.types import CallbackQuery
 
 from bot.common.services.text_service import text_service
 from bot.common.services.user_info_service import get_user_info
-from bot.handlers.pagination_handlers import company_handler, product_handler
+from bot.handlers.pagination_handlers import (
+    company_handler,
+    get_category_keyboard,
+    product_handler,
+)
 
 router = Router()
 callback_handlers = {}
@@ -54,6 +58,21 @@ async def company_pagination(callback: CallbackQuery, language_code: str):
 @register_callback_handler(lambda callback: "product_page" in callback)
 async def product_pagination(callback: CallbackQuery, language_code: str):
     await product_handler(callback, language_code)
+
+
+@register_callback_handler("select_category")
+async def select_category(callback: CallbackQuery, language_code: str):
+    await callback.message.answer(
+        text="select category", reply_markup=get_category_keyboard()
+    )
+    await callback.answer()
+
+
+@register_callback_handler(lambda callback: "category_" in callback)
+async def category_selection(callback: CallbackQuery, language_code: str):
+    category = callback.data.split("_")[1].capitalize()
+    new_callback = callback.model_copy(update={"data": f"company_page_1_{category}"})
+    await company_pagination(new_callback, language_code)
 
 
 def register_callback_handlers(dispatcher: Dispatcher):
