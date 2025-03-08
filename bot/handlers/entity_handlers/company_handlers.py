@@ -1,17 +1,24 @@
+from typing import Optional, Tuple
+
 from aiogram import Dispatcher, Router
-from aiogram.types import CallbackQuery, Message, PhotoSize
+from aiogram.types import Message, PhotoSize
 
 from bot.common.services.user_info_service import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIAuth
-from bot.handlers.callback_handlers import register_callback_handler
 
 router = Router()
 
 
-@register_callback_handler("admin_companies_list")
-async def admin_companies_list(callback: CallbackQuery, language_code: str):
-    await callback.answer()
+def render_company_content(
+    page: int, language_code: str, category: str
+) -> Tuple[str, Optional[str], int]:
+    total_pages = 15
+    image_url = (
+        "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
+    )
+    caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
+    return caption, image_url, total_pages
 
 
 # @router.message()

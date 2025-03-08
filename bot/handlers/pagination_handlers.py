@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, List
 
 from aiogram.types import (
     CallbackQuery,
@@ -7,7 +7,8 @@ from aiogram.types import (
     InputMediaPhoto,
 )
 
-user_categories: Dict[int, str] = {}
+from bot.handlers.entity_handlers.company_handlers import render_company_content
+from bot.handlers.entity_handlers.product_handlers import render_product_content
 
 
 def create_button(
@@ -157,26 +158,6 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="Finance", callback_data="category_finance"),
     ]
     return InlineKeyboardMarkup(inline_keyboard=[categories])
-
-
-def render_company_content(
-    page: int, language_code: str, category: str
-) -> Tuple[str, Optional[str], int]:
-    total_pages = 15
-    image_url = (
-        "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
-    )
-    caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
-    return caption, image_url, total_pages
-
-
-def render_product_content(
-    page: int, language_code: str
-) -> Tuple[str, Optional[str], int]:
-    total_pages = 20
-    image_url = None
-    content = f"Product catalog - Page {page} of {total_pages} (lang: {language_code})"
-    return content, image_url, total_pages
 
 
 company_handler = create_pagination_handler("company", render_company_content)

@@ -11,7 +11,8 @@ from bot.common.services.user_info_service import (
     update_user_info,
 )
 from bot.common.services.user_service import get_user, login_user, register_user
-from bot.handlers.main_keyboard_handlers import get_contact_keyboard, get_reply_keyboard
+from bot.handlers.entity_handlers.main_handlers import show_main_menu
+from bot.handlers.main_keyboard_handlers import get_contact_keyboard
 from bot.handlers.reply_buttons_handlers import button_handlers
 
 router = Router()
@@ -25,11 +26,9 @@ async def handle_language_choice(message: Message):
 
     if existing_user:
         await update_user_info(telegram_id, language_code=language_code)
-        keyboard = await get_reply_keyboard(language_code, telegram_id)
-        await message.answer(
-            text_service.get_text("settings_updated", language_code),
-            reply_markup=keyboard,
-        )
+        await message.answer(text_service.get_text("settings_updated", language_code))
+        await show_main_menu(message, language_code)
+
     else:
         await create_user_info(telegram_id, language_code)
         await message.answer(text_service.get_text("request_phone", language_code))
@@ -62,13 +61,12 @@ async def handle_contact(message: Message):
         access_token=token.access_token,
         token_type=token.token_type,
     )
-    message_text = "contact_received"
 
-    keyboard = await get_reply_keyboard(user_info.language_code, user_info.telegram_id)
     await message.answer(
-        text_service.get_text(message_text, user_info.language_code),
-        reply_markup=keyboard,
+        text_service.get_text("contact_received", user_info.language_code)
     )
+
+    await show_main_menu(message, user_info.language_code)
 
 
 @router.message()

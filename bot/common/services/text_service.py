@@ -27,6 +27,7 @@ class TextService:
             self._texts = data.get("texts", {})
             self._buttons = data.get("buttons", {})
             self._language_buttons = data.get("language_buttons", [])
+            self._admin_buttons = data.get("admin_buttons", {})
 
     def get_text(self, key: str, language: str) -> str:
         return self._texts.get(language, {}).get(key, "")
@@ -38,6 +39,10 @@ class TextService:
     @property
     def buttons(self) -> Dict:
         return self._buttons
+
+    @property
+    def admin_buttons(self) -> Dict:
+        return self._admin_buttons
 
     @property
     def language_buttons(self) -> List:

@@ -1,22 +1,24 @@
 {
   "buttons": {
     "ua": {
-      "profile": "Профіль 😊",
-      "about_us": "Про нас 🏠",
-      "restaurants": "Ресторани 🍴",
-      "contact_us": "Напишіть нам ✉️",
-      "orders": "Замовлення 📦",
-      "wishlist": "Список бажань ⭐️",
-      "admin_panel": "Панель адміністратора ⚙️"
+      "profile": "👤 Профіль",
+      "about_us": "ℹ️ Про нас",
+      "restaurants": "🍽️ Ресторани",
+      "contact_us": "📩 Напишіть нам",
+      "orders": "🚚 Замовлення",
+      "wishlist": "✨ Список бажань",
+      "admin_panel": "🛠️ Панель адміністратора",
+      "back": "⬅️ Повернутись"
     },
     "en": {
-      "profile": "Profile 😊",
-      "about_us": "About 🏠",
-      "restaurants": "Restaurants 🍴",
-      "contact_us": "Write to us ✉️",
-      "orders": "Orders 📦",
-      "wishlist": "Wishlist ⭐️",
-      "admin_panel": "Admin panel ⚙️"
+      "profile": "👤 Profile",
+      "about_us": "ℹ️ About",
+      "restaurants": "🍽️ Restaurants",
+      "contact_us": "📩 Write to us",
+      "orders": "🚚 Orders",
+      "wishlist": "✨ Wishlist",
+      "admin_panel": "🛠️ Admin panel",
+      "back": "⬅️ Back"
     }
   },
   "language_buttons": ["🇺🇦 Українська", "🇬🇧 English"],
@@ -38,7 +40,11 @@
       "profile_edit": "Редагувати профіль",
       "profile_updated": "Профіль оновлено!",
       "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}",
-      "update_profile_instruction": "Ви можете оновити лише своє ім’я та прізвище. Використовуйте такий формат:\nІм’я: [нове ім’я]\nПрізвище: [нове прізвище]\n\nПриклад (оновіть лише потрібне):\n\nІм'я: Іван\nПрізвище: Іванов"
+      "update_profile_instruction": "Ви можете оновити лише своє ім’я та прізвище. Використовуйте такий формат:\nІм’я: [нове ім’я]\nПрізвище: [нове прізвище]\n\nПриклад (оновіть лише потрібне):\n\nІм'я: Іван\nПрізвище: Іванов",
+      "select_category": "Будь ласка, виберіть категорію:",
+      "select_admin_action": "Вітаємо в панелі адміністратора! Виберіть дію:",
+      "no_access": "Ви не маєте доступу до цієї опції.",
+      "main_menu": "Головне меню"
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",
@@ -56,21 +62,25 @@
       "profile_edit": "Edit profile",
       "profile_updated": "Profile updated!",
       "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}",
-      "update_profile_instruction": "You can update only your first and last names. Use this format:\nFirst name: [new name]\nLast name: [last name]\n\nExample (update only what you need):\n\nFirst name: John\nLast name: Doe"
+      "update_profile_instruction": "You can update only your first and last names. Use this format:\nFirst name: [new name]\nLast name: [last name]\n\nExample (update only what you need):\n\nFirst name: John\nLast name: Doe",
+      "select_category": "Please select a category:",
+      "select_admin_action": "Welcome to the admin panel! Please select an action:",
+      "no_access": "You don't have access to this command.",
+      "main_menu": "Main menu"
     }
   },
   "admin_buttons": {
     "en": {
-      "users": "Manage users",
-      "companies": "Manage companies",
-      "countries": "Manage countries",
-      "kitchens": "Manage kitchens"
+      "users": "👥 Manage users",
+      "companies": "🏢 Manage companies",
+      "countries": "🌍 Manage countries",
+      "kitchens": "🍳 Manage kitchens"
     },
     "ua": {
-      "users": "Управління користувачами",
-      "companies": "Управління компаніями",
-      "countries": "Управління countries",
-      "kitchens": "Управління kitchens"
+      "users": "👥 Управління користувачами",
+      "companies": "🏢 Управління компаніями",
+      "countries": "🌍 Управління країнами",
+      "kitchens": "🍳 Управління кухнями"
     }
   }
 }
