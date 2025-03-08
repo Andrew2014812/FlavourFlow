@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery
 
 from bot.common.services.text_service import text_service
 from bot.common.services.user_info_service import get_user_info
+from bot.handlers.pagination_handlers import company_handler, product_handler
 
 router = Router()
 callback_handlers = {}
@@ -43,6 +44,16 @@ async def start_edit_profile(callback: CallbackQuery, language_code: str):
         text_service.get_text("update_profile_instruction", language_code)
     )
     await callback.answer()
+
+
+@register_callback_handler(lambda callback: "company_page" in callback)
+async def company_pagination(callback: CallbackQuery, language_code: str):
+    await company_handler(callback, language_code)
+
+
+@register_callback_handler(lambda callback: "product_page" in callback)
+async def product_pagination(callback: CallbackQuery, language_code: str):
+    await product_handler(callback, language_code)
 
 
 def register_callback_handlers(dispatcher: Dispatcher):

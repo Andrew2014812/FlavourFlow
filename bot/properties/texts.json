@@ -58,5 +58,19 @@
       "profile_message": "📋 Your profile:\n👤 Name: {name}\n🌍 Language: {language}\n🎁 Bonuses: {bonuses}\n📱 Phone: {phone}",
       "update_profile_instruction": "You can update only your first and last names. Use this format:\nFirst name: [new name]\nLast name: [last name]\n\nExample (update only what you need):\n\nFirst name: John\nLast name: Doe"
     }
+  },
+  "admin_buttons": {
+    "en": {
+      "users": "Manage users",
+      "companies": "Manage companies",
+      "countries": "Manage countries",
+      "kitchens": "Manage kitchens"
+    },
+    "ua": {
+      "users": "Управління користувачами",
+      "companies": "Управління компаніями",
+      "countries": "Управління countries",
+      "kitchens": "Управління kitchens"
+    }
   }
 }
