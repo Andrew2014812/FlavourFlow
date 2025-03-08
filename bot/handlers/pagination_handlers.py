@@ -1,6 +1,11 @@
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+)
 
 
 def create_button(
@@ -97,34 +102,46 @@ def get_pagination_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
-ContentRenderer = Callable[[int, str], Tuple[str, int]]
-
-
-def create_pagination_handler(content_type: str, render_content: ContentRenderer):
+def create_pagination_handler(content_type: str, render_content: Callable):
     async def handler(callback: CallbackQuery, language_code: str):
         if callback.data.startswith(f"{content_type}_page_"):
             page = int(callback.data.split("_")[2])
-            content, total_pages = render_content(page, language_code)
+            caption, image_url, total_pages = render_content(page, language_code)
+            keyboard = get_pagination_keyboard(page, total_pages, content_type)
 
-            await callback.message.edit_text(
-                content,
-                reply_markup=get_pagination_keyboard(page, total_pages, content_type),
-            )
+            if image_url:
+                await callback.message.edit_media(
+                    InputMediaPhoto(media=image_url, caption=caption),
+                    reply_markup=keyboard,
+                )
+
+            else:
+                await callback.message.edit_text(caption, reply_markup=keyboard)
+
         await callback.answer()
 
     return handler
 
 
-def render_company_content(page: int, language_code: str) -> Tuple[str, int]:
+def render_company_content(
+    page: int, language_code: str
+) -> Tuple[str, Optional[str], int]:
     total_pages = 15
-    content = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
-    return content, total_pages
+    image_url = (
+        "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
+    )
+
+    caption = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
+    return caption, image_url, total_pages
 
 
-def render_product_content(page: int, language_code: str) -> Tuple[str, int]:
+def render_product_content(
+    page: int, language_code: str
+) -> Tuple[str, Optional[str], int]:
     total_pages = 20
+    image_url = None
     content = f"Product catalog - Page {page} of {total_pages} (lang: {language_code})"
-    return content, total_pages
+    return content, image_url, total_pages
 
 
 company_handler = create_pagination_handler("company", render_company_content)
