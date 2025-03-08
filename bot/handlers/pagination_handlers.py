@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from aiogram.types import (
     CallbackQuery,
@@ -35,17 +35,22 @@ def get_navigation_buttons(
 
 def get_page_buttons(
     current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
-) -> list[InlineKeyboardButton]:
+) -> List[InlineKeyboardButton]:
     buttons = []
     base_prefix = f"{content_type}_page_"
     suffix = f"_{extra_arg}" if extra_arg else ""
 
-    if current_page <= 3:
+    if total_pages <= 5:
         buttons.extend(
             create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
-            for i in range(1, min(4, total_pages + 1))
+            for i in range(1, total_pages + 1)
         )
-        if total_pages > 5:
+    elif current_page <= 3:
+        buttons.extend(
+            create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
+            for i in range(1, 4)
+        )
+        if total_pages > 3:
             buttons.extend(
                 [
                     InlineKeyboardButton(text="...", callback_data="noop"),
@@ -57,22 +62,7 @@ def get_page_buttons(
                     ),
                 ]
             )
-    elif current_page <= total_pages - 2:
-        buttons.extend(
-            [
-                create_button("1", f"{base_prefix}1{suffix}"),
-                InlineKeyboardButton(text="...", callback_data="noop"),
-                create_button(
-                    str(current_page), f"{base_prefix}{current_page}{suffix}", True
-                ),
-                InlineKeyboardButton(text="...", callback_data="noop"),
-                create_button(
-                    str(total_pages - 1), f"{base_prefix}{total_pages-1}{suffix}"
-                ),
-                create_button(str(total_pages), f"{base_prefix}{total_pages}{suffix}"),
-            ]
-        )
-    else:
+    elif current_page >= total_pages - 2:
         buttons.extend(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
@@ -82,6 +72,18 @@ def get_page_buttons(
         buttons.extend(
             create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
             for i in range(total_pages - 2, total_pages + 1)
+        )
+    else:
+        buttons.extend(
+            [
+                create_button("1", f"{base_prefix}1{suffix}"),
+                InlineKeyboardButton(text="...", callback_data="noop"),
+                create_button(
+                    str(current_page), f"{base_prefix}{current_page}{suffix}", True
+                ),
+                InlineKeyboardButton(text="...", callback_data="noop"),
+                create_button(str(total_pages), f"{base_prefix}{total_pages}{suffix}"),
+            ]
         )
     return buttons
 
@@ -108,7 +110,6 @@ def create_pagination_handler(content_type: str, render_content: Callable):
     async def handler(callback: CallbackQuery, language_code: str):
         if callback.data.startswith(f"{content_type}_page_"):
             parts = callback.data.split("_")
-            print(parts)
             page = int(parts[2])
             extra_arg = parts[3] if len(parts) > 3 else ""
 
@@ -146,13 +147,13 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
 
 
 def render_company_content(
-    page: int, language_code: str, extra_arg: str
+    page: int, language_code: str, category: str
 ) -> Tuple[str, Optional[str], int]:
     total_pages = 15
     image_url = (
         "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
     )
-    caption = f"Company listing ({extra_arg}) - Page {page} of {total_pages} (lang: {language_code})"
+    caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
     return caption, image_url, total_pages
 
 
