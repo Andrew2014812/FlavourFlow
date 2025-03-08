@@ -2,15 +2,23 @@ from datetime import datetime, timedelta, timezone
 from typing import List
 
 import jwt
-from fastapi import HTTPException, status, Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
-from sqlmodel import select, or_
+from sqlmodel import or_, select
 
 from api.app.common.dependencies import SessionDep
 from api.app.user.models import User
-from api.app.user.schemas import UserCreate, UserResponse, TokenData, Token, UserPatch, UserLogin, UserResponseMe
-from bot.config import JWT_ALGORITHM, JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
+from api.app.user.schemas import (
+    Token,
+    TokenData,
+    UserCreate,
+    UserLogin,
+    UserPatch,
+    UserResponse,
+    UserResponseMe,
+)
+from bot.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
 
@@ -20,7 +28,7 @@ async def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
         or_(
             User.phone_number == user.phone_number,
             User.telegram_id == user.telegram_id,
-            )
+        )
     )
     result = await session.exec(statement)
     existing_user = result.first()
@@ -45,7 +53,9 @@ async def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     return db_user
 
 
-async def update_user(session: SessionDep, user_id: int, user_update: UserCreate | UserPatch) -> UserResponseMe:
+async def update_user(
+    session: SessionDep, user_id: int, user_update: UserCreate | UserPatch
+) -> UserResponseMe:
     statement = select(User).where(User.id == user_id)
     result = await session.exec(statement)
     existing_user = result.first()
@@ -66,19 +76,25 @@ async def remove_user(session: SessionDep, user_id: int):
     existing_user = result.first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     await session.delete(existing_user)
     await session.commit()
 
 
-async def change_user_role(session: SessionDep, user_id: int, role: str) -> UserResponse:
+async def change_user_role(
+    session: SessionDep, user_id: int, role: str
+) -> UserResponse:
     statement = select(User).where(User.id == user_id)
     result = await session.exec(statement)
     existing_user = result.first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     existing_user.role = role
 
@@ -89,9 +105,9 @@ async def change_user_role(session: SessionDep, user_id: int, role: str) -> User
 
 
 async def get_user_by_params(
-        session: SessionDep,
-        phone_number: str,
-        telegram_id: int,
+    session: SessionDep,
+    phone_number: str,
+    telegram_id: int,
 ) -> UserResponse | List[UserResponse]:
     if phone_number:
         return await get_user_by_phone(session, phone_number)
@@ -185,7 +201,12 @@ async def authenticate_user(session: SessionDep, user_login: UserLogin) -> Token
         },
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token, token_type="Bearer", telegram_id=existing_user.telegram_id)
+    return Token(
+        access_token=access_token,
+        token_type="Bearer",
+        telegram_id=existing_user.telegram_id,
+        user_role=existing_user.role,
+    )
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -223,7 +244,9 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
     except PyJWTError:
         raise credentials_exception
 
-    current_user = await get_user_by_phone(session, phone_number=token_data.phone_number)
+    current_user = await get_user_by_phone(
+        session, phone_number=token_data.phone_number
+    )
 
     if current_user is None:
         raise credentials_exception
@@ -233,6 +256,8 @@ async def get_current_user(session: SessionDep, token: str = Depends(oauth2_sche
 
 async def is_admin(user: User = Depends(get_current_user)):
     if user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
 
     return user

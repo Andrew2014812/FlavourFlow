@@ -5,24 +5,21 @@
       "about_us": "Про нас 🏠",
       "restaurants": "Ресторани 🍴",
       "contact_us": "Напишіть нам ✉️",
-      "delivery_and_payment": "Доставка та оплата 🚛",
       "orders": "Замовлення 📦",
-      "wishlist": "Список бажань ⭐️"
+      "wishlist": "Список бажань ⭐️",
+      "admin_panel": "Панель адміністратора ⚙️"
     },
     "en": {
       "profile": "Profile 😊",
       "about_us": "About 🏠",
       "restaurants": "Restaurants 🍴",
       "contact_us": "Write to us ✉️",
-      "delivery_and_payment": "Delivery and Payment 🚛",
       "orders": "Orders 📦",
-      "wishlist": "Wishlist ⭐️"
+      "wishlist": "Wishlist ⭐️",
+      "admin_panel": "Admin panel ⚙️"
     }
   },
-  "language_buttons": [
-    "🇺🇦 Українська",
-    "🇬🇧 English"
-  ],
+  "language_buttons": ["🇺🇦 Українська", "🇬🇧 English"],
   "texts": {
     "ua": {
       "select_language": "Будь ласка, виберіть мову: | Please select a language:",
@@ -42,7 +39,6 @@
       "profile_updated": "Профіль оновлено!",
       "profile_message": "📋 Ваш профіль:\n👤 Ім'я: {name}\n🌍 Мова: {language}\n🎁 Бонуси: {bonuses}\n📱 Телефон: {phone}",
       "update_profile_instruction": "Ви можете оновити лише своє ім’я та прізвище. Використовуйте такий формат:\nІм’я: [нове ім’я]\nПрізвище: [нове прізвище]\n\nПриклад (оновіть лише потрібне):\n\nІм'я: Іван\nПрізвище: Іванов"
-
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",

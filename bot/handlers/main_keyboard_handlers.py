@@ -2,12 +2,22 @@ from aiogram.types import KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from bot.common.services.text_service import text_service
+from bot.common.services.user_service import get_user
 
 
-def get_reply_keyboard(language: str):
+async def get_reply_keyboard(language: str, telegram_id: int):
     builder = ReplyKeyboardBuilder()
-    for button in text_service.buttons.get(language, {}).values():
+    buttons_dict = text_service.buttons.get(language, {}).copy()
+
+    result = await get_user(telegram_id)
+    user_role = result.role
+
+    if user_role == "user":
+        del buttons_dict["admin_panel"]
+
+    for button in buttons_dict.values():
         builder.add(KeyboardButton(text=button))
+
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
 

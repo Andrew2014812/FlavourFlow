@@ -11,7 +11,7 @@ class UserBase(SQLModel):
     phone_number: str = Field(unique=True, index=True)
     bonuses: float = Field(default=0)
     telegram_id: int = Field(sa_column=Column(BigInteger))
-    role: Optional[str] = Field(default='user')
+    role: Optional[str] = Field(default="user")
 
 
 class UserCreate(SQLModel):
@@ -35,6 +35,7 @@ class UserResponseMe(SQLModel):
     phone_number: str
     telegram_id: int
     bonuses: float
+    role: str
 
 
 class UserPatch(UserCreate):
@@ -53,6 +54,7 @@ class Token(SQLModel):
     access_token: str
     token_type: str
     telegram_id: int
+    user_role: str
 
 
 class TokenData(SQLModel):
