@@ -71,16 +71,16 @@
   },
   "admin_buttons": {
     "en": {
-      "users": "👥 Manage users",
-      "companies": "🏢 Manage companies",
-      "countries": "🌍 Manage countries",
-      "kitchens": "🍳 Manage kitchens"
+      "admin_users": "👥 Manage users",
+      "admin-company": "🏢 Manage companies",
+      "admin_countries": "🌍 Manage countries",
+      "admin_kitchens": "🍳 Manage kitchens"
     },
     "ua": {
-      "users": "👥 Управління користувачами",
-      "companies": "🏢 Управління компаніями",
-      "countries": "🌍 Управління країнами",
-      "kitchens": "🍳 Управління кухнями"
+      "admin_users": "👥 Дії над користувачами",
+      "admin-company": "🏢 Дії над компаніями",
+      "admin_countries": "🌍 Дії над країнами",
+      "admin_kitchens": "🍳 Дії над кухнями"
     }
   }
 }

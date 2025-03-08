@@ -5,7 +5,11 @@ from aiogram.types import CallbackQuery
 
 from bot.common.services.text_service import text_service
 from bot.common.services.user_info_service import get_user_info
-from bot.handlers.pagination_handlers import company_handler, product_handler
+from bot.handlers.pagination_handlers import (
+    company_admin_handler,
+    company_handler,
+    product_handler,
+)
 
 router = Router()
 callback_handlers = {}
@@ -46,9 +50,9 @@ async def start_edit_profile(callback: CallbackQuery, language_code: str):
     await callback.answer()
 
 
-@register_callback_handler("admin_companies_list")
-async def admin_companies_list(callback: CallbackQuery, language_code: str):
-    await callback.answer()
+@register_callback_handler(lambda callback: "admin-company_page" in callback)
+async def admin_companies(callback: CallbackQuery, language_code: str):
+    await company_admin_handler(callback, language_code)
 
 
 @register_callback_handler(lambda callback: "company_page" in callback)

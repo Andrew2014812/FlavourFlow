@@ -6,6 +6,7 @@ from aiogram.types import Message, PhotoSize
 from bot.common.services.user_info_service import get_user_info
 from bot.common.utils import make_request
 from bot.config import APIAuth
+from bot.handlers.entity_handlers.util import build_item_buttons
 
 router = Router()
 
@@ -17,8 +18,18 @@ def render_company_content(
     image_url = (
         "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
     )
+
     caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
-    return caption, image_url, total_pages
+    return caption, image_url, total_pages, None
+
+
+def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
+    total_pages = 15
+    companies = ["Tesla", "SpaceX", "Netflix", "Spotify", "Adobe", "Nvidia"]
+    text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
+    builder = build_item_buttons(companies, "company", page)
+
+    return text, None, total_pages, builder
 
 
 # @router.message()

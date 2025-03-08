@@ -7,7 +7,14 @@ from aiogram.types import (
     InputMediaPhoto,
 )
 
-from bot.handlers.entity_handlers.company_handlers import render_company_content
+left_arrow = "⬅️"
+right_arrow = "➡️"
+middle_button = "🔘"
+
+from bot.handlers.entity_handlers.company_handlers import (
+    render_company_content,
+    render_company_content_for_admin,
+)
 from bot.handlers.entity_handlers.product_handlers import render_product_content
 
 
@@ -26,10 +33,14 @@ def get_navigation_buttons(
     suffix = f"_{extra_arg}" if extra_arg else ""
 
     if current_page > 1:
-        buttons.append(create_button("<-", f"{base_prefix}{current_page-1}{suffix}"))
+        buttons.append(
+            create_button(left_arrow, f"{base_prefix}{current_page-1}{suffix}")
+        )
 
     if current_page < total_pages:
-        buttons.append(create_button("->", f"{base_prefix}{current_page+1}{suffix}"))
+        buttons.append(
+            create_button(right_arrow, f"{base_prefix}{current_page+1}{suffix}")
+        )
 
     return buttons
 
@@ -56,7 +67,8 @@ def get_page_buttons(
             buttons.extend(
                 [
                     InlineKeyboardButton(
-                        text="...", callback_data=f"{base_prefix}{middle_page}{suffix}"
+                        text=middle_button,
+                        callback_data=f"{base_prefix}{middle_page}{suffix}",
                     ),
                     create_button(
                         str(total_pages - 1), f"{base_prefix}{total_pages-1}{suffix}"
@@ -72,7 +84,8 @@ def get_page_buttons(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
                 InlineKeyboardButton(
-                    text="...", callback_data=f"{base_prefix}{middle_page}{suffix}"
+                    text=middle_button,
+                    callback_data=f"{base_prefix}{middle_page}{suffix}",
                 ),
             ]
         )
@@ -87,13 +100,14 @@ def get_page_buttons(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
                 InlineKeyboardButton(
-                    text="...", callback_data=f"{base_prefix}{left_middle_page}{suffix}"
+                    text=middle_button,
+                    callback_data=f"{base_prefix}{left_middle_page}{suffix}",
                 ),
                 create_button(
                     str(current_page), f"{base_prefix}{current_page}{suffix}", True
                 ),
                 InlineKeyboardButton(
-                    text="...",
+                    text=middle_button,
                     callback_data=f"{base_prefix}{right_middle_page}{suffix}",
                 ),
                 create_button(str(total_pages), f"{base_prefix}{total_pages}{suffix}"),
@@ -111,7 +125,7 @@ def get_pagination_keyboard(
     if buttons and len(buttons) == 2:
         buttons[1:1] = page_buttons
 
-    elif buttons and buttons[0].text == "<-":
+    elif buttons and buttons[0].text == left_arrow:
         buttons[1:] = page_buttons
 
     else:
@@ -128,23 +142,35 @@ def create_pagination_handler(content_type: str, render_content: Callable):
             extra_arg = parts[3] if len(parts) > 3 else ""
 
             if extra_arg:
-                caption, image_url, total_pages = render_content(
+                caption, image_url, total_pages, builder = render_content(
                     page, language_code, extra_arg
                 )
             else:
-                caption, image_url, total_pages = render_content(page, language_code)
+                caption, image_url, total_pages, builder = render_content(
+                    page, language_code
+                )
 
-            keyboard = get_pagination_keyboard(
+            pagination_keyboard = get_pagination_keyboard(
                 page, total_pages, content_type, extra_arg
             )
 
             if image_url:
                 await callback.message.edit_media(
                     InputMediaPhoto(media=image_url, caption=caption),
-                    reply_markup=keyboard,
+                    reply_markup=pagination_keyboard,
                 )
-            else:
+
+            elif builder:
+                for button in pagination_keyboard.inline_keyboard:
+                    builder.row(*button)
+
+                keyboard = builder.as_markup()
                 await callback.message.edit_text(caption, reply_markup=keyboard)
+
+            else:
+                await callback.message.edit_text(
+                    caption, reply_markup=pagination_keyboard
+                )
 
         await callback.answer()
 
@@ -161,4 +187,7 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
 
 
 company_handler = create_pagination_handler("company", render_company_content)
+company_admin_handler = create_pagination_handler(
+    "admin-company", render_company_content_for_admin
+)
 product_handler = create_pagination_handler("product", render_product_content)

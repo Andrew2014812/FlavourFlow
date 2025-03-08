@@ -1,5 +1,5 @@
-from aiogram.types import KeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardButton, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from bot.common.services.text_service import text_service
 from bot.common.services.user_service import get_user
@@ -41,13 +41,13 @@ def get_contact_keyboard(language_code: str):
 
 
 def get_admin_panel_keyboard(language_code: str):
-    builder = ReplyKeyboardBuilder()
+    builder = InlineKeyboardBuilder()
 
-    for button in text_service.admin_buttons.get(language_code, {}).values():
-        builder.add(KeyboardButton(text=button))
+    for key, button_text in text_service.admin_buttons.get(language_code, {}).items():
+        builder.add(
+            InlineKeyboardButton(text=button_text, callback_data=f"{key}_page_1")
+        )
 
-    back_button = text_service.buttons.get(language_code, {}).get("back")
-    builder.add(KeyboardButton(text=back_button))
     builder.adjust(2)
 
-    return builder.as_markup(resize_keyboard=True)
+    return builder.as_markup()
