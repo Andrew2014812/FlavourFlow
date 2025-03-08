@@ -11,9 +11,9 @@ user_categories: Dict[int, str] = {}
 
 
 def create_button(
-    text: str, callback_data: str, is_current: bool = False
+    button_text: str, callback_data: str, is_current: bool = False
 ) -> InlineKeyboardButton:
-    display_text = f"[{text}]" if is_current else text
+    display_text = f"[{button_text}]" if is_current else button_text
     return InlineKeyboardButton(text=display_text, callback_data=callback_data)
 
 
