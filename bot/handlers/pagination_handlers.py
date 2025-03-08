@@ -51,9 +51,12 @@ def get_page_buttons(
             for i in range(1, 4)
         )
         if total_pages > 3:
+            middle_page = (3 + (total_pages - 1)) // 2
             buttons.extend(
                 [
-                    InlineKeyboardButton(text="...", callback_data="noop"),
+                    InlineKeyboardButton(
+                        text="...", callback_data=f"{base_prefix}{middle_page}{suffix}"
+                    ),
                     create_button(
                         str(total_pages - 1), f"{base_prefix}{total_pages-1}{suffix}"
                     ),
@@ -63,10 +66,13 @@ def get_page_buttons(
                 ]
             )
     elif current_page >= total_pages - 2:
+        middle_page = (1 + (total_pages - 2)) // 2
         buttons.extend(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
-                InlineKeyboardButton(text="...", callback_data="noop"),
+                InlineKeyboardButton(
+                    text="...", callback_data=f"{base_prefix}{middle_page}{suffix}"
+                ),
             ]
         )
         buttons.extend(
@@ -74,14 +80,21 @@ def get_page_buttons(
             for i in range(total_pages - 2, total_pages + 1)
         )
     else:
+        left_middle_page = 1 + current_page
+        right_middle_page = (current_page + total_pages) // 2
         buttons.extend(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
-                InlineKeyboardButton(text="...", callback_data="noop"),
+                InlineKeyboardButton(
+                    text="...", callback_data=f"{base_prefix}{left_middle_page}{suffix}"
+                ),
                 create_button(
                     str(current_page), f"{base_prefix}{current_page}{suffix}", True
                 ),
-                InlineKeyboardButton(text="...", callback_data="noop"),
+                InlineKeyboardButton(
+                    text="...",
+                    callback_data=f"{base_prefix}{right_middle_page}{suffix}",
+                ),
                 create_button(str(total_pages), f"{base_prefix}{total_pages}{suffix}"),
             ]
         )
