@@ -39,9 +39,12 @@ async def handle_callbacks(callback: CallbackQuery):
     language_code = user_info.language_code
 
     for handler, filter_func in callback_handlers.items():
-        if filter_func(callback.data):
-            await handler(callback, language_code)
-            return
+        try:
+            if filter_func(callback.data):
+                await handler(callback, language_code)
+                return
+        except json.JSONDecodeError:
+            continue  # Пропускаем некорректные JSON
 
     await callback.answer("Unknown action")
 
@@ -54,41 +57,61 @@ async def start_edit_profile(callback: CallbackQuery, language_code: str):
     await callback.answer()
 
 
-@register_callback_handler(lambda callback: "admin-company_page" in callback)
+@register_callback_handler(
+    lambda data: json.loads(data).get("t") == "admin-company"
+    and json.loads(data).get("a") == "nav"
+)
 async def admin_companies(callback: CallbackQuery, language_code: str):
     await company_admin_handler(callback, language_code)
 
 
-@register_callback_handler(lambda callback: "admin-country_page" in callback)
+@register_callback_handler(
+    lambda data: json.loads(data).get("t") == "admin-country"
+    and json.loads(data).get("a") == "nav"
+)
 async def admin_countries(callback: CallbackQuery, language_code: str):
     await country_handler(callback, language_code)
 
 
-@register_callback_handler(lambda callback: "user-company_page" in callback)
+@register_callback_handler(
+    lambda data: json.loads(data).get("t") == "user-company"
+    and json.loads(data).get("a") == "nav"
+)
 async def company_pagination(callback: CallbackQuery, language_code: str):
     await company_handler(callback, language_code)
 
 
-@register_callback_handler(lambda callback: "product_page" in callback)
+@register_callback_handler(
+    lambda data: json.loads(data).get("t") == "product"
+    and json.loads(data).get("a") == "nav"
+)
 async def product_pagination(callback: CallbackQuery, language_code: str):
     await product_handler(callback, language_code)
 
 
-@register_callback_handler(lambda callback: "category_" in callback)
+@register_callback_handler(lambda data: json.loads(data).get("t") == "category")
 async def category_selection(callback: CallbackQuery, language_code: str):
-    category = callback.data.split("_")[1].capitalize()
-    new_callback = callback.model_copy(
-        update={"data": f"user-company_page_1_{category}"}
-    )
+    data = json.loads(callback.data)
+    category = data["v"].capitalize()
+
+    callback_dict = {
+        "t": "user-company",
+        "a": "nav",
+        "p": 1,
+        "e": category,
+    }
+
+    new_callback_data = json.dumps(callback_dict, separators=(",", ":"))
+    new_callback = callback.model_copy(update={"data": new_callback_data})
 
     await company_pagination(new_callback, language_code)
 
 
-@register_callback_handler(lambda callback: json.loads(callback).get("a") == "back")
+@register_callback_handler(lambda data: json.loads(data).get("a") == "back")
 async def handle_back(callback: CallbackQuery, language_code: str):
     callback_data = json.loads(callback.data)
 
-    content_type = callback_data["c"]
+    content_type = callback_data["t"]
     page = callback_data["p"]
 
     if content_type == "user-company":

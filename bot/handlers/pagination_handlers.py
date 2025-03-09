@@ -31,18 +31,19 @@ def get_navigation_buttons(
     current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
 ) -> list[InlineKeyboardButton]:
     buttons = []
-    base_prefix = f"{content_type}_page_"
-    suffix = f"_{extra_arg}" if extra_arg else ""
+    base_dict = {"t": content_type, "e": extra_arg}
 
     if current_page > 1:
-        buttons.append(
-            create_button(left_arrow, f"{base_prefix}{current_page-1}{suffix}")
-        )
+        callback_dict = {**base_dict, "a": "nav", "p": current_page - 1}
+        callback_data = json.dumps(callback_dict, separators=(",", ":"))
+
+        buttons.append(create_button(left_arrow, callback_data))
 
     if current_page < total_pages:
-        buttons.append(
-            create_button(right_arrow, f"{base_prefix}{current_page+1}{suffix}")
-        )
+        callback_dict = {**base_dict, "a": "nav", "p": current_page + 1}
+        callback_data = json.dumps(callback_dict, separators=(",", ":"))
+
+        buttons.append(create_button(right_arrow, callback_data))
 
     return buttons
 
@@ -51,17 +52,24 @@ def get_page_buttons(
     current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
 ) -> List[InlineKeyboardButton]:
     buttons = []
-    base_prefix = f"{content_type}_page_"
-    suffix = f"_{extra_arg}" if extra_arg else ""
+    base_dict = {"t": content_type, "e": extra_arg, "a": "nav"}
 
     if total_pages <= 5:
         buttons.extend(
-            create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
+            create_button(
+                str(i),
+                json.dumps({**base_dict, "p": i}, separators=(",", ":")),
+                i == current_page,
+            )
             for i in range(1, total_pages + 1)
         )
     elif current_page <= 3:
         buttons.extend(
-            create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
+            create_button(
+                str(i),
+                json.dumps({**base_dict, "p": i}, separators=(",", ":")),
+                i == current_page,
+            )
             for i in range(1, 4)
         )
         if total_pages > 3:
@@ -70,13 +78,21 @@ def get_page_buttons(
                 [
                     InlineKeyboardButton(
                         text=middle_button,
-                        callback_data=f"{base_prefix}{middle_page}{suffix}",
+                        callback_data=json.dumps(
+                            {**base_dict, "p": middle_page}, separators=(",", ":")
+                        ),
                     ),
                     create_button(
-                        str(total_pages - 1), f"{base_prefix}{total_pages-1}{suffix}"
+                        str(total_pages - 1),
+                        json.dumps(
+                            {**base_dict, "p": total_pages - 1}, separators=(",", ":")
+                        ),
                     ),
                     create_button(
-                        str(total_pages), f"{base_prefix}{total_pages}{suffix}"
+                        str(total_pages),
+                        json.dumps(
+                            {**base_dict, "p": total_pages}, separators=(",", ":")
+                        ),
                     ),
                 ]
             )
@@ -84,15 +100,23 @@ def get_page_buttons(
         middle_page = total_pages // 2
         buttons.extend(
             [
-                create_button("1", f"{base_prefix}1{suffix}"),
+                create_button(
+                    "1", json.dumps({**base_dict, "p": 1}, separators=(",", ":"))
+                ),
                 InlineKeyboardButton(
                     text=middle_button,
-                    callback_data=f"{base_prefix}{middle_page}{suffix}",
+                    callback_data=json.dumps(
+                        {**base_dict, "p": middle_page}, separators=(",", ":")
+                    ),
                 ),
             ]
         )
         buttons.extend(
-            create_button(str(i), f"{base_prefix}{i}{suffix}", i == current_page)
+            create_button(
+                str(i),
+                json.dumps({**base_dict, "p": i}, separators=(",", ":")),
+                i == current_page,
+            )
             for i in range(total_pages - 2, total_pages + 1)
         )
     else:
@@ -100,19 +124,30 @@ def get_page_buttons(
         right_middle_page = min(total_pages, current_page + 2)
         buttons.extend(
             [
-                create_button("1", f"{base_prefix}1{suffix}"),
+                create_button(
+                    "1", json.dumps({**base_dict, "p": 1}, separators=(",", ":"))
+                ),
                 InlineKeyboardButton(
                     text=middle_button,
-                    callback_data=f"{base_prefix}{left_middle_page}{suffix}",
+                    callback_data=json.dumps(
+                        {**base_dict, "p": left_middle_page}, separators=(",", ":")
+                    ),
                 ),
                 create_button(
-                    str(current_page), f"{base_prefix}{current_page}{suffix}", True
+                    str(current_page),
+                    json.dumps({**base_dict, "p": current_page}, separators=(",", ":")),
+                    True,
                 ),
                 InlineKeyboardButton(
                     text=middle_button,
-                    callback_data=f"{base_prefix}{right_middle_page}{suffix}",
+                    callback_data=json.dumps(
+                        {**base_dict, "p": right_middle_page}, separators=(",", ":")
+                    ),
                 ),
-                create_button(str(total_pages), f"{base_prefix}{total_pages}{suffix}"),
+                create_button(
+                    str(total_pages),
+                    json.dumps({**base_dict, "p": total_pages}, separators=(",", ":")),
+                ),
             ]
         )
     return buttons
@@ -135,37 +170,34 @@ def get_pagination_keyboard(
 
     callback_dict = {
         "a": "back",
-        "c": content_type,
+        "t": content_type,
         "p": current_page,
         "e": extra_arg,
     }
-
     callback_data = json.dumps(callback_dict, separators=(",", ":"))
-
     back_button = InlineKeyboardButton(text="↩️", callback_data=callback_data)
 
-    keyboard = [
-        buttons,
-        [back_button],
-    ]
-
+    keyboard = [buttons, [back_button]]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def create_pagination_handler(content_type: str, render_content: Callable):
     async def handler(callback: CallbackQuery, language_code: str):
-        if callback.data.startswith(f"{content_type}_page_"):
-            parts = callback.data.split("_")
-            page = int(parts[2])
-            extra_arg = parts[3] if len(parts) > 3 else ""
+        data = json.loads(callback.data)
+        if data.get("t") != content_type or data.get("a") not in ["nav", "back"]:
+            return
+
+        if data["a"] == "nav":
+            page = data["p"]
+            extra_arg = data.get("e", "")
 
             if extra_arg:
                 result = await render_content(page, language_code, extra_arg)
-                caption, image_url, total_pages, builder = result
 
             else:
                 result = await render_content(page, language_code)
-                caption, image_url, total_pages, builder = result
+
+            caption, image_url, total_pages, builder = result
 
             pagination_keyboard = get_pagination_keyboard(
                 page, total_pages, content_type, extra_arg
@@ -182,6 +214,7 @@ def create_pagination_handler(content_type: str, render_content: Callable):
                     builder.row(*button)
 
                 keyboard = builder.as_markup()
+
                 await callback.message.edit_text(caption, reply_markup=keyboard)
 
             else:
@@ -196,9 +229,24 @@ def create_pagination_handler(content_type: str, render_content: Callable):
 
 def get_category_keyboard() -> InlineKeyboardMarkup:
     categories = [
-        InlineKeyboardButton(text="Tech", callback_data="category_tech"),
-        InlineKeyboardButton(text="Retail", callback_data="category_retail"),
-        InlineKeyboardButton(text="Finance", callback_data="category_finance"),
+        InlineKeyboardButton(
+            text="Tech",
+            callback_data=json.dumps(
+                {"t": "category", "v": "tech"}, separators=(",", ":")
+            ),
+        ),
+        InlineKeyboardButton(
+            text="Retail",
+            callback_data=json.dumps(
+                {"t": "category", "v": "retail"}, separators=(",", ":")
+            ),
+        ),
+        InlineKeyboardButton(
+            text="Finance",
+            callback_data=json.dumps(
+                {"t": "category", "v": "finance"}, separators=(",", ":")
+            ),
+        ),
     ]
     return InlineKeyboardMarkup(inline_keyboard=[categories])
 

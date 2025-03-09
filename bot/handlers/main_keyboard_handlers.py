@@ -1,4 +1,6 @@
-from aiogram.types import InlineKeyboardButton, KeyboardButton
+import json
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from ..common.services.text_service import text_service
@@ -40,13 +42,19 @@ def get_contact_keyboard(language_code: str):
     return builder.as_markup(resize_keyboard=True)
 
 
-def get_admin_panel_keyboard(language_code: str):
+def get_admin_panel_keyboard(language_code: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     for key, button_text in text_service.admin_buttons.get(language_code, {}).items():
-        builder.add(
-            InlineKeyboardButton(text=button_text, callback_data=f"{key}_page_1")
-        )
+        callback_dict = {
+            "t": key,
+            "a": "nav",
+            "p": 1,
+        }
+
+        callback_data = json.dumps(callback_dict, separators=(",", ":"))
+
+        builder.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
 
     builder.adjust(2)
 
