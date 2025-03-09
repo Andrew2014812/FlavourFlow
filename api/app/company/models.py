@@ -1,10 +1,9 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from sqlmodel import Field, Relationship
 
 from api.app.company.schemas import CompanyBase
-from api.app.country.models import Country
-from api.app.kitchen.models import Kitchen
+from api.app.gastronomy.models import Country, Kitchen
 
 
 class Company(CompanyBase, table=True):

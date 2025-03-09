@@ -3,8 +3,7 @@ from sqlmodel import SQLModel
 
 from api.app.cart.models import Cart
 from api.app.company.models import Company
-from api.app.country.models import Country
-from api.app.kitchen.models import Kitchen
+from api.app.gastronomy.models import Country, Kitchen
 from api.app.product.models import Product
 from api.app.user.models import User
 from api.app.wishlist.models import Wishlist, WishlistItem
