@@ -49,14 +49,14 @@ def get_navigation_buttons(
             content_type, "nav", current_page - 1, extra_arg
         )
 
-        buttons.append(create_button(LEFT_ARROW, prev_page_data))
+        buttons.append(create_button(text=LEFT_ARROW, callback_data=prev_page_data))
 
     if current_page < total_pages:
         next_page_data = make_callback_data(
             content_type, "nav", current_page + 1, extra_arg
         )
 
-        buttons.append(create_button(RIGHT_ARROW, next_page_data))
+        buttons.append(create_button(text=RIGHT_ARROW, callback_data=next_page_data))
 
     return buttons
 
@@ -69,16 +69,22 @@ def get_page_buttons(
     if total_pages <= 5:
         for page in range(1, total_pages + 1):
             callback = make_callback_data(content_type, "nav", page, extra_arg)
-            buttons.append(create_button(str(page), callback, page == current_page))
+            buttons.append(
+                create_button(
+                    text=str(page),
+                    callback_data=callback,
+                    is_current=page == current_page,
+                )
+            )
 
         return buttons
 
     if current_page <= 3:
         buttons = [
             create_button(
-                str(i),
-                make_callback_data(content_type, "nav", i, extra_arg),
-                i == current_page,
+                text=str(i),
+                callback_data=make_callback_data(content_type, "nav", i, extra_arg),
+                is_current=i == current_page,
             )
             for i in range(1, 4)
         ]
@@ -87,67 +93,95 @@ def get_page_buttons(
         buttons.extend(
             [
                 create_button(
-                    MIDDLE_DOT,
-                    make_callback_data(content_type, "nav", middle_page, extra_arg),
+                    text=MIDDLE_DOT,
+                    callback_data=make_callback_data(
+                        content_type, "nav", middle_page, extra_arg
+                    ),
                 ),
                 create_button(
-                    str(total_pages - 1),
-                    make_callback_data(content_type, "nav", total_pages - 1, extra_arg),
+                    text=str(total_pages - 1),
+                    callback_data=make_callback_data(
+                        content_type, "nav", total_pages - 1, extra_arg
+                    ),
                 ),
                 create_button(
-                    str(total_pages),
-                    make_callback_data(content_type, "nav", total_pages, extra_arg),
+                    text=str(total_pages),
+                    callback_data=make_callback_data(
+                        content_type, "nav", total_pages, extra_arg
+                    ),
                 ),
             ]
         )
+
         return buttons
 
     if current_page >= total_pages - 2:
         middle_page = total_pages // 2
+
         buttons = [
-            create_button("1", make_callback_data(content_type, "nav", 1, extra_arg)),
             create_button(
-                MIDDLE_DOT,
-                make_callback_data(content_type, "nav", middle_page, extra_arg),
+                text="1",
+                callback_data=make_callback_data(content_type, "nav", 1, extra_arg),
+            ),
+            create_button(
+                text=MIDDLE_DOT,
+                callback_data=make_callback_data(
+                    content_type, "nav", middle_page, extra_arg
+                ),
             ),
         ]
 
         buttons.extend(
             [
                 create_button(
-                    str(i),
-                    make_callback_data(content_type, "nav", i, extra_arg),
-                    i == current_page,
+                    text=str(i),
+                    callback_data=make_callback_data(content_type, "nav", i, extra_arg),
+                    is_current=i == current_page,
                 )
                 for i in range(total_pages - 2, total_pages + 1)
             ]
         )
+
         return buttons
 
     left_middle = max(1, current_page - 2)
     right_middle = min(total_pages, current_page + 2)
+
     buttons = [
-        create_button("1", make_callback_data(content_type, "nav", 1, extra_arg)),
         create_button(
-            MIDDLE_DOT, make_callback_data(content_type, "nav", left_middle, extra_arg)
+            text="1",
+            callback_data=make_callback_data(content_type, "nav", 1, extra_arg),
         ),
         create_button(
-            str(current_page),
-            make_callback_data(content_type, "nav", current_page, extra_arg),
-            True,
+            text=MIDDLE_DOT,
+            callback_data=make_callback_data(
+                content_type, "nav", left_middle, extra_arg
+            ),
         ),
         create_button(
-            MIDDLE_DOT, make_callback_data(content_type, "nav", right_middle, extra_arg)
+            text=str(current_page),
+            callback_data=make_callback_data(
+                content_type, "nav", current_page, extra_arg
+            ),
+            is_current=True,
         ),
         create_button(
-            str(total_pages),
-            make_callback_data(content_type, "nav", total_pages, extra_arg),
+            text=MIDDLE_DOT,
+            callback_data=make_callback_data(
+                content_type, "nav", right_middle, extra_arg
+            ),
+        ),
+        create_button(
+            text=str(total_pages),
+            callback_data=make_callback_data(
+                content_type, "nav", total_pages, extra_arg
+            ),
         ),
     ]
+
     return buttons
 
 
-# Основная клавиатура пагинации
 def get_pagination_keyboard(
     current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
 ) -> InlineKeyboardMarkup:
@@ -157,7 +191,6 @@ def get_pagination_keyboard(
         content_type,
         extra_arg,
     )
-
     page_buttons = get_page_buttons(
         current_page,
         total_pages,
@@ -175,7 +208,7 @@ def get_pagination_keyboard(
         buttons = [*page_buttons, *nav_buttons]
 
     back_data = make_callback_data(content_type, "back", current_page, extra_arg)
-    back_button = create_button(BACK_ARROW, back_data)
+    back_button = create_button(text=BACK_ARROW, callback_data=back_data)
 
     return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
 
@@ -214,6 +247,7 @@ def create_pagination_handler(content_type: str, render_content: Callable):
                 await callback.message.edit_text(
                     caption, reply_markup=builder.as_markup()
                 )
+
             else:
                 await callback.message.edit_text(caption, reply_markup=keyboard)
 
@@ -228,10 +262,13 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
         {"text": "Retail", "value": "retail"},
         {"text": "Finance", "value": "finance"},
     ]
+
     buttons = [
         create_button(
-            cat["text"],
-            json.dumps({"t": "category", "v": cat["value"]}, separators=(",", ":")),
+            text=cat["text"],
+            callback_data=json.dumps(
+                {"t": "category", "v": cat["value"]}, separators=(",", ":")
+            ),
         )
         for cat in category_data
     ]
