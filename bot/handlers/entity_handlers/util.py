@@ -27,4 +27,10 @@ def build_item_buttons(
 
         builder.row(*row_buttons)
 
+    builder.row(
+        InlineKeyboardButton(
+            text="Добавить", callback_data=f"{content_type}_add_page_{page}"
+        )
+    )
+
     return builder

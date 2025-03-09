@@ -10,6 +10,11 @@ class CountryResponse(CountryBase):
     id: int
 
 
+class CountryListResponse(SQLModel):
+    countries: list[CountryResponse]
+    total_pages: int
+
+
 class CountryCreate(CountryBase):
     pass
 

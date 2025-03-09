@@ -4,20 +4,29 @@ from fastapi import APIRouter, Depends, status
 
 from api.app.common.dependencies import SessionDep
 from api.app.country.crud import (
-    get_all_countries,
     create_country,
-    update_country,
-    remove_country,
+    get_all_countries,
     get_country_by_id,
+    remove_country,
+    update_country,
 )
-from api.app.country.schemas import CountryResponse, CountryCreate, CountryUpdate
+from api.app.country.schemas import (
+    CountryCreate,
+    CountryListResponse,
+    CountryResponse,
+    CountryUpdate,
+)
 from api.app.user.crud import is_admin
 
 router = APIRouter()
 
 
 @router.get("/")
-async def get_countries(session: SessionDep) -> List[CountryResponse]:
+async def get_countries(
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 6,
+) -> List[CountryListResponse]:
     """
     Retrieve a list of all countries.
 
@@ -33,9 +42,9 @@ async def get_countries(session: SessionDep) -> List[CountryResponse]:
 
 @router.post("/")
 async def post_country(
-        session: SessionDep,
-        country: CountryCreate,
-        _: None = Depends(is_admin),
+    session: SessionDep,
+    country: CountryCreate,
+    _: None = Depends(is_admin),
 ) -> CountryResponse:
     """
     Create a new country in the database.
@@ -52,8 +61,7 @@ async def post_country(
 
 
 @router.get("/{country_id}/")
-async def kitchen_get(
-        session: SessionDep, country_id: int) -> CountryResponse:
+async def kitchen_get(session: SessionDep, country_id: int) -> CountryResponse:
     """
     Retrieve a country by id.
 
@@ -70,10 +78,10 @@ async def kitchen_get(
 
 @router.put("/{country_id}/")
 async def put_country(
-        session: SessionDep,
-        country_id: int,
-        country: CountryUpdate,
-        _: None = Depends(is_admin),
+    session: SessionDep,
+    country_id: int,
+    country: CountryUpdate,
+    _: None = Depends(is_admin),
 ) -> CountryResponse:
     """
     Update an existing country in the database.
@@ -87,14 +95,16 @@ async def put_country(
         CountryResponse: The updated country.
     """
 
-    return await update_country(session=session, country_id=country_id, country_update=country)
+    return await update_country(
+        session=session, country_id=country_id, country_update=country
+    )
 
 
 @router.delete("/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_country(
-        session: SessionDep,
-        country_id: int,
-        _: None = Depends(is_admin),
+    session: SessionDep,
+    country_id: int,
+    _: None = Depends(is_admin),
 ):
     """
     Delete an existing country in the database.

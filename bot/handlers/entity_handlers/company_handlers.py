@@ -26,6 +26,7 @@ def render_company_content(
 def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
     total_pages = 15
     companies = ["Tesla", "SpaceX", "Netflix", "Spotify", "Adobe", "Nvidia"]
+    # companies = []
     text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
     builder = build_item_buttons(companies, "company", page)
 

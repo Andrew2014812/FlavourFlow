@@ -63,7 +63,7 @@ def get_page_buttons(
             for i in range(1, 4)
         )
         if total_pages > 3:
-            middle_page = (3 + (total_pages - 1)) // 2
+            middle_page = total_pages // 2
             buttons.extend(
                 [
                     InlineKeyboardButton(
@@ -79,7 +79,7 @@ def get_page_buttons(
                 ]
             )
     elif current_page >= total_pages - 2:
-        middle_page = (1 + (total_pages - 2)) // 2
+        middle_page = total_pages // 2
         buttons.extend(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),
@@ -94,8 +94,8 @@ def get_page_buttons(
             for i in range(total_pages - 2, total_pages + 1)
         )
     else:
-        left_middle_page = 1 + current_page
-        right_middle_page = (current_page + total_pages) // 2
+        left_middle_page = max(1, current_page - 2)
+        right_middle_page = min(total_pages, current_page + 2)
         buttons.extend(
             [
                 create_button("1", f"{base_prefix}1{suffix}"),

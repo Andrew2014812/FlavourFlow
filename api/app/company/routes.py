@@ -5,14 +5,14 @@ from api.app.company.crud import (
     create_company,
     get_all_companies,
     get_company_by_id,
-    update_company,
     remove_company,
+    update_company,
 )
 from api.app.company.schemas import (
     CompanyCreate,
     CompanyListResponse,
-    CompanyResponse,
     CompanyPatch,
+    CompanyResponse,
 )
 from api.app.user.crud import is_admin
 
@@ -23,7 +23,7 @@ router = APIRouter()
 async def company_list(
     session: SessionDep,
     page: int = 1,
-    limit: int = 10,
+    limit: int = 6,
 ) -> CompanyListResponse:
     """
     Retrieve a list of all companies.

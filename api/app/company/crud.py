@@ -1,21 +1,18 @@
-from ast import Dict
-from typing import List
-
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import selectinload
-from sqlmodel import select, func
+from sqlmodel import func, select
 
 from api.app.common.dependencies import SessionDep
 from api.app.company.models import Company
 from api.app.company.schemas import (
     CompanyCreate,
     CompanyListResponse,
-    CompanyResponse,
     CompanyPatch,
+    CompanyResponse,
 )
 from api.app.product.crud import remove_product
-from api.app.utils import upload_file, delete_file
+from api.app.utils import delete_file, upload_file
 
 COMPANY_NOT_FOUND = "Company not found"
 
@@ -68,7 +65,7 @@ async def create_company(
 
 
 async def get_all_companies(
-    session: SessionDep, page: int = 1, limit: int = 10
+    session: SessionDep, page: int = 1, limit: int = 6
 ) -> CompanyListResponse:
     statement = select(func.count()).select_from(Company)
     result = await session.exec(statement)
