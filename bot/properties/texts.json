@@ -8,7 +8,7 @@
       "orders": "🚚 Замовлення",
       "wishlist": "✨ Список бажань",
       "admin_panel": "🛠️ Панель адміністратора",
-      "back": "⬅️ Повернутись"
+      "back": "↩️ Повернутись"
     },
     "en": {
       "profile": "👤 Profile",
@@ -18,7 +18,7 @@
       "orders": "🚚 Orders",
       "wishlist": "✨ Wishlist",
       "admin_panel": "🛠️ Admin panel",
-      "back": "⬅️ Back"
+      "back": "↩️ Back"
     }
   },
   "language_buttons": ["🇺🇦 Українська", "🇬🇧 English"],
@@ -71,16 +71,16 @@
   },
   "admin_buttons": {
     "en": {
-      "admin_users": "👥 Manage users",
+      "admin-users": "👥 Manage users",
       "admin-company": "🏢 Manage companies",
-      "admin_countries": "🌍 Manage countries",
-      "admin_kitchens": "🍳 Manage kitchens"
+      "admin-country": "🌍 Manage countries",
+      "admin-kitchen": "🍳 Manage kitchens"
     },
     "ua": {
-      "admin_users": "👥 Дії над користувачами",
+      "admin-users": "👥 Дії над користувачами",
       "admin-company": "🏢 Дії над компаніями",
-      "admin_countries": "🌍 Дії над країнами",
-      "admin_kitchens": "🍳 Дії над кухнями"
+      "admin-country": "🌍 Дії над країнами",
+      "admin-kitchen": "🍳 Дії над кухнями"
     }
   }
 }

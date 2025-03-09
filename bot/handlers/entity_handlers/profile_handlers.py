@@ -1,10 +1,12 @@
-from aiogram import Router, Dispatcher, F as FILTER
+from aiogram import Dispatcher
+from aiogram import F as FILTER
+from aiogram import Router
 from aiogram.types import Message
 
-from bot.common.services.text_service import text_service
-from bot.common.services.user_info_service import get_user_info
-from bot.common.services.user_service import update_user
-from bot.handlers.reply_buttons_handlers import handle_profile
+from ...common.services.text_service import text_service
+from ...common.services.user_info_service import get_user_info
+from ...common.services.user_service import update_user
+from ...handlers.reply_buttons_handlers import handle_profile
 
 router = Router()
 

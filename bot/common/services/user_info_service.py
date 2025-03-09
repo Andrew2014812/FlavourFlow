@@ -3,8 +3,8 @@ from typing import Optional
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from bot.common.database import engine
-from bot.common.models import UserInfo
+from ...common.database import engine
+from ...common.models import UserInfo
 
 
 async def get_user_info(telegram_id: int) -> Optional[UserInfo]:
@@ -41,7 +41,9 @@ async def update_user_info(telegram_id: int, **fields) -> UserInfo:
 
         for field_name, new_value in fields.items():
             if not hasattr(existing_user, field_name):
-                raise AttributeError(f"Field {field_name} does not exist in user object")
+                raise AttributeError(
+                    f"Field {field_name} does not exist in user object"
+                )
 
             setattr(existing_user, field_name, new_value)
 

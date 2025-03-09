@@ -4,16 +4,17 @@ from aiogram import Router
 from aiogram.types import Message
 
 from api.app.user.schemas import Token, UserCreate
-from bot.common.services.text_service import text_service
-from bot.common.services.user_info_service import (
+
+from ..common.services.text_service import text_service
+from ..common.services.user_info_service import (
     create_user_info,
     get_user_info,
     update_user_info,
 )
-from bot.common.services.user_service import get_user, login_user, register_user
-from bot.handlers.entity_handlers.main_handlers import show_main_menu
-from bot.handlers.main_keyboard_handlers import get_contact_keyboard
-from bot.handlers.reply_buttons_handlers import button_handlers
+from ..common.services.user_service import get_user, login_user, register_user
+from ..handlers.entity_handlers.main_handlers import show_main_menu
+from ..handlers.main_keyboard_handlers import get_contact_keyboard
+from ..handlers.reply_buttons_handlers import button_handlers
 
 router = Router()
 

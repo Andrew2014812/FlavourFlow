@@ -9,9 +9,10 @@ from api.app.user.schemas import (
     UserResponse,
     UserResponseMe,
 )
-from bot.common.services.user_info_service import get_user_info
-from bot.common.utils import make_request
-from bot.config import APIAuth, APIMethods
+
+from ...config import APIAuth, APIMethods
+from ..services.user_info_service import get_user_info
+from ..utils import make_request
 
 user_prefix = "users"
 

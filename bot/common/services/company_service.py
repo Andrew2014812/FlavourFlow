@@ -2,11 +2,12 @@ from enum import Enum
 from typing import Dict
 
 from api.app.company.schemas import CompanyResponse
-from bot.common.services.user_info_service import get_user_info
-from bot.common.utils import make_request
-from bot.config import APIMethods, APIAuth
 
-company_prefix = 'company'
+from ...common.services.user_info_service import get_user_info
+from ...config import APIAuth, APIMethods
+from ..utils import make_request
+
+company_prefix = "company"
 
 
 class CompanyEndpoints(Enum):
@@ -22,8 +23,10 @@ async def create_company(telegram_id: int, body: Dict) -> CompanyResponse | None
     response = await make_request(
         sub_url=CompanyEndpoints.COMPANY_CREATE.value,
         method=APIMethods.POST.value,
-        headers={APIAuth.AUTH.value: f'{user_info.token_type} {user_info.access_token}'},
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
         body=body,
     )
 
-    return CompanyResponse.model_validate(response.get('data'))
+    return CompanyResponse.model_validate(response.get("data"))

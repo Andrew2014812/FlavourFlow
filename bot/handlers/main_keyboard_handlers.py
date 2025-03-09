@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardButton, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
-from bot.common.services.text_service import text_service
-from bot.common.services.user_service import get_user
+from ..common.services.text_service import text_service
+from ..common.services.user_service import get_user
 
 
 async def get_main_keyboard(language_code: str, telegram_id: int):

@@ -3,11 +3,14 @@ from typing import Callable, Union
 from aiogram import Dispatcher, Router
 from aiogram.types import CallbackQuery
 
-from bot.common.services.text_service import text_service
-from bot.common.services.user_info_service import get_user_info
-from bot.handlers.pagination_handlers import (
+from bot.handlers.reply_buttons_handlers import handle_admin, handle_restaurants
+
+from ..common.services.text_service import text_service
+from ..common.services.user_info_service import get_user_info
+from ..handlers.pagination_handlers import (
     company_admin_handler,
     company_handler,
+    country_handler,
     product_handler,
 )
 
@@ -55,7 +58,12 @@ async def admin_companies(callback: CallbackQuery, language_code: str):
     await company_admin_handler(callback, language_code)
 
 
-@register_callback_handler(lambda callback: "company_page" in callback)
+@register_callback_handler(lambda callback: "admin-country_page" in callback)
+async def admin_countries(callback: CallbackQuery, language_code: str):
+    await country_handler(callback, language_code)
+
+
+@register_callback_handler(lambda callback: "user-company_page" in callback)
 async def company_pagination(callback: CallbackQuery, language_code: str):
     await company_handler(callback, language_code)
 
@@ -68,8 +76,29 @@ async def product_pagination(callback: CallbackQuery, language_code: str):
 @register_callback_handler(lambda callback: "category_" in callback)
 async def category_selection(callback: CallbackQuery, language_code: str):
     category = callback.data.split("_")[1].capitalize()
-    new_callback = callback.model_copy(update={"data": f"company_page_1_{category}"})
+    new_callback = callback.model_copy(
+        update={"data": f"user-company_page_1_{category}"}
+    )
+
     await company_pagination(new_callback, language_code)
+
+
+@register_callback_handler(lambda callback: "back_" in callback)
+async def handle_back(callback: CallbackQuery, language_code: str):
+    parts = callback.data.split("_")
+    content_type = parts[1]
+    page = int(parts[2])
+
+    if content_type == "user-company":
+        await callback.message.delete()
+        await handle_restaurants(callback.message, language_code)
+
+    elif content_type == "admin-company":
+        await handle_admin(
+            callback.message, language_code, telegram_id=callback.from_user.id
+        )
+
+    await callback.answer()
 
 
 def register_callback_handlers(dispatcher: Dispatcher):

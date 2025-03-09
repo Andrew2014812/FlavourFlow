@@ -1,9 +1,9 @@
-from aiogram import Router, Dispatcher
+from aiogram import Dispatcher, Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from bot.common.services.text_service import text_service
-from bot.handlers.main_keyboard_handlers import get_language_keyboard
+from ..common.services.text_service import text_service
+from ..handlers.main_keyboard_handlers import get_language_keyboard
 
 router = Router()
 

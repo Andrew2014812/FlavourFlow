@@ -1,7 +1,7 @@
 from aiogram.types import Message
 
-from bot.common.services.text_service import text_service
-from bot.handlers.main_keyboard_handlers import get_main_keyboard
+from ...common.services.text_service import text_service
+from ..main_keyboard_handlers import get_main_keyboard
 
 
 async def show_main_menu(message: Message, language_code: str):

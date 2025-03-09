@@ -4,11 +4,12 @@ from typing import Callable
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.user.schemas import UserResponseMe
-from bot.common.services.text_service import text_service
-from bot.common.services.user_service import get_user
-from bot.handlers.entity_handlers.main_handlers import show_main_menu
-from bot.handlers.main_keyboard_handlers import get_admin_panel_keyboard
-from bot.handlers.pagination_handlers import get_category_keyboard
+
+from ..common.services.text_service import text_service
+from ..common.services.user_service import get_user
+from ..handlers.entity_handlers.main_handlers import show_main_menu
+from ..handlers.main_keyboard_handlers import get_admin_panel_keyboard
+from ..handlers.pagination_handlers import get_category_keyboard
 
 button_handlers = {}
 
@@ -26,6 +27,9 @@ def admin_required(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(message: Message, language_code: str, *args, **kwargs):
         user_data: UserResponseMe = await get_user(message.from_user.id)
+
+        if not user_data:
+            user_data: UserResponseMe = await get_user(kwargs["telegram_id"])
 
         if user_data.role != "admin":
             await message.answer(text_service.get_text("no_access", language_code))
@@ -72,6 +76,7 @@ async def handle_profile(message: Message, language_code: str):
     text_service.buttons["en"]["restaurants"], text_service.buttons["ua"]["restaurants"]
 )
 async def handle_restaurants(message: Message, language_code: str):
+
     await message.answer(
         text=text_service.get_text("select_category", language_code),
         reply_markup=get_category_keyboard(),
@@ -89,8 +94,12 @@ async def handle_back(message: Message, language_code: str):
     text_service.buttons["en"]["admin_panel"], text_service.buttons["ua"]["admin_panel"]
 )
 @admin_required
-async def handle_admin(message: Message, language_code: str):
-    await message.answer(
-        text_service.get_text("select_admin_action", language_code),
-        reply_markup=get_admin_panel_keyboard(language_code),
-    )
+async def handle_admin(message: Message, language_code: str, **kwargs):
+    text = text_service.get_text("select_admin_action", language_code)
+    reply_markup = get_admin_panel_keyboard(language_code)
+
+    if kwargs.get("telegram_id"):
+        await message.edit_text(text, reply_markup=reply_markup)
+
+    else:
+        await message.answer(text, reply_markup=reply_markup)

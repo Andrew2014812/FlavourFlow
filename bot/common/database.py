@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 
-from bot.common.models import UserInfo
-from bot.config import sqlite_path
+from ..common.models import UserInfo
+from ..config import sqlite_path
 
 USER_INFO = UserInfo
 

@@ -3,15 +3,15 @@ from typing import Optional, Tuple
 from aiogram import Dispatcher, Router
 from aiogram.types import Message, PhotoSize
 
-from bot.common.services.user_info_service import get_user_info
-from bot.common.utils import make_request
-from bot.config import APIAuth
-from bot.handlers.entity_handlers.util import build_item_buttons
+from ...common.services.user_info_service import get_user_info
+from ...common.utils import make_request
+from ...config import APIAuth
+from .buttons_util import build_admin_buttons
 
 router = Router()
 
 
-def render_company_content(
+async def render_company_content(
     page: int, language_code: str, category: str
 ) -> Tuple[str, Optional[str], int]:
     total_pages = 15
@@ -23,12 +23,14 @@ def render_company_content(
     return caption, image_url, total_pages, None
 
 
-def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
+async def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
     total_pages = 15
     companies = ["Tesla", "SpaceX", "Netflix", "Spotify", "Adobe", "Nvidia"]
     # companies = []
     text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
-    builder = build_item_buttons(companies, "company", page)
+
+    result = await build_admin_buttons(companies, "company", page, language_code)
+    builder = result
 
     return text, None, total_pages, builder
 

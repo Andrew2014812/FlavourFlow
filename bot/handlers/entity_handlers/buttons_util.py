@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def build_item_buttons(
-    names: List[str], content_type: str, page: int
+async def build_admin_buttons(
+    names: List[str], content_type: str, page: int, language_code: str
 ) -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
 
@@ -27,9 +27,10 @@ def build_item_buttons(
 
         builder.row(*row_buttons)
 
+    add_button_text = "Додати" if language_code == "ua" else "Add"
     builder.row(
         InlineKeyboardButton(
-            text="Добавить", callback_data=f"{content_type}_add_page_{page}"
+            text=add_button_text, callback_data=f"{content_type}_add_page_{page}"
         )
     )
 

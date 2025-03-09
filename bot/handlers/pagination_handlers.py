@@ -11,6 +11,7 @@ left_arrow = "⬅️"
 right_arrow = "➡️"
 middle_button = "🔘"
 
+from bot.handlers.entity_handlers.category_handlers import render_country_content
 from bot.handlers.entity_handlers.company_handlers import (
     render_company_content,
     render_company_content_for_admin,
@@ -131,7 +132,16 @@ def get_pagination_keyboard(
     else:
         buttons[0:0] = page_buttons
 
-    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+    back_button = InlineKeyboardButton(
+        text="↩️", callback_data=f"back_{content_type}_{current_page}_{extra_arg}"
+    )
+
+    keyboard = [
+        buttons,
+        [back_button],
+    ]
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def create_pagination_handler(content_type: str, render_content: Callable):
@@ -142,13 +152,12 @@ def create_pagination_handler(content_type: str, render_content: Callable):
             extra_arg = parts[3] if len(parts) > 3 else ""
 
             if extra_arg:
-                caption, image_url, total_pages, builder = render_content(
-                    page, language_code, extra_arg
-                )
+                result = await render_content(page, language_code, extra_arg)
+                caption, image_url, total_pages, builder = result
+
             else:
-                caption, image_url, total_pages, builder = render_content(
-                    page, language_code
-                )
+                result = await render_content(page, language_code)
+                caption, image_url, total_pages, builder = result
 
             pagination_keyboard = get_pagination_keyboard(
                 page, total_pages, content_type, extra_arg
@@ -186,8 +195,9 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[categories])
 
 
-company_handler = create_pagination_handler("company", render_company_content)
+company_handler = create_pagination_handler("user-company", render_company_content)
 company_admin_handler = create_pagination_handler(
     "admin-company", render_company_content_for_admin
 )
 product_handler = create_pagination_handler("product", render_product_content)
+country_handler = create_pagination_handler("admin-country", render_country_content)
