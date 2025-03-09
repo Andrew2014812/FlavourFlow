@@ -1,3 +1,4 @@
+import json
 from typing import Callable, Union
 
 from aiogram import Dispatcher, Router
@@ -83,17 +84,18 @@ async def category_selection(callback: CallbackQuery, language_code: str):
     await company_pagination(new_callback, language_code)
 
 
-@register_callback_handler(lambda callback: "back_" in callback)
+@register_callback_handler(lambda callback: json.loads(callback).get("a") == "back")
 async def handle_back(callback: CallbackQuery, language_code: str):
-    parts = callback.data.split("_")
-    content_type = parts[1]
-    page = int(parts[2])
+    callback_data = json.loads(callback.data)
+
+    content_type = callback_data["c"]
+    page = callback_data["p"]
 
     if content_type == "user-company":
         await callback.message.delete()
         await handle_restaurants(callback.message, language_code)
 
-    elif content_type == "admin-company":
+    elif content_type in ["admin-company", "admin-country"]:
         await handle_admin(
             callback.message, language_code, telegram_id=callback.from_user.id
         )

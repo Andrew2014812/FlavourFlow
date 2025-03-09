@@ -1,3 +1,4 @@
+import json
 from typing import Callable, List
 
 from aiogram.types import (
@@ -132,9 +133,16 @@ def get_pagination_keyboard(
     else:
         buttons[0:0] = page_buttons
 
-    back_button = InlineKeyboardButton(
-        text="↩️", callback_data=f"back_{content_type}_{current_page}_{extra_arg}"
-    )
+    callback_dict = {
+        "a": "back",
+        "c": content_type,
+        "p": current_page,
+        "e": extra_arg,
+    }
+
+    callback_data = json.dumps(callback_dict, separators=(",", ":"))
+
+    back_button = InlineKeyboardButton(text="↩️", callback_data=callback_data)
 
     keyboard = [
         buttons,

@@ -11,16 +11,12 @@ async def render_country_content(
     country_list_response: CountryListResponse = result
     total_pages = country_list_response.total_pages
 
-    if language_code == "ua":
-        country_titles = [
-            country.title_ua for country in country_list_response.countries
-        ]
-    else:
-        country_titles = [
-            country.title_en for country in country_list_response.countries
-        ]
+    country_dict = {
+        country.id: country.title_ua if language_code == "ua" else country.title_en
+        for country in country_list_response.countries
+    }
 
-    result = await build_admin_buttons(country_titles, "country", page, language_code)
+    result = await build_admin_buttons(country_dict, "country", language_code)
     builder = result
 
     text = f"Category listing - Page {page} of {total_pages} (lang: {language_code})"

@@ -25,11 +25,18 @@ async def render_company_content(
 
 async def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
     total_pages = 15
-    companies = ["Tesla", "SpaceX", "Netflix", "Spotify", "Adobe", "Nvidia"]
+    companies = {
+        1: "Tesla",
+        2: "SpaceX",
+        3: "Netflix",
+        4: "Spotify",
+        5: "Adobe",
+        6: "Nvidia",
+    }
     # companies = []
     text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
 
-    result = await build_admin_buttons(companies, "company", page, language_code)
+    result = await build_admin_buttons(companies, "company", language_code)
     builder = result
 
     return text, None, total_pages, builder
