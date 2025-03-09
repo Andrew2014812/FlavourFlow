@@ -10,5 +10,5 @@ class Product(ProductBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     company: Optional[Company] = Relationship(back_populates="products")
-    cart_items: List["CartItem"] = Relationship(back_populates="product")
-    wishlist_items: List["WishlistItem"] = Relationship(back_populates="product")
+    cart_items: List["CartItem"] = Relationship(back_populates="product")  # type: ignore
+    wishlist_items: List["WishlistItem"] = Relationship(back_populates="product")  # type: ignore

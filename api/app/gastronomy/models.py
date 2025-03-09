@@ -8,10 +8,10 @@ from ..gastronomy.schemas import CountryBase, KitchenBase
 class Country(CountryBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    companies: List["Company"] = Relationship(back_populates="country")
+    companies: List["Company"] = Relationship(back_populates="country")  # type: ignore
 
 
 class Kitchen(KitchenBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    companies: List["Company"] = Relationship(back_populates="kitchen")
+    companies: List["Company"] = Relationship(back_populates="kitchen")  # type: ignore

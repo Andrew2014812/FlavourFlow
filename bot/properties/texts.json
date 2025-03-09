@@ -44,7 +44,8 @@
       "select_category": "Будь ласка, виберіть категорію:",
       "select_admin_action": "Вітаємо в панелі адміністратора! Виберіть дію:",
       "no_access": "Ви не маєте доступу до цієї опції.",
-      "main_menu": "Головне меню"
+      "main_menu": "Головне меню",
+      "country-kitchen_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua: [назва українською]\nНазва en: [назва англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1"
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",

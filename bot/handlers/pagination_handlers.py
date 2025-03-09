@@ -22,14 +22,19 @@ BACK_ARROW = "↩️"
 
 
 def create_button(
-    text: str, callback_data: str, is_current: bool = False
+    text: str,
+    callback_data: str,
+    is_current: bool = False,
 ) -> InlineKeyboardButton:
     display_text = f"[{text}]" if is_current else text
     return InlineKeyboardButton(text=display_text, callback_data=callback_data)
 
 
 def make_callback_data(
-    content_type: str, action: str, page: int, extra_arg: str = ""
+    content_type: str,
+    action: str,
+    page: int,
+    extra_arg: str = "",
 ) -> str:
     data = {"t": content_type, "a": action, "p": page}
 
@@ -40,7 +45,10 @@ def make_callback_data(
 
 
 def get_navigation_buttons(
-    current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
+    current_page: int,
+    total_pages: int,
+    content_type: str,
+    extra_arg: str = "",
 ) -> List[InlineKeyboardButton]:
     buttons = []
 
@@ -62,7 +70,10 @@ def get_navigation_buttons(
 
 
 def get_page_buttons(
-    current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
+    current_page: int,
+    total_pages: int,
+    content_type: str,
+    extra_arg: str = "",
 ) -> List[InlineKeyboardButton]:
     buttons = []
 
@@ -183,7 +194,10 @@ def get_page_buttons(
 
 
 def get_pagination_keyboard(
-    current_page: int, total_pages: int, content_type: str, extra_arg: str = ""
+    current_page: int,
+    total_pages: int,
+    content_type: str,
+    extra_arg: str = "",
 ) -> InlineKeyboardMarkup:
     nav_buttons = get_navigation_buttons(
         current_page,
@@ -216,6 +230,7 @@ def get_pagination_keyboard(
 def create_pagination_handler(content_type: str, render_content: Callable):
     async def handler(callback: CallbackQuery, language_code: str):
         data = json.loads(callback.data)
+
         if data.get("t") != content_type or data.get("a") not in ["nav", "back"]:
             return
 
@@ -265,12 +280,12 @@ def get_category_keyboard() -> InlineKeyboardMarkup:
 
     buttons = [
         create_button(
-            text=cat["text"],
+            text=category["text"],
             callback_data=json.dumps(
-                {"t": "category", "v": cat["value"]}, separators=(",", ":")
+                {"t": "category", "v": category["value"]}, separators=(",", ":")
             ),
         )
-        for cat in category_data
+        for category in category_data
     ]
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 

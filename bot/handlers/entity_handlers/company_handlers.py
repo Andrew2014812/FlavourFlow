@@ -6,7 +6,7 @@ from aiogram.types import Message, PhotoSize
 from ...common.services.user_info_service import get_user_info
 from ...common.utils import make_request
 from ...config import APIAuth
-from .buttons_util import build_admin_buttons
+from .handler_utils import build_admin_buttons
 
 router = Router()
 
@@ -23,7 +23,10 @@ async def render_company_content(
     return caption, image_url, total_pages, None
 
 
-async def render_company_content_for_admin(page: int, language_code: str) -> Tuple:
+async def render_company_content_for_admin(
+    page: int,
+    language_code: str,
+) -> Tuple:
     total_pages = 15
     companies = {
         1: "Tesla",
@@ -36,7 +39,7 @@ async def render_company_content_for_admin(page: int, language_code: str) -> Tup
     # companies = []
     text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
 
-    result = await build_admin_buttons(companies, "company", language_code)
+    result = await build_admin_buttons(companies, "company", language_code, page)
     builder = result
 
     return text, None, total_pages, builder

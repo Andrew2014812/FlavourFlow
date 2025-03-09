@@ -11,4 +11,4 @@ class Company(CompanyBase, table=True):
 
     country: Optional[Country] = Relationship(back_populates="companies")
     kitchen: Optional[Kitchen] = Relationship(back_populates="companies")
-    products: List["Product"] = Relationship(back_populates="company")
+    products: List["Product"] = Relationship(back_populates="company")  # type: ignore

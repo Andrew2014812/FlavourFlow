@@ -6,7 +6,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from ..common.database import engine
 
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncSession:  # type: ignore
     async with AsyncSession(engine) as session:
         yield session
 
