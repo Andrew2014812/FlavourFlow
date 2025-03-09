@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, status
 
-from api.app.common.dependencies import SessionDep
-from api.app.company.crud import (
+from ..common.dependencies import SessionDep
+from ..company.crud import (
     create_company,
     get_all_companies,
     get_company_by_id,
     remove_company,
     update_company,
 )
-from api.app.company.schemas import (
+from ..company.schemas import (
     CompanyCreate,
     CompanyListResponse,
     CompanyPatch,
     CompanyResponse,
 )
-from api.app.user.crud import is_admin
+from ..user.crud import is_admin
 
 router = APIRouter()
 

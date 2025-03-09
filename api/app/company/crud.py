@@ -3,16 +3,16 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 
-from api.app.common.dependencies import SessionDep
-from api.app.company.models import Company
-from api.app.company.schemas import (
+from ..common.dependencies import SessionDep
+from ..company.models import Company
+from ..company.schemas import (
     CompanyCreate,
     CompanyListResponse,
     CompanyPatch,
     CompanyResponse,
 )
-from api.app.product.crud import remove_product
-from api.app.utils import delete_file, upload_file
+from ..product.crud import remove_product
+from ..utils import delete_file, upload_file
 
 COMPANY_NOT_FOUND = "Company not found"
 

@@ -1,9 +1,9 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from sqlmodel import Field, Relationship
 
-from api.app.company.models import Company
-from api.app.product.schemas import ProductBase
+from ..company.models import Company
+from ..product.schemas import ProductBase
 
 
 class Product(ProductBase, table=True):

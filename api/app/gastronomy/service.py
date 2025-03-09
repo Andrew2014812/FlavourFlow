@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 from fastapi import HTTPException, status
 from sqlmodel import SQLModel, func, select
 
-from api.app.common.dependencies import SessionDep
+from ..common.dependencies import SessionDep
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=SQLModel)

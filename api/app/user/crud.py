@@ -7,9 +7,11 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
 from sqlmodel import or_, select
 
-from api.app.common.dependencies import SessionDep
-from api.app.user.models import User
-from api.app.user.schemas import (
+from bot.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY
+
+from ..common.dependencies import SessionDep
+from ..user.models import User
+from ..user.schemas import (
     Token,
     TokenData,
     UserCreate,
@@ -18,7 +20,6 @@ from api.app.user.schemas import (
     UserResponse,
     UserResponseMe,
 )
-from bot.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token/")
 

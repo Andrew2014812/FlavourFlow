@@ -4,15 +4,17 @@ from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
 from sqlmodel import select
 
-from api.app.common.dependencies import SessionDep
-from api.app.product.models import Product
-from api.app.product.schemas import ProductCreate, ProductResponse
-from api.app.utils import upload_file, delete_file
+from ..common.dependencies import SessionDep
+from ..product.models import Product
+from ..product.schemas import ProductCreate, ProductResponse
+from ..utils import delete_file, upload_file
 
 PRODUCT_NOT_FOUND = "Product not found"
 
 
-async def create_product(session: SessionDep, product_create: ProductCreate) -> ProductResponse:
+async def create_product(
+    session: SessionDep, product_create: ProductCreate
+) -> ProductResponse:
     statement = select(Product).filter(
         Product.title_ua == product_create.title_ua,
         Product.title_en == product_create.title_en,
@@ -28,32 +30,36 @@ async def create_product(session: SessionDep, product_create: ProductCreate) -> 
 
     db_product = Product()
 
-    for key, value in product_create.model_dump(exclude='image').items():
+    for key, value in product_create.model_dump(exclude="image").items():
         setattr(db_product, key, value)
 
     session.add(db_product)
     await session.flush()
 
     try:
-        image_name = f'PRODUCT_ID-{db_product.id}'
-        image_data: dict = await upload_file(filename=image_name, folder='product', file=product_create.image)
+        image_name = f"PRODUCT_ID-{db_product.id}"
+        image_data: dict = await upload_file(
+            filename=image_name, folder="product", file=product_create.image
+        )
 
-        db_product.image_id = image_data.get('image_id')
-        db_product.image_link = image_data.get('url')
+        db_product.image_id = image_data.get("image_id")
+        db_product.image_link = image_data.get("url")
 
         await session.commit()
     except GeneralError:
         await session.rollback()
 
-        raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
-                            detail="Failed to create a product. Error during file upload.")
+        raise HTTPException(
+            status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+            detail="Failed to create a product. Error during file upload.",
+        )
 
     await session.refresh(db_product)
     return db_product
 
 
 async def get_all_products(
-        session: SessionDep, page: int = 1, limit: int = 10
+    session: SessionDep, page: int = 1, limit: int = 10
 ) -> List[ProductResponse]:
     statement = select(Product).limit(limit).offset((page - 1) * limit)
     result = await session.exec(statement)
@@ -74,9 +80,9 @@ def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
 
 
 async def update_product(
-        session: SessionDep,
-        product: ProductCreate,
-        product_id: int,
+    session: SessionDep,
+    product: ProductCreate,
+    product_id: int,
 ) -> ProductResponse:
     statement = select(Product).where(Product.id == product_id)
     result = await session.exec(statement)
@@ -91,14 +97,23 @@ async def update_product(
         result = delete_file(existing_product.image_id)
 
         if not result:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be replaced")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The image could not be replaced",
+            )
 
-        image_name = f'PRODUCT_ID-{existing_product.id}'
-        image_data: dict = await upload_file(filename=image_name, folder='product', file=product.image)
-        existing_product.image_link = image_data.get('url')
-        existing_product.image_id = image_data.get('image_id')
+        image_name = f"PRODUCT_ID-{existing_product.id}"
+        image_data: dict = await upload_file(
+            filename=image_name, folder="product", file=product.image
+        )
+        existing_product.image_link = image_data.get("url")
+        existing_product.image_id = image_data.get("image_id")
 
-    update_data = {k: v for k, v in product.model_dump(exclude_unset=True, exclude={'image'}).items() if v is not None}
+    update_data = {
+        k: v
+        for k, v in product.model_dump(exclude_unset=True, exclude={"image"}).items()
+        if v is not None
+    }
     for key, value in update_data.items():
         setattr(existing_product, key, value)
 
@@ -122,7 +137,10 @@ async def remove_product(session: SessionDep, product_id: int):
     result = delete_file(existing_product.image_id)
 
     if not result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The image could not be deleted")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The image could not be deleted",
+        )
 
     await session.delete(existing_product)
     await session.commit()

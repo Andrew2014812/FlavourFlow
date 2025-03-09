@@ -1,13 +1,14 @@
 from sqlalchemy.ext.asyncio.engine import create_async_engine
 from sqlmodel import SQLModel
 
-from api.app.cart.models import Cart
-from api.app.company.models import Company
-from api.app.gastronomy.models import Country, Kitchen
-from api.app.product.models import Product
-from api.app.user.models import User
-from api.app.wishlist.models import Wishlist, WishlistItem
 from bot.config import PG_DB_HOST, PG_DB_NAME, PG_DB_PASSWORD, PG_DB_PORT, PG_DB_USER
+
+from ..cart.models import Cart
+from ..company.models import Company
+from ..gastronomy.models import Country, Kitchen
+from ..product.models import Product
+from ..user.models import User
+from ..wishlist.models import Wishlist, WishlistItem
 
 Cart_model = Cart
 Company_model = Company

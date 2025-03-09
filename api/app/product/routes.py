@@ -2,23 +2,23 @@ from typing import List
 
 from fastapi import APIRouter, Depends, status
 
-from api.app.common.dependencies import SessionDep
-from api.app.product.crud import (
+from ..common.dependencies import SessionDep
+from ..product.crud import (
     create_product,
     get_all_products,
     get_product_by_id,
-    update_product,
     remove_product,
+    update_product,
 )
-from api.app.product.schemas import ProductCreate, ProductResponse, ProductPatch
-from api.app.user.crud import is_admin
+from ..product.schemas import ProductCreate, ProductPatch, ProductResponse
+from ..user.crud import is_admin
 
 router = APIRouter()
 
 
 @router.get("/")
 async def product_list(
-        session: SessionDep, page: int = 1, limit: int = 10
+    session: SessionDep, page: int = 1, limit: int = 10
 ) -> List[ProductResponse]:
     """
     Retrieve a list of all products.
@@ -53,8 +53,9 @@ async def company_detail(product_id: int, session: SessionDep) -> ProductRespons
 
 @router.post("/")
 async def post_product(
-        session: SessionDep, product: ProductCreate = Depends(ProductCreate.as_form),
-        _: None = Depends(is_admin),
+    session: SessionDep,
+    product: ProductCreate = Depends(ProductCreate.as_form),
+    _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Create a new product in the database.
@@ -72,10 +73,10 @@ async def post_product(
 
 @router.put("/{product_id}/")
 async def put_company(
-        product_id: int,
-        session: SessionDep,
-        product: ProductCreate = Depends(ProductCreate.as_form),
-        _: None = Depends(is_admin),
+    product_id: int,
+    session: SessionDep,
+    product: ProductCreate = Depends(ProductCreate.as_form),
+    _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Update a product in the database.
@@ -94,10 +95,10 @@ async def put_company(
 
 @router.patch("/{product_id}/")
 async def patch_company(
-        product_id: int,
-        session: SessionDep,
-        product: ProductPatch = Depends(ProductPatch.as_form),
-        _: None = Depends(is_admin),
+    product_id: int,
+    session: SessionDep,
+    product: ProductPatch = Depends(ProductPatch.as_form),
+    _: None = Depends(is_admin),
 ) -> ProductResponse:
     """
     Patch a product in the database.
@@ -116,9 +117,7 @@ async def patch_company(
 
 @router.delete("/{product_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_company(
-        product_id: int,
-        session: SessionDep,
-        _: None = Depends(is_admin)
+    product_id: int, session: SessionDep, _: None = Depends(is_admin)
 ):
     """
     Delete a product from the database.

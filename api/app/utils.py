@@ -1,13 +1,15 @@
-import os
-from typing import Dict
 import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict
+
 import aiofiles
 import cloudinary.uploader
-from concurrent.futures import ThreadPoolExecutor
-from cloudinary.exceptions import Error as CloudinaryError, GeneralError
-from fastapi import UploadFile, File
+from cloudinary.exceptions import Error as CloudinaryError
+from cloudinary.exceptions import GeneralError
+from fastapi import File, UploadFile
 
-from api.app.cloudinary_config import configure_cloudinary
+from .cloudinary_config import configure_cloudinary
 
 configure_cloudinary()
 

@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI) -> None:
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(users_router, prefix="/users", tags=["user"])
-app.include_router(cuisine_router, prefix="/cuisine", tags=["cuisine"])
+app.include_router(cuisine_router, prefix="/gastronomy", tags=["gastronomy"])
 app.include_router(company_router, prefix="/company", tags=["company"])
 app.include_router(product_router, prefix="/product", tags=["product"])
 app.include_router(cart_router, prefix="/cart", tags=["card"])

@@ -2,8 +2,8 @@ from typing import List, Optional
 
 from sqlmodel import Field, Relationship
 
-from api.app.company.schemas import CompanyBase
-from api.app.gastronomy.models import Country, Kitchen
+from ..company.schemas import CompanyBase
+from ..gastronomy.models import Country, Kitchen
 
 
 class Company(CompanyBase, table=True):

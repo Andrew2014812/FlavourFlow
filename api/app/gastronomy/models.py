@@ -2,7 +2,7 @@ from typing import List
 
 from sqlmodel import Field, Relationship
 
-from api.app.gastronomy.schemas import CountryBase, KitchenBase
+from ..gastronomy.schemas import CountryBase, KitchenBase
 
 
 class Country(CountryBase, table=True):
