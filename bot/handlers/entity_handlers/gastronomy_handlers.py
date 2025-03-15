@@ -6,13 +6,20 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
+from api.app.gastronomy.schemas import CountryResponse
+
 from ...common.services.gastronomy_service import (
     CountryListResponse,
     create_country,
+    get_country,
     get_country_list,
 )
 from ...common.services.text_service import text_service
-from .handler_utils import build_admin_buttons, convert_raw_text_to_valid_dict
+from .handler_utils import (
+    build_admin_buttons,
+    convert_raw_text_to_valid_dict,
+    get_item_admin_details_keyboard,
+)
 
 
 class Form(StatesGroup):
@@ -22,7 +29,7 @@ class Form(StatesGroup):
 router = Router()
 
 
-async def render_country_content(
+async def render_admin_countries_content(
     page: int,
     language_code: str,
 ) -> Tuple[str, Optional[str], int]:
@@ -35,11 +42,33 @@ async def render_country_content(
         for country in country_list_response.countries
     }
 
-    result = await build_admin_buttons(country_dict, "country", language_code, page)
+    result = await build_admin_buttons(
+        country_dict, "admin-country", language_code, page
+    )
     builder = result
 
     text = f"Country listing - Page {page} of {total_pages} (lang: ua / en)"
     return text, None, total_pages, builder
+
+
+async def render_country_details_content(
+    message: Message,
+    current_page: int,
+    language_code: str,
+    country_id: int,
+) -> Tuple[str, Optional[str], int]:
+    result = await get_country(country_id=country_id)
+    country: CountryResponse = result
+
+    await message.edit_text(
+        text=f"Title ua: {country.title_ua}\nTitle en: {country.title_en}",
+        reply_markup=get_item_admin_details_keyboard(
+            content_type="admin-country",
+            current_page=current_page,
+            language_code=language_code,
+            item_id=country.id,
+        ),
+    )
 
 
 async def add_country(

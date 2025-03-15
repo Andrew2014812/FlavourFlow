@@ -7,7 +7,10 @@ from aiogram.types import CallbackQuery
 
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
-from .entity_handlers.gastronomy_handlers import add_country
+from .entity_handlers.gastronomy_handlers import (
+    add_country,
+    render_country_details_content,
+)
 from .pagination_handlers import (
     company_admin_handler,
     company_handler,
@@ -126,6 +129,13 @@ async def handle_back(callback: CallbackQuery, language_code: str, **kwargs):
             callback.message, language_code, telegram_id=callback.from_user.id
         )
 
+    elif content_type == "admin-country-details":
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_countries(new_callback, language_code)
+
     await callback.answer()
 
 
@@ -135,13 +145,29 @@ async def handle_add(callback: CallbackQuery, language_code: str, **kwargs):
     content_type = callback_data["t"]
     page = callback_data["p"]
 
-    if content_type == "country":
+    if content_type == "admin-country":
         await add_country(
             callback,
             language_code,
             **kwargs,
             admin_countries=admin_countries,
             page=page,
+        )
+
+
+@register_callback_handler(lambda data: json.loads(data).get("a") == "details")
+async def handle_item_details(callback: CallbackQuery, language_code: str, **kwargs):
+    callback_data = json.loads(callback.data)
+    content_type = callback_data["t"]
+    page = callback_data["p"]
+    item_id = callback_data["id"]
+
+    if content_type == "admin-country":
+        await render_country_details_content(
+            callback.message,
+            page,
+            language_code,
+            item_id,
         )
 
     await callback.answer()

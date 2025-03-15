@@ -45,6 +45,7 @@ async def get_countries(
     Returns:
         CountryListResponse: A paginated list of country details.
     """
+
     return await get_all_countries(session=session, page=page, limit=limit)
 
 
@@ -65,6 +66,7 @@ async def get_kitchens(
     Returns:
         KitchenListResponse: A paginated list of kitchen details.
     """
+
     return await get_all_kitchens(session=session, page=page, limit=limit)
 
 
@@ -84,6 +86,7 @@ async def post_country(
     Returns:
         CountryResponse: The created country.
     """
+
     return await create_country(session=session, country_create=country)
 
 
@@ -103,6 +106,7 @@ async def post_kitchen(
     Returns:
         KitchenResponse: The created kitchen.
     """
+
     return await create_kitchen(session=session, kitchen_create=kitchen)
 
 
@@ -121,6 +125,7 @@ async def get_country(
     Returns:
         CountryResponse: The retrieved country.
     """
+
     return await get_country_by_id(session=session, country_id=country_id)
 
 
@@ -139,6 +144,7 @@ async def get_kitchen(
     Returns:
         KitchenResponse: The retrieved kitchen.
     """
+
     return await get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
 
 
@@ -160,8 +166,11 @@ async def put_country(
     Returns:
         CountryResponse: The updated country.
     """
+
     return await update_country(
-        session=session, country_id=country_id, country_update=country
+        session=session,
+        country_id=country_id,
+        country_update=country,
     )
 
 
@@ -183,8 +192,11 @@ async def put_kitchen(
     Returns:
         KitchenResponse: The updated kitchen.
     """
+
     return await update_kitchen(
-        session=session, kitchen_id=kitchen_id, kitchen_update=kitchen
+        session=session,
+        kitchen_id=kitchen_id,
+        kitchen_update=kitchen,
     )
 
 
@@ -201,6 +213,7 @@ async def delete_country(
         session (SessionDep): The database session.
         country_id (int): The ID of the country to delete.
     """
+
     await remove_country(session=session, country_id=country_id)
 
 
@@ -217,4 +230,5 @@ async def delete_kitchen(
         session (SessionDep): The database session.
         kitchen_id (int): The ID of the kitchen to delete.
     """
+
     await remove_kitchen(session=session, kitchen_id=kitchen_id)

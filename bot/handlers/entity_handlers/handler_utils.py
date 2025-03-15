@@ -1,8 +1,10 @@
 import json
 from typing import Dict
 
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from bot.common.services.text_service import text_service
 
 
 async def build_admin_buttons(
@@ -19,7 +21,8 @@ async def build_admin_buttons(
         button_title = names_items[i][1]
         button_item_id = names_items[i][0]
         callback_data_first = json.dumps(
-            {"t": content_type, "id": button_item_id}, separators=(",", ":")
+            {"t": content_type, "id": button_item_id, "a": "details", "p": page},
+            separators=(",", ":"),
         )
 
         row_buttons = [
@@ -33,7 +36,8 @@ async def build_admin_buttons(
             button_title = names_items[i + 1][1]
             button_item_id = names_items[i + 1][0]
             callback_data_second = json.dumps(
-                {"t": content_type, "id": button_item_id}, separators=(",", ":")
+                {"t": content_type, "id": button_item_id, "a": "details", "p": page},
+                separators=(",", ":"),
             )
 
             row_buttons.append(
@@ -63,6 +67,7 @@ async def build_admin_buttons(
 async def convert_raw_text_to_valid_dict(
     raw_text: str,
     field_mapping: Dict,
+    is_allow_empty: bool = False,
 ) -> Dict[str, str]:
     if "; " in raw_text:
         items = raw_text.strip().split("; ")
@@ -85,7 +90,48 @@ async def convert_raw_text_to_valid_dict(
 
     valid_keys = set(field_mapping.values())
 
-    if not valid_keys.issubset(set(data_for_update.keys())):
+    if not is_allow_empty and not valid_keys.issubset(set(data_for_update.keys())):
         return {"error": "invalid_format"}
 
     return data_for_update
+
+
+def get_item_admin_details_keyboard(
+    content_type: str,
+    current_page: int,
+    language_code: str,
+    item_id: int,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    for key, button_text in text_service.admin_actions.get(language_code, {}).items():
+        callback_dict = {
+            "t": content_type,
+            "id": item_id,
+            "a": key.lower(),
+            "p": current_page,
+        }
+
+        callback_data = json.dumps(callback_dict, separators=(",", ":"))
+
+        builder.add(
+            InlineKeyboardButton(
+                text=button_text,
+                callback_data=callback_data,
+            )
+        )
+
+    builder.adjust(2)
+    back_data = json.dumps(
+        {"t": f"{content_type}-details", "a": "back", "p": current_page},
+        separators=(",", ":"),
+    )
+
+    builder.row(
+        InlineKeyboardButton(
+            text="↩️",
+            callback_data=back_data,
+        )
+    )
+
+    return builder.as_markup()

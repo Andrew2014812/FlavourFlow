@@ -12,7 +12,9 @@ from ..handlers.entity_handlers.company_handlers import (
     render_company_content,
     render_company_content_for_admin,
 )
-from ..handlers.entity_handlers.gastronomy_handlers import render_country_content
+from ..handlers.entity_handlers.gastronomy_handlers import (
+    render_admin_countries_content,
+)
 from ..handlers.entity_handlers.product_handlers import render_product_content
 
 LEFT_ARROW = "⬅️"
@@ -301,4 +303,6 @@ company_admin_handler = create_pagination_handler(
     "admin-company", render_company_content_for_admin
 )
 product_handler = create_pagination_handler("product", render_product_content)
-country_handler = create_pagination_handler("admin-country", render_country_content)
+country_handler = create_pagination_handler(
+    "admin-country", render_admin_countries_content
+)

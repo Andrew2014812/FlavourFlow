@@ -11,7 +11,7 @@ country_prefix = "gastronomy/countries"
 
 
 class GastronomyEndpoints(Enum):
-    COUNTRY_GET_LIST = f"{country_prefix}/"
+    COUNTRY_GET = f"{country_prefix}/"
     COUNTRY_UPDATE = f"{country_prefix}/"
     COUNTRY_CREATE = f"{country_prefix}/"
     COUNTRY_DELETE = f"{country_prefix}/"
@@ -20,12 +20,23 @@ class GastronomyEndpoints(Enum):
 async def get_country_list(page: int = 1) -> Optional[CountryListResponse]:
 
     response = await make_request(
-        sub_url=GastronomyEndpoints.COUNTRY_GET_LIST.value,
+        sub_url=GastronomyEndpoints.COUNTRY_GET.value,
         method=APIMethods.GET.value,
         params={"page": page},
     )
 
     return CountryListResponse.model_validate(response.get("data"))
+
+
+async def get_country(country_id: int) -> Optional[CountryResponse]:
+    url = f"{GastronomyEndpoints.COUNTRY_GET.value}{country_id}/"
+
+    response = await make_request(
+        sub_url=url,
+        method=APIMethods.GET.value,
+    )
+
+    return CountryResponse.model_validate(response.get("data"))
 
 
 async def create_country(body: dict, telegram_id: int) -> Optional[CountryResponse]:

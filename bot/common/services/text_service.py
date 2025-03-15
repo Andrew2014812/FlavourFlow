@@ -8,6 +8,8 @@ class TextService:
     _texts: Dict = {}
     _buttons: Dict = {}
     _language_buttons: List = []
+    _admin_buttons: Dict = {}
+    _admin_actions: Dict = {}
 
     def __new__(cls):
         if cls._instance is None:
@@ -28,6 +30,7 @@ class TextService:
             self._buttons = data.get("buttons", {})
             self._language_buttons = data.get("language_buttons", [])
             self._admin_buttons = data.get("admin_buttons", {})
+            self._admin_actions = data.get("admin_actions", {})
 
     def get_text(self, key: str, language: str) -> str:
         return self._texts.get(language, {}).get(key, "")
@@ -43,6 +46,10 @@ class TextService:
     @property
     def admin_buttons(self) -> Dict:
         return self._admin_buttons
+
+    @property
+    def admin_actions(self) -> Dict:
+        return self._admin_actions
 
     @property
     def language_buttons(self) -> List:
