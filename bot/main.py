@@ -8,8 +8,8 @@ from bot.common.database import create_db_and_tables
 from bot.config import TG_TOKEN
 from bot.handlers.callback_handlers import register_callback_handlers
 from bot.handlers.command_handlers import register_command_handlers
-from bot.handlers.entity_handlers.category_handlers import register_category_handlers
 from bot.handlers.entity_handlers.company_handlers import register_company_handlers
+from bot.handlers.entity_handlers.gastronomy_handlers import register_category_handlers
 from bot.handlers.entity_handlers.profile_handlers import register_profile_handlers
 from bot.handlers.main_message_handlers import register_main_message_handlers
 

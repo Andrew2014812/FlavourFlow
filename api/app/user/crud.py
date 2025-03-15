@@ -35,10 +35,7 @@ async def create_user(session: SessionDep, user: UserCreate) -> UserResponse:
     existing_user = result.first()
 
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this credentials already registered",
-        )
+        return existing_user
 
     db_user = User(
         first_name=user.first_name,

@@ -5,7 +5,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
-from ...common.services.country_service import CountryListResponse, get_country_list
+from ...common.services.gastronomy_service import (
+    CountryListResponse,
+    create_country,
+    get_country_list,
+)
 from ...common.services.text_service import text_service
 from .handler_utils import build_admin_buttons, convert_raw_text_to_valid_dict
 
@@ -26,14 +30,14 @@ async def render_country_content(
     total_pages = country_list_response.total_pages
 
     country_dict = {
-        country.id: country.title_ua if language_code == "ua" else country.title_en
+        country.id: f"{country.title_ua} / {country.title_en}"
         for country in country_list_response.countries
     }
 
     result = await build_admin_buttons(country_dict, "country", language_code, page)
     builder = result
 
-    text = f"Category listing - Page {page} of {total_pages} (lang: {language_code})"
+    text = f"Country listing - Page {page} of {total_pages} (lang: ua / en)"
     return text, None, total_pages, builder
 
 
@@ -46,7 +50,6 @@ async def add_country(message: Message, language_code: str, state: FSMContext):
 
 @router.message(Form.proceed_add_country)
 async def proceed_add_country(message: Message, state: FSMContext):
-    print("here")
     state_date = await state.get_data()
     language_code = state_date.get("language_code")
 
@@ -60,6 +63,7 @@ async def proceed_add_country(message: Message, state: FSMContext):
     result = await convert_raw_text_to_valid_dict(message.text, field_mapping)
 
     if not result.get("error"):
+        await create_country(result, message.from_user.id)
         await message.answer("success")
 
     else:

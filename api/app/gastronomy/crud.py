@@ -21,7 +21,9 @@ kitchen_service = CuisineCRUDService[
 
 
 async def get_all_countries(
-    session: SessionDep, page: int = 1, limit: int = 6
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 6,
 ) -> CountryListResponse:
     result = await country_service.get_all(session, page, limit)
     return CountryListResponse(
@@ -30,7 +32,9 @@ async def get_all_countries(
 
 
 async def get_all_kitchens(
-    session: SessionDep, page: int = 1, limit: int = 6
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 6,
 ) -> KitchenListResponse:
     result = await kitchen_service.get_all(session, page, limit)
     return KitchenListResponse(
@@ -39,13 +43,15 @@ async def get_all_kitchens(
 
 
 async def create_country(
-    session: SessionDep, country_create: CountryCreate
+    session: SessionDep,
+    country_create: CountryCreate,
 ) -> CountryResponse:
     return await country_service.create(session, country_create)
 
 
 async def create_kitchen(
-    session: SessionDep, kitchen_create: KitchenCreate
+    session: SessionDep,
+    kitchen_create: KitchenCreate,
 ) -> KitchenResponse:
     return await kitchen_service.create(session, kitchen_create)
 
@@ -59,13 +65,17 @@ async def get_kitchen_by_id(session: SessionDep, kitchen_id: int) -> KitchenResp
 
 
 async def update_country(
-    session: SessionDep, country_id: int, country_update: CountryUpdate
+    session: SessionDep,
+    country_id: int,
+    country_update: CountryUpdate,
 ) -> CountryResponse:
     return await country_service.update(session, country_id, country_update)
 
 
 async def update_kitchen(
-    session: SessionDep, kitchen_id: int, kitchen_update: KitchenUpdate
+    session: SessionDep,
+    kitchen_id: int,
+    kitchen_update: KitchenUpdate,
 ) -> KitchenResponse:
     return await kitchen_service.update(session, kitchen_id, kitchen_update)
 

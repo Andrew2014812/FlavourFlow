@@ -40,6 +40,7 @@ class CuisineCRUDService(
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)
+
         return db_obj
 
     async def get_all(self, session: SessionDep, page: int = 1, limit: int = 6) -> dict:

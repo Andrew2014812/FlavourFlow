@@ -8,12 +8,12 @@ from aiogram.types import (
     InputMediaPhoto,
 )
 
-from ..handlers.entity_handlers.category_handlers import render_country_content
 from ..handlers.entity_handlers.company_handlers import (
     render_company_content,
     render_company_content_for_admin,
 )
 from ..handlers.entity_handlers.product_handlers import render_product_content
+from .entity_handlers.gastronomy_handlers import render_country_content
 
 LEFT_ARROW = "⬅️"
 RIGHT_ARROW = "➡️"

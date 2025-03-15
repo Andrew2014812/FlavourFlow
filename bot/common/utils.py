@@ -24,9 +24,9 @@ async def make_request(
                 data = await response.json()
 
                 if status_code >= 400:
-                    raise Exception(f"API error: {status_code} - {data}")
+                    return {"status": status_code, "data": data.get("error")}
 
                 return {"status": status_code, "data": data}
 
         except Exception as e:
-            raise Exception(f"Request failed: {str(e)}")
+            return {"status": 400, "data": {"error": str(e)}}
