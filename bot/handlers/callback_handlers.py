@@ -7,16 +7,17 @@ from aiogram.types import CallbackQuery
 
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
-from ..handlers.pagination_handlers import (
+from .entity_handlers.gastronomy_handlers import add_country
+from .pagination_handlers import (
     company_admin_handler,
     company_handler,
     country_handler,
     product_handler,
 )
-from ..handlers.reply_buttons_handlers import handle_admin, handle_restaurants
-from .entity_handlers.gastronomy_handlers import add_country
+from .reply_buttons_handlers import handle_admin, handle_restaurants
 
 router = Router()
+
 callback_handlers = {}
 
 

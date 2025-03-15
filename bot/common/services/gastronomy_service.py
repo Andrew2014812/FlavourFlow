@@ -17,11 +17,12 @@ class GastronomyEndpoints(Enum):
     COUNTRY_DELETE = f"{country_prefix}/"
 
 
-async def get_country_list() -> Optional[CountryListResponse]:
+async def get_country_list(page: int = 1) -> Optional[CountryListResponse]:
 
     response = await make_request(
         sub_url=GastronomyEndpoints.COUNTRY_GET_LIST.value,
         method=APIMethods.GET.value,
+        params={"page": page},
     )
 
     return CountryListResponse.model_validate(response.get("data"))

@@ -25,7 +25,7 @@ async def render_country_content(
     page: int,
     language_code: str,
 ) -> Tuple[str, Optional[str], int]:
-    result = await get_country_list()
+    result = await get_country_list(page=page)
     country_list_response: CountryListResponse = result
     total_pages = country_list_response.total_pages
 
@@ -43,6 +43,7 @@ async def render_country_content(
 
 async def add_country(message: Message, language_code: str, state: FSMContext):
     text = text_service.get_text("country-kitchen_add_instruction", language_code)
+
     await message.answer(text=text)
     await state.update_data(language_code=language_code)
     await state.set_state(Form.proceed_add_country)
@@ -64,7 +65,7 @@ async def proceed_add_country(message: Message, state: FSMContext):
 
     if not result.get("error"):
         await create_country(result, message.from_user.id)
-        await message.answer("success")
+        await message.answer(text_service.get_text("successful_adding", language_code))
 
     else:
         await message.answer(text_service.get_text(result["error"], language_code))

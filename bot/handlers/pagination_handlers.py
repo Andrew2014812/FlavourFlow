@@ -12,8 +12,8 @@ from ..handlers.entity_handlers.company_handlers import (
     render_company_content,
     render_company_content_for_admin,
 )
+from ..handlers.entity_handlers.gastronomy_handlers import render_country_content
 from ..handlers.entity_handlers.product_handlers import render_product_content
-from .entity_handlers.gastronomy_handlers import render_country_content
 
 LEFT_ARROW = "⬅️"
 RIGHT_ARROW = "➡️"
@@ -228,7 +228,7 @@ def get_pagination_keyboard(
 
 
 def create_pagination_handler(content_type: str, render_content: Callable):
-    async def handler(callback: CallbackQuery, language_code: str):
+    async def handler(callback: CallbackQuery, language_code: str, **kwargs):
         data = json.loads(callback.data)
 
         if data.get("t") != content_type or data.get("a") not in ["nav", "back"]:
