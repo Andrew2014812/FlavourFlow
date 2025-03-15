@@ -259,9 +259,15 @@ def create_pagination_handler(content_type: str, render_content: Callable):
                 for row in keyboard.inline_keyboard:
                     builder.row(*row)
 
-                await callback.message.edit_text(
-                    caption, reply_markup=builder.as_markup()
-                )
+                if kwargs.get("make_send"):
+                    await callback.message.answer(
+                        caption, reply_markup=builder.as_markup()
+                    )
+
+                else:
+                    await callback.message.edit_text(
+                        caption, reply_markup=builder.as_markup()
+                    )
 
             else:
                 await callback.message.edit_text(caption, reply_markup=keyboard)

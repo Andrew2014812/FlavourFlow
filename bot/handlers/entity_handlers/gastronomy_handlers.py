@@ -1,9 +1,10 @@
-from typing import Optional, Tuple
+import json
+from typing import Callable, Optional, Tuple
 
 from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 
 from ...common.services.gastronomy_service import (
     CountryListResponse,
@@ -41,11 +42,24 @@ async def render_country_content(
     return text, None, total_pages, builder
 
 
-async def add_country(message: Message, language_code: str, state: FSMContext):
+async def add_country(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    admin_countries: Callable,
+    page: int,
+):
     text = text_service.get_text("country-kitchen_add_instruction", language_code)
 
+    message = callback.message
     await message.answer(text=text)
-    await state.update_data(language_code=language_code)
+
+    await state.update_data(
+        language_code=language_code,
+        admin_countries=admin_countries,
+        callback=callback,
+        page=page,
+    )
     await state.set_state(Form.proceed_add_country)
 
 
@@ -53,6 +67,9 @@ async def add_country(message: Message, language_code: str, state: FSMContext):
 async def proceed_add_country(message: Message, state: FSMContext):
     state_date = await state.get_data()
     language_code = state_date.get("language_code")
+    admin_countries: Callable = state_date.get("admin_countries")
+    callback: CallbackQuery = state_date.get("callback")
+    page: int = state_date.get("page")
 
     field_mapping = {
         "Title ua:": "title_ua",
@@ -66,6 +83,12 @@ async def proceed_add_country(message: Message, state: FSMContext):
     if not result.get("error"):
         await create_country(result, message.from_user.id)
         await message.answer(text_service.get_text("successful_adding", language_code))
+
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_countries(new_callback, language_code, make_send=True)
 
     else:
         await message.answer(text_service.get_text(result["error"], language_code))

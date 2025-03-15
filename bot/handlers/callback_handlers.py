@@ -43,7 +43,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     for handler, filter_func in callback_handlers.items():
         try:
             if filter_func(callback.data):
-                await handler(callback, language_code, state)
+                await handler(callback, language_code, state=state)
                 return
 
         except json.JSONDecodeError:
@@ -53,7 +53,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
 
 @register_callback_handler("edit_profile")
-async def start_edit_profile(callback: CallbackQuery, language_code: str, *args):
+async def start_edit_profile(callback: CallbackQuery, language_code: str, **kwargs):
     await callback.message.answer(
         text_service.get_text("update_profile_instruction", language_code)
     )
@@ -64,23 +64,23 @@ async def start_edit_profile(callback: CallbackQuery, language_code: str, *args)
     lambda data: json.loads(data).get("t") == "admin-company"
     and json.loads(data).get("a") == "nav"
 )
-async def admin_companies(callback: CallbackQuery, language_code: str, *args):
-    await company_admin_handler(callback, language_code)
+async def admin_companies(callback: CallbackQuery, language_code: str, **kwargs):
+    await company_admin_handler(callback, language_code, **kwargs)
 
 
 @register_callback_handler(
     lambda data: json.loads(data).get("t") == "admin-country"
     and json.loads(data).get("a") == "nav"
 )
-async def admin_countries(callback: CallbackQuery, language_code: str, *args):
-    await country_handler(callback, language_code)
+async def admin_countries(callback: CallbackQuery, language_code: str, **kwargs):
+    await country_handler(callback, language_code, **kwargs)
 
 
 @register_callback_handler(
     lambda data: json.loads(data).get("t") == "user-company"
     and json.loads(data).get("a") == "nav"
 )
-async def company_pagination(callback: CallbackQuery, language_code: str, *args):
+async def company_pagination(callback: CallbackQuery, language_code: str, **kwargs):
     await company_handler(callback, language_code)
 
 
@@ -88,12 +88,12 @@ async def company_pagination(callback: CallbackQuery, language_code: str, *args)
     lambda data: json.loads(data).get("t") == "product"
     and json.loads(data).get("a") == "nav"
 )
-async def product_pagination(callback: CallbackQuery, language_code: str, *args):
+async def product_pagination(callback: CallbackQuery, language_code: str, **kwargs):
     await product_handler(callback, language_code)
 
 
 @register_callback_handler(lambda data: json.loads(data).get("t") == "category")
-async def category_selection(callback: CallbackQuery, language_code: str, *args):
+async def category_selection(callback: CallbackQuery, language_code: str, **kwargs):
     data = json.loads(callback.data)
     category = data["v"].capitalize()
 
@@ -111,7 +111,7 @@ async def category_selection(callback: CallbackQuery, language_code: str, *args)
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "back")
-async def handle_back(callback: CallbackQuery, language_code: str, *args):
+async def handle_back(callback: CallbackQuery, language_code: str, **kwargs):
     callback_data = json.loads(callback.data)
 
     content_type = callback_data["t"]
@@ -130,13 +130,19 @@ async def handle_back(callback: CallbackQuery, language_code: str, *args):
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "add")
-async def handle_add(callback: CallbackQuery, language_code: str, *args):
+async def handle_add(callback: CallbackQuery, language_code: str, **kwargs):
     callback_data = json.loads(callback.data)
     content_type = callback_data["t"]
     page = callback_data["p"]
 
     if content_type == "country":
-        await add_country(callback.message, language_code, *args)
+        await add_country(
+            callback,
+            language_code,
+            **kwargs,
+            admin_countries=admin_countries,
+            page=page,
+        )
 
     await callback.answer()
 
