@@ -135,3 +135,34 @@ def get_item_admin_details_keyboard(
     )
 
     return builder.as_markup()
+
+
+def get_cancel_keyboard(
+    language_code: str,
+    content_type: str,
+    page: int,
+) -> InlineKeyboardMarkup:
+    cancel_text = text_service.get_text("cancel", language_code)
+    callback_data = json.dumps(
+        {"t": content_type, "a": "cancel", "p": page}, separators=(",", ":")
+    )
+
+    button = InlineKeyboardButton(text=cancel_text, callback_data=callback_data)
+    return InlineKeyboardMarkup(inline_keyboard=[[button]])
+
+
+def get_confirm_keyboard(
+    language_code: str, content_type: str, page: int, country_id: int
+) -> InlineKeyboardMarkup:
+    cancel = get_cancel_keyboard(language_code, content_type, page)
+    confirm_text = "Підтвердити" if language_code == "ua" else "Confirm"
+
+    confirm_data = json.dumps(
+        {"a": "confirm_delete", "t": content_type, "p": page, "id": country_id},
+        separators=(",", ":"),
+    )
+
+    cancel.inline_keyboard[0].append(
+        InlineKeyboardButton(text=confirm_text, callback_data=confirm_data)
+    )
+    return cancel

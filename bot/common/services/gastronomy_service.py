@@ -52,3 +52,34 @@ async def create_country(body: dict, telegram_id: int) -> Optional[CountryRespon
     )
 
     return CountryResponse.model_validate(response.get("data"))
+
+
+async def update_country(
+    country_id: int,
+    body: dict,
+    telegram_id: int,
+) -> Optional[CountryResponse]:
+    user_info = await get_user_info(telegram_id)
+
+    response = await make_request(
+        sub_url=f"{GastronomyEndpoints.COUNTRY_UPDATE.value}{country_id}/",
+        method=APIMethods.PATCH.value,
+        body=body,
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
+    )
+
+    return CountryResponse.model_validate(response.get("data"))
+
+
+async def delete_country(country_id: int, telegram_id: int):
+    user_info = await get_user_info(telegram_id)
+
+    await make_request(
+        sub_url=f"{GastronomyEndpoints.COUNTRY_DELETE.value}{country_id}/",
+        method=APIMethods.DELETE.value,
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
+    )

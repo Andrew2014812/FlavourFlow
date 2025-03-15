@@ -68,7 +68,10 @@ class CuisineCRUDService(
         return obj
 
     async def update(
-        self, session: SessionDep, obj_id: int, obj_in: UpdateSchemaType
+        self,
+        session: SessionDep,
+        obj_id: int,
+        obj_in: UpdateSchemaType,
     ) -> ResponseSchemaType:
         statement = select(self.model).filter(self.model.id == obj_id)
         result = await session.exec(statement)
@@ -81,7 +84,8 @@ class CuisineCRUDService(
             )
 
         for key, value in obj_in.model_dump().items():
-            setattr(existing_obj, key, value)
+            if value:
+                setattr(existing_obj, key, value)
 
         await session.merge(existing_obj)
         await session.commit()

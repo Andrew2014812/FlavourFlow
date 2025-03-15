@@ -148,7 +148,7 @@ async def get_kitchen(
     return await get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
 
 
-@router.put("/countries/{country_id}/", response_model=CountryResponse)
+@router.patch("/countries/{country_id}/", response_model=CountryResponse)
 async def put_country(
     session: SessionDep,
     country_id: int,
@@ -174,7 +174,7 @@ async def put_country(
     )
 
 
-@router.put("/kitchens/{kitchen_id}/", response_model=KitchenResponse)
+@router.patch("/kitchens/{kitchen_id}/", response_model=KitchenResponse)
 async def put_kitchen(
     session: SessionDep,
     kitchen_id: int,

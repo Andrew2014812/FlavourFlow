@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -21,8 +21,9 @@ class CountryCreate(CountryBase):
     pass
 
 
-class CountryUpdate(CountryBase):
-    pass
+class CountryUpdate(SQLModel):
+    title_en: Optional[str] = None
+    title_ua: Optional[str] = None
 
 
 class KitchenBase(SQLModel):

@@ -5,10 +5,13 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from ..common.services.gastronomy_service import delete_country
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.gastronomy_handlers import (
     add_country,
+    delete_country_action,
+    edit_country,
     render_country_details_content,
 )
 from .pagination_handlers import (
@@ -155,6 +158,24 @@ async def handle_add(callback: CallbackQuery, language_code: str, **kwargs):
         )
 
 
+@register_callback_handler(lambda data: json.loads(data).get("a") == "edit")
+async def handle_edit(callback: CallbackQuery, language_code: str, state: FSMContext):
+    callback_data = json.loads(callback.data)
+    content_type = callback_data["t"]
+    page = callback_data["p"]
+    country_id = callback_data["id"]
+
+    if content_type == "admin-country":
+        await edit_country(
+            callback,
+            language_code,
+            state,
+            admin_countries,
+            page,
+            country_id,
+        )
+
+
 @register_callback_handler(lambda data: json.loads(data).get("a") == "details")
 async def handle_item_details(callback: CallbackQuery, language_code: str, **kwargs):
     callback_data = json.loads(callback.data)
@@ -169,6 +190,75 @@ async def handle_item_details(callback: CallbackQuery, language_code: str, **kwa
             language_code,
             item_id,
         )
+
+    await callback.answer()
+
+
+@register_callback_handler(lambda data: json.loads(data).get("a") == "cancel")
+async def handle_cancel(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+) -> None:
+    callback_data = json.loads(callback.data)
+    content_type = callback_data["t"]
+    page = callback_data["p"]
+    await state.clear()
+
+    if content_type == "admin-country":
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_countries(new_callback, language_code)
+
+
+@register_callback_handler(lambda data: json.loads(data).get("a") == "delete")
+async def handle_delete(
+    callback: CallbackQuery, language_code: str, state: FSMContext, **kwargs
+):
+    callback_data = json.loads(callback.data)
+    content_type = callback_data["t"]
+    page = callback_data["p"]
+    item_id = callback_data["id"]
+
+    if content_type == "admin-country":
+        await delete_country_action(
+            callback,
+            language_code,
+            state,
+            admin_countries,
+            page,
+            item_id,
+        )
+
+    await callback.answer()
+
+
+@register_callback_handler(lambda data: json.loads(data).get("a") == "confirm_delete")
+async def handle_confirm_delete(
+    callback: CallbackQuery, language_code: str, state: FSMContext, **kwargs
+):
+    callback_data = json.loads(callback.data)
+    content_type = callback_data["t"]
+    page = callback_data["p"]
+    item_id = callback_data["id"]
+
+    if content_type == "admin-country":
+        state_data = await state.get_data()
+        admin_countries_callable = state_data.get("admin_countries")
+        await delete_country(item_id, callback.from_user.id)
+        await callback.message.edit_text(
+            text=text_service.get_text("successful_deleting", language_code)
+        )
+
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_countries_callable(new_callback, language_code, make_send=True)
+
+        await state.clear()
 
     await callback.answer()
 

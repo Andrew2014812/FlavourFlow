@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 from typing import Callable, Optional, Tuple
 
 from aiogram import Dispatcher, Router
@@ -13,26 +14,43 @@ from ...common.services.gastronomy_service import (
     create_country,
     get_country,
     get_country_list,
+    update_country,
 )
 from ...common.services.text_service import text_service
 from .handler_utils import (
     build_admin_buttons,
     convert_raw_text_to_valid_dict,
+    get_cancel_keyboard,
+    get_confirm_keyboard,
     get_item_admin_details_keyboard,
 )
 
 
+class ActionType(Enum):
+    ADD = "add"
+    EDIT = "edit"
+    DELETE = "delete"
+
+
 class Form(StatesGroup):
-    proceed_add_country = State()
+    process_country = State()
+    confirm_delete = State()
 
 
 router = Router()
+
+FIELD_MAPPING = {
+    "Title ua:": "title_ua",
+    "Title en:": "title_en",
+    "Назва ua:": "title_ua",
+    "Назва en:": "title_en",
+}
 
 
 async def render_admin_countries_content(
     page: int,
     language_code: str,
-) -> Tuple[str, Optional[str], int]:
+) -> Tuple:
     result = await get_country_list(page=page)
     country_list_response: CountryListResponse = result
     total_pages = country_list_response.total_pages
@@ -42,10 +60,9 @@ async def render_admin_countries_content(
         for country in country_list_response.countries
     }
 
-    result = await build_admin_buttons(
+    builder = await build_admin_buttons(
         country_dict, "admin-country", language_code, page
     )
-    builder = result
 
     text = f"Country listing - Page {page} of {total_pages} (lang: ua / en)"
     return text, None, total_pages, builder
@@ -56,7 +73,7 @@ async def render_country_details_content(
     current_page: int,
     language_code: str,
     country_id: int,
-) -> Tuple[str, Optional[str], int]:
+) -> None:
     result = await get_country(country_id=country_id)
     country: CountryResponse = result
 
@@ -71,47 +88,80 @@ async def render_country_details_content(
     )
 
 
-async def add_country(
+async def initiate_country_action(
     callback: CallbackQuery,
     language_code: str,
     state: FSMContext,
-    admin_countries: Callable,
+    action: ActionType,
     page: int,
-):
-    text = text_service.get_text("country-kitchen_add_instruction", language_code)
+    admin_countries: Callable[[CallbackQuery, str, bool], None],
+    country_id: Optional[int] = None,
+) -> None:
+    if action == ActionType.DELETE:
+        text = text_service.get_text("country-kitchen_delete_confirm", language_code)
+        keyboard = get_confirm_keyboard(
+            language_code, "admin-country", page, country_id
+        )
+        await callback.message.edit_text(text=text, reply_markup=keyboard)
+        await state.update_data(
+            language_code=language_code,
+            admin_countries=admin_countries,
+            callback=callback,
+            page=page,
+            action=action.value,
+            country_id=country_id,
+        )
+        await state.set_state(Form.confirm_delete)
 
-    message = callback.message
-    await message.answer(text=text)
+    else:
+        instruction_key = (
+            "country-kitchen_add_instruction"
+            if action == ActionType.ADD
+            else "country-kitchen_edit_instruction"
+        )
+        text = text_service.get_text(instruction_key, language_code)
+        keyboard = get_cancel_keyboard(language_code, "admin-country", page)
+        await callback.message.edit_text(text=text, reply_markup=keyboard)
+        await state.update_data(
+            language_code=language_code,
+            admin_countries=admin_countries,
+            callback=callback,
+            page=page,
+            action=action.value,
+            country_id=country_id,
+        )
+        await state.set_state(Form.process_country)
 
-    await state.update_data(
-        language_code=language_code,
-        admin_countries=admin_countries,
-        callback=callback,
-        page=page,
+
+async def process_country_action(
+    message: Message,
+    state: FSMContext,
+    action: ActionType,
+    admin_countries: Callable[[CallbackQuery, str, bool], None],
+    country_id: Optional[int] = None,
+) -> None:
+    state_data = await state.get_data()
+    language_code = state_data.get("language_code")
+    page = state_data.get("page")
+    callback: CallbackQuery = state_data.get("callback")
+
+    is_allow_empty = action == ActionType.EDIT
+    result = await convert_raw_text_to_valid_dict(
+        message.text,
+        FIELD_MAPPING,
+        is_allow_empty,
     )
-    await state.set_state(Form.proceed_add_country)
-
-
-@router.message(Form.proceed_add_country)
-async def proceed_add_country(message: Message, state: FSMContext):
-    state_date = await state.get_data()
-    language_code = state_date.get("language_code")
-    admin_countries: Callable = state_date.get("admin_countries")
-    callback: CallbackQuery = state_date.get("callback")
-    page: int = state_date.get("page")
-
-    field_mapping = {
-        "Title ua:": "title_ua",
-        "Title en:": "title_en",
-        "Назва ua:": "title_ua",
-        "Назва en:": "title_en",
-    }
-
-    result = await convert_raw_text_to_valid_dict(message.text, field_mapping)
 
     if not result.get("error"):
-        await create_country(result, message.from_user.id)
-        await message.answer(text_service.get_text("successful_adding", language_code))
+        if action == ActionType.ADD:
+            await create_country(result, message.from_user.id)
+            success_message = "successful_adding"
+
+        elif action == ActionType.EDIT:
+            await update_country(country_id, result, message.from_user.id)
+            success_message = "successful_editing"
+
+        await message.answer(text_service.get_text(success_message, language_code))
 
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
@@ -125,5 +175,65 @@ async def proceed_add_country(message: Message, state: FSMContext):
     await state.clear()
 
 
-def register_category_handlers(dispatcher: Dispatcher):
+async def add_country(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    admin_countries: Callable[[CallbackQuery, str, bool], None],
+    page: int,
+) -> None:
+    await initiate_country_action(
+        callback, language_code, state, ActionType.ADD, page, admin_countries
+    )
+
+
+async def edit_country(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    admin_countries: Callable[[CallbackQuery, str, bool], None],
+    page: int,
+    country_id: int,
+) -> None:
+    await initiate_country_action(
+        callback,
+        language_code,
+        state,
+        ActionType.EDIT,
+        page,
+        admin_countries,
+        country_id,
+    )
+
+
+async def delete_country_action(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    admin_countries: Callable[[CallbackQuery, str, bool], None],
+    page: int,
+    country_id: int,
+) -> None:
+    await initiate_country_action(
+        callback,
+        language_code,
+        state,
+        ActionType.DELETE,
+        page,
+        admin_countries,
+        country_id,
+    )
+
+
+@router.message(Form.process_country)
+async def process_country_submission(message: Message, state: FSMContext) -> None:
+    state_data = await state.get_data()
+    action = ActionType(state_data.get("action", ActionType.ADD.value))
+    admin_countries = state_data.get("admin_countries")
+    country_id = state_data.get("country_id")
+
+    await process_country_action(message, state, action, admin_countries, country_id)
+
+
+def register_category_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.include_router(router)
