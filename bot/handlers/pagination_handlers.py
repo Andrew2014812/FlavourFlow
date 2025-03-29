@@ -1,5 +1,5 @@
 import json
-from typing import Callable, List
+from typing import Callable, List, Optional, Tuple
 
 from aiogram.types import (
     CallbackQuery,
@@ -7,6 +7,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InputMediaPhoto,
 )
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from ..handlers.entity_handlers.company_handlers import (
     render_company_content,
@@ -20,295 +21,344 @@ from ..handlers.entity_handlers.gastronomy_handlers import (
 )
 from ..handlers.entity_handlers.product_handlers import render_product_content
 
-LEFT_ARROW = "⬅️"
-RIGHT_ARROW = "➡️"
-MIDDLE_DOT = "🔘"
-BACK_ARROW = "↩️"
+ARROW_LEFT = "⬅️"
+ARROW_RIGHT = "➡️"
+DOT_MIDDLE = "🔘"
+ARROW_BACK = "↩️"
 
 
-def create_button(
-    text: str,
-    callback_data: str,
-    is_current: bool = False,
-) -> InlineKeyboardButton:
-    display_text = f"[{text}]" if is_current else text
-    return InlineKeyboardButton(text=display_text, callback_data=callback_data)
+class PaginationConfig:
+    def __init__(
+        self,
+        content_type: str,
+        render_content: Callable,
+        items_per_row: int = 2,
+        show_page_numbers: bool = True,
+    ):
+        self.content_type = content_type
+        self.render_content = render_content
+        self.items_per_row = items_per_row
+        self.show_page_numbers = show_page_numbers
 
 
-def make_callback_data(
-    content_type: str,
-    action: str,
-    page: int,
-    extra_arg: str = "",
-) -> str:
-    data = {"t": content_type, "a": action, "p": page}
+class PaginationBuilder:
+    @staticmethod
+    def create_button(
+        text: str,
+        callback_data: str,
+        is_current: bool = False,
+    ) -> InlineKeyboardButton:
+        display_text = f"[{text}]" if is_current else text
+        return InlineKeyboardButton(text=display_text, callback_data=callback_data)
 
-    if extra_arg:
-        data["e"] = extra_arg
+    @staticmethod
+    def make_callback_data(
+        content_type: str,
+        action: str,
+        page: int,
+        extra_arg: str = "",
+    ) -> str:
+        data = {"t": content_type, "a": action, "p": page}
+        if extra_arg:
+            data["e"] = extra_arg
 
-    return json.dumps(data, separators=(",", ":"))
+        return json.dumps(data, separators=(",", ":"))
 
+    @staticmethod
+    def get_navigation_buttons(
+        current_page: int,
+        total_pages: int,
+        content_type: str,
+        extra_arg: str = "",
+    ) -> List[InlineKeyboardButton]:
+        buttons = []
 
-def get_navigation_buttons(
-    current_page: int,
-    total_pages: int,
-    content_type: str,
-    extra_arg: str = "",
-) -> List[InlineKeyboardButton]:
-    buttons = []
-
-    if current_page > 1:
-        prev_page_data = make_callback_data(
-            content_type, "nav", current_page - 1, extra_arg
-        )
-
-        buttons.append(create_button(text=LEFT_ARROW, callback_data=prev_page_data))
-
-    if current_page < total_pages:
-        next_page_data = make_callback_data(
-            content_type, "nav", current_page + 1, extra_arg
-        )
-
-        buttons.append(create_button(text=RIGHT_ARROW, callback_data=next_page_data))
-
-    return buttons
-
-
-def get_page_buttons(
-    current_page: int,
-    total_pages: int,
-    content_type: str,
-    extra_arg: str = "",
-) -> List[InlineKeyboardButton]:
-    buttons = []
-
-    if total_pages <= 5:
-        for page in range(1, total_pages + 1):
-            callback = make_callback_data(content_type, "nav", page, extra_arg)
-            buttons.append(
-                create_button(
-                    text=str(page),
-                    callback_data=callback,
-                    is_current=page == current_page,
-                )
+        if current_page > 1:
+            prev_data = PaginationBuilder.make_callback_data(
+                content_type, "nav", current_page - 1, extra_arg
             )
+            buttons.append(PaginationBuilder.create_button(ARROW_LEFT, prev_data))
+
+        if current_page < total_pages:
+            next_data = PaginationBuilder.make_callback_data(
+                content_type, "nav", current_page + 1, extra_arg
+            )
+            buttons.append(PaginationBuilder.create_button(ARROW_RIGHT, next_data))
 
         return buttons
 
-    if current_page <= 3:
-        buttons = [
-            create_button(
-                text=str(i),
-                callback_data=make_callback_data(content_type, "nav", i, extra_arg),
-                is_current=i == current_page,
-            )
-            for i in range(1, 4)
-        ]
+    @staticmethod
+    def get_page_buttons(
+        current_page: int,
+        total_pages: int,
+        content_type: str,
+        extra_arg: str = "",
+    ) -> List[InlineKeyboardButton]:
+        if total_pages <= 5:
+            return [
+                PaginationBuilder.create_button(
+                    str(page),
+                    PaginationBuilder.make_callback_data(
+                        content_type, "nav", page, extra_arg
+                    ),
+                    page == current_page,
+                )
+                for page in range(1, total_pages + 1)
+            ]
 
         middle_page = total_pages // 2
-        buttons.extend(
-            [
-                create_button(
-                    text=MIDDLE_DOT,
-                    callback_data=make_callback_data(
+
+        if current_page <= 3:
+            return [
+                *[
+                    PaginationBuilder.create_button(
+                        str(page),
+                        PaginationBuilder.make_callback_data(
+                            content_type, "nav", page, extra_arg
+                        ),
+                        page == current_page,
+                    )
+                    for page in range(1, 4)
+                ],
+                PaginationBuilder.create_button(
+                    DOT_MIDDLE,
+                    PaginationBuilder.make_callback_data(
                         content_type, "nav", middle_page, extra_arg
                     ),
                 ),
-                create_button(
-                    text=str(total_pages - 1),
-                    callback_data=make_callback_data(
-                        content_type, "nav", total_pages - 1, extra_arg
-                    ),
-                ),
-                create_button(
-                    text=str(total_pages),
-                    callback_data=make_callback_data(
-                        content_type, "nav", total_pages, extra_arg
-                    ),
-                ),
+                *[
+                    PaginationBuilder.create_button(
+                        str(page),
+                        PaginationBuilder.make_callback_data(
+                            content_type, "nav", page, extra_arg
+                        ),
+                    )
+                    for page in [total_pages - 1, total_pages]
+                ],
             ]
-        )
 
-        return buttons
+        if current_page >= total_pages - 2:
+            return [
+                PaginationBuilder.create_button(
+                    "1",
+                    PaginationBuilder.make_callback_data(
+                        content_type, "nav", 1, extra_arg
+                    ),
+                ),
+                PaginationBuilder.create_button(
+                    DOT_MIDDLE,
+                    PaginationBuilder.make_callback_data(
+                        content_type, "nav", middle_page, extra_arg
+                    ),
+                ),
+                *[
+                    PaginationBuilder.create_button(
+                        str(page),
+                        PaginationBuilder.make_callback_data(
+                            content_type, "nav", page, extra_arg
+                        ),
+                        page == current_page,
+                    )
+                    for page in range(total_pages - 2, total_pages + 1)
+                ],
+            ]
 
-    if current_page >= total_pages - 2:
-        middle_page = total_pages // 2
-
-        buttons = [
-            create_button(
-                text="1",
-                callback_data=make_callback_data(content_type, "nav", 1, extra_arg),
+        return [
+            PaginationBuilder.create_button(
+                "1",
+                PaginationBuilder.make_callback_data(content_type, "nav", 1, extra_arg),
             ),
-            create_button(
-                text=MIDDLE_DOT,
-                callback_data=make_callback_data(
-                    content_type, "nav", middle_page, extra_arg
+            PaginationBuilder.create_button(
+                DOT_MIDDLE,
+                PaginationBuilder.make_callback_data(
+                    content_type, "nav", current_page - 2, extra_arg
+                ),
+            ),
+            PaginationBuilder.create_button(
+                str(current_page),
+                PaginationBuilder.make_callback_data(
+                    content_type, "nav", current_page, extra_arg
+                ),
+                True,
+            ),
+            PaginationBuilder.create_button(
+                DOT_MIDDLE,
+                PaginationBuilder.make_callback_data(
+                    content_type, "nav", current_page + 2, extra_arg
+                ),
+            ),
+            PaginationBuilder.create_button(
+                str(total_pages),
+                PaginationBuilder.make_callback_data(
+                    content_type, "nav", total_pages, extra_arg
                 ),
             ),
         ]
 
-        buttons.extend(
-            [
-                create_button(
-                    text=str(i),
-                    callback_data=make_callback_data(content_type, "nav", i, extra_arg),
-                    is_current=i == current_page,
-                )
-                for i in range(total_pages - 2, total_pages + 1)
-            ]
+    @staticmethod
+    def build_pagination_keyboard(
+        current_page: int,
+        total_pages: int,
+        content_type: str,
+        extra_arg: str = "",
+    ) -> InlineKeyboardMarkup:
+        nav_buttons = PaginationBuilder.get_navigation_buttons(
+            current_page, total_pages, content_type, extra_arg
         )
 
-        return buttons
+        page_buttons = PaginationBuilder.get_page_buttons(
+            current_page, total_pages, content_type, extra_arg
+        )
 
-    left_middle = max(1, current_page - 2)
-    right_middle = min(total_pages, current_page + 2)
+        if len(nav_buttons) == 2:
+            buttons = [nav_buttons[0], *page_buttons, nav_buttons[1]]
 
-    buttons = [
-        create_button(
-            text="1",
-            callback_data=make_callback_data(content_type, "nav", 1, extra_arg),
-        ),
-        create_button(
-            text=MIDDLE_DOT,
-            callback_data=make_callback_data(
-                content_type, "nav", left_middle, extra_arg
-            ),
-        ),
-        create_button(
-            text=str(current_page),
-            callback_data=make_callback_data(
-                content_type, "nav", current_page, extra_arg
-            ),
-            is_current=True,
-        ),
-        create_button(
-            text=MIDDLE_DOT,
-            callback_data=make_callback_data(
-                content_type, "nav", right_middle, extra_arg
-            ),
-        ),
-        create_button(
-            text=str(total_pages),
-            callback_data=make_callback_data(
-                content_type, "nav", total_pages, extra_arg
-            ),
-        ),
-    ]
+        elif nav_buttons and nav_buttons[0].text == ARROW_LEFT:
+            buttons = [nav_buttons[0], *page_buttons]
 
-    return buttons
+        else:
+            buttons = [*page_buttons, *nav_buttons]
+
+        back_data = PaginationBuilder.make_callback_data(
+            content_type, "back", current_page, extra_arg
+        )
+        back_button = PaginationBuilder.create_button(ARROW_BACK, back_data)
+
+        return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
 
 
-def get_pagination_keyboard(
-    current_page: int,
-    total_pages: int,
-    content_type: str,
-    extra_arg: str = "",
-) -> InlineKeyboardMarkup:
-    nav_buttons = get_navigation_buttons(
-        current_page,
-        total_pages,
-        content_type,
-        extra_arg,
-    )
-    page_buttons = get_page_buttons(
-        current_page,
-        total_pages,
-        content_type,
-        extra_arg,
-    )
+class PaginationHandler:
+    @staticmethod
+    async def update_paginated_message(
+        callback: CallbackQuery,
+        content_type: str,
+        page: int,
+        language_code: str,
+        extra_arg: str = "",
+        make_send: bool = False,
+    ) -> None:
+        content_result = await PaginationHandler.get_content(
+            content_type, page, language_code, extra_arg
+        )
 
-    if len(nav_buttons) == 2:
-        buttons = [nav_buttons[0], *page_buttons, nav_buttons[1]]
+        if not content_result:
+            await callback.answer("Content not available")
+            return
 
-    elif len(nav_buttons) == 1 and nav_buttons[0].text == LEFT_ARROW:
-        buttons = [nav_buttons[0], *page_buttons]
+        caption, image_url, total_pages, builder = content_result
 
-    else:
-        buttons = [*page_buttons, *nav_buttons]
+        keyboard = PaginationBuilder.build_pagination_keyboard(
+            page, total_pages, content_type, extra_arg
+        )
 
-    back_data = make_callback_data(content_type, "back", current_page, extra_arg)
-    back_button = create_button(text=BACK_ARROW, callback_data=back_data)
+        if image_url:
+            await callback.message.edit_media(
+                InputMediaPhoto(media=image_url, caption=caption),
+                reply_markup=keyboard,
+            )
+        elif builder:
+            for row in keyboard.inline_keyboard:
+                builder.row(*row)
 
-    return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
+            if make_send:
+                await callback.message.answer(caption, reply_markup=builder.as_markup())
+            else:
+                await callback.message.edit_text(
+                    caption, reply_markup=builder.as_markup()
+                )
+        else:
+            await callback.message.edit_text(caption, reply_markup=keyboard)
+
+    @staticmethod
+    async def get_content(
+        content_type: str,
+        page: int,
+        language_code: str,
+        extra_arg: str = "",
+    ) -> Optional[Tuple[str, Optional[str], int, Optional[InlineKeyboardBuilder]]]:
+        handlers = {
+            "user-company": render_company_content,
+            "admin-company": render_company_content_for_admin,
+            "product": render_product_content,
+            "admin-country": country_gastronomy_handler.render_list_content,
+            "admin-kitchen": kitchen_gastronomy_handler.render_list_content,
+        }
+
+        if handler := handlers.get(content_type):
+            if extra_arg:
+                return await handler(page, language_code, extra_arg)
+            return await handler(page, language_code)
+        return None
+
+    @staticmethod
+    def create_handler(config: PaginationConfig) -> Callable:
+
+        async def handler(callback: CallbackQuery, language_code: str, **kwargs):
+            data = json.loads(callback.data)
+
+            if data.get("t") != config.content_type or data.get("a") not in [
+                "nav",
+                "back",
+            ]:
+                return
+
+            if data["a"] == "nav":
+                await PaginationHandler.update_paginated_message(
+                    callback,
+                    config.content_type,
+                    data["p"],
+                    language_code,
+                    data.get("e", ""),
+                    kwargs.get("make_send", False),
+                )
+
+            await callback.answer()
+
+        return handler
 
 
 def create_pagination_handler(content_type: str, render_content: Callable):
-    async def handler(callback: CallbackQuery, language_code: str, **kwargs):
-        data = json.loads(callback.data)
+    return PaginationHandler.create_handler(
+        PaginationConfig(content_type, render_content)
+    )
 
-        if data.get("t") != content_type or data.get("a") not in ["nav", "back"]:
-            return
 
-        if data["a"] == "nav":
-            page = data["p"]
-            extra_arg = data.get("e", "")
+company_handler = PaginationHandler.create_handler(
+    PaginationConfig("user-company", render_company_content)
+)
 
-            result = await (
-                render_content(page, language_code, extra_arg)
-                if extra_arg
-                else render_content(page, language_code)
-            )
+company_admin_handler = PaginationHandler.create_handler(
+    PaginationConfig("admin-company", render_company_content_for_admin)
+)
 
-            caption, image_url, total_pages, builder = result
-            keyboard = get_pagination_keyboard(
-                page, total_pages, content_type, extra_arg
-            )
+product_handler = PaginationHandler.create_handler(
+    PaginationConfig("product", render_product_content)
+)
 
-            if image_url:
-                await callback.message.edit_media(
-                    InputMediaPhoto(media=image_url, caption=caption),
-                    reply_markup=keyboard,
-                )
+country_handler = PaginationHandler.create_handler(
+    PaginationConfig("admin-country", country_gastronomy_handler.render_list_content)
+)
 
-            elif builder:
-                for row in keyboard.inline_keyboard:
-                    builder.row(*row)
-
-                if kwargs.get("make_send"):
-                    await callback.message.answer(
-                        caption, reply_markup=builder.as_markup()
-                    )
-
-                else:
-                    await callback.message.edit_text(
-                        caption, reply_markup=builder.as_markup()
-                    )
-
-            else:
-                await callback.message.edit_text(caption, reply_markup=keyboard)
-
-        await callback.answer()
-
-    return handler
+kitchen_handler = PaginationHandler.create_handler(
+    PaginationConfig("admin-kitchen", kitchen_gastronomy_handler.render_list_content)
+)
 
 
 def get_category_keyboard() -> InlineKeyboardMarkup:
-    category_data = [
+    categories = [
         {"text": "Tech", "value": "tech"},
         {"text": "Retail", "value": "retail"},
         {"text": "Finance", "value": "finance"},
     ]
 
     buttons = [
-        create_button(
-            text=category["text"],
-            callback_data=json.dumps(
+        PaginationBuilder.create_button(
+            category["text"],
+            json.dumps(
                 {"t": "category", "v": category["value"]}, separators=(",", ":")
             ),
         )
-        for category in category_data
+        for category in categories
     ]
+
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
-
-
-company_handler = create_pagination_handler("user-company", render_company_content)
-company_admin_handler = create_pagination_handler(
-    "admin-company", render_company_content_for_admin
-)
-product_handler = create_pagination_handler("product", render_product_content)
-country_handler = create_pagination_handler(
-    "admin-country", country_gastronomy_handler.render_list_content
-)
-kitchen_handler = create_pagination_handler(
-    "admin-kitchen", kitchen_gastronomy_handler.render_list_content
-)
