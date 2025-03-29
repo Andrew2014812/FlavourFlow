@@ -7,19 +7,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
-from ...common.services.gastronomy_service import (
-    GastronomyService,
-    country_service,
-    kitchen_service,
-)
+from ...common.services.gastronomy_service import (GastronomyService,
+                                                   country_service,
+                                                   kitchen_service)
 from ...common.services.text_service import text_service
-from .handler_utils import (
-    build_admin_buttons,
-    convert_raw_text_to_valid_dict,
-    get_cancel_keyboard,
-    get_confirm_keyboard,
-    get_item_admin_details_keyboard,
-)
+from .handler_utils import (build_admin_buttons,
+                            convert_raw_text_to_valid_dict,
+                            get_cancel_keyboard, get_confirm_keyboard,
+                            get_item_admin_details_keyboard)
 
 
 class ActionType(Enum):
@@ -166,7 +161,6 @@ class GenericGastronomyHandler:
         await state.clear()
 
 
-# Instantiate handlers
 country_handler = GenericGastronomyHandler(
     "country", country_service, "process_country"
 )
@@ -179,7 +173,7 @@ kitchen_handler = GenericGastronomyHandler(
 async def process_country_submission(message: Message, state: FSMContext) -> None:
     state_data = await state.get_data()
     action = ActionType(state_data.get("action", ActionType.ADD.value))
-    admin_callback = await state_data.get("admin_callback")
+    admin_callback = state_data.get("admin_callback")
     item_id = state_data.get("item_id")
     await country_handler.process_action(
         message,
@@ -194,7 +188,7 @@ async def process_country_submission(message: Message, state: FSMContext) -> Non
 async def process_kitchen_submission(message: Message, state: FSMContext) -> None:
     state_data = await state.get_data()
     action = ActionType(state_data.get("action", ActionType.ADD.value))
-    admin_callback = await state_data.get("admin_callback")
+    admin_callback = state_data.get("admin_callback")
     item_id = state_data.get("item_id")
     await kitchen_handler.process_action(
         message,
