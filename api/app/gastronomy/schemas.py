@@ -13,7 +13,7 @@ class CountryResponse(CountryBase):
 
 
 class CountryListResponse(SQLModel):
-    countries: List[CountryResponse]
+    countrys: List[CountryResponse]
     total_pages: int
 
 

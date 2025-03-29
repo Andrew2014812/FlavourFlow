@@ -5,26 +5,20 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from ..common.services.gastronomy_service import delete_country, delete_kitchen
+from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.gastronomy_handlers import (
-    add_country,
-    add_kitchen,
-    delete_country_action,
-    delete_kitchen_action,
-    edit_country,
-    edit_kitchen,
-    render_country_details_content,
-    render_kitchen_details_content,
-)
-from .pagination_handlers import (
-    company_admin_handler,
-    company_handler,
+    ActionType,
+    GenericGastronomyHandler,
     country_handler,
     kitchen_handler,
-    product_handler,
 )
+from .pagination_handlers import company_admin_handler, company_handler
+from .pagination_handlers import country_handler as country_pagination_handler
+from .pagination_handlers import create_pagination_handler
+from .pagination_handlers import kitchen_handler as kitchen_pagination_handler
+from .pagination_handlers import product_handler
 from .reply_buttons_handlers import handle_admin, handle_restaurants
 
 router = Router()
@@ -56,11 +50,81 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             if filter_func(callback.data):
                 await handler(callback, language_code, state=state)
                 return
-
         except json.JSONDecodeError:
             continue
 
     await callback.answer("Unknown action")
+
+
+async def generic_admin_handler(handler: GenericGastronomyHandler):
+    return create_pagination_handler(
+        f"admin-{handler.entity_type}", handler.render_list_content
+    )
+
+
+async def handle_add(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    handler: GenericGastronomyHandler,
+    page: int,
+):
+    await handler.initiate_action(
+        callback,
+        language_code,
+        state,
+        ActionType.ADD,
+        page,
+        generic_admin_handler(handler),
+    )
+
+
+async def handle_edit(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    handler: GenericGastronomyHandler,
+    page: int,
+    item_id: int,
+):
+    await handler.initiate_action(
+        callback,
+        language_code,
+        state,
+        ActionType.EDIT,
+        page,
+        generic_admin_handler(handler),
+        item_id,
+    )
+
+
+async def handle_delete(
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
+    handler: GenericGastronomyHandler,
+    page: int,
+    item_id: int,
+):
+    await handler.initiate_action(
+        callback,
+        language_code,
+        state,
+        ActionType.DELETE,
+        page,
+        generic_admin_handler(handler),
+        item_id,
+    )
+
+
+async def handle_details(
+    callback: CallbackQuery,
+    language_code: str,
+    handler: GenericGastronomyHandler,
+    page: int,
+    item_id: int,
+):
+    await handler.render_details_content(callback.message, page, language_code, item_id)
 
 
 @register_callback_handler("edit_profile")
@@ -84,7 +148,7 @@ async def admin_companies(callback: CallbackQuery, language_code: str, **kwargs)
     and json.loads(data).get("a") == "nav"
 )
 async def admin_countries(callback: CallbackQuery, language_code: str, **kwargs):
-    await country_handler(callback, language_code, **kwargs)
+    await country_pagination_handler(callback, language_code, **kwargs)
 
 
 @register_callback_handler(
@@ -92,7 +156,7 @@ async def admin_countries(callback: CallbackQuery, language_code: str, **kwargs)
     and json.loads(data).get("a") == "nav"
 )
 async def admin_kitchens(callback: CallbackQuery, language_code: str, **kwargs):
-    await kitchen_handler(callback, language_code, **kwargs)
+    await kitchen_pagination_handler(callback, language_code, **kwargs)
 
 
 @register_callback_handler(
@@ -115,102 +179,70 @@ async def product_pagination(callback: CallbackQuery, language_code: str, **kwar
 async def category_selection(callback: CallbackQuery, language_code: str, **kwargs):
     data = json.loads(callback.data)
     category = data["v"].capitalize()
-
-    callback_dict = {
-        "t": "user-company",
-        "a": "nav",
-        "p": 1,
-        "e": category,
-    }
-
+    callback_dict = {"t": "user-company", "a": "nav", "p": 1, "e": category}
     new_callback_data = json.dumps(callback_dict, separators=(",", ":"))
     new_callback = callback.model_copy(update={"data": new_callback_data})
-
     await company_pagination(new_callback, language_code)
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "back")
 async def handle_back(callback: CallbackQuery, language_code: str, **kwargs):
     callback_data = json.loads(callback.data)
-
     content_type = callback_data["t"]
     page = callback_data["p"]
 
     if content_type == "user-company":
         await callback.message.delete()
         await handle_restaurants(callback.message, language_code)
-
     elif content_type in ["admin-company", "admin-country", "admin-kitchen"]:
         await handle_admin(
             callback.message, language_code, telegram_id=callback.from_user.id
         )
-
     elif content_type == "admin-country-details":
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries(new_callback, language_code)
-
     elif content_type == "admin-kitchen-details":
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_kitchens(new_callback, language_code)
-
     await callback.answer()
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "add")
-async def handle_add(callback: CallbackQuery, language_code: str, **kwargs):
+async def handle_add_action(
+    callback: CallbackQuery, language_code: str, state: FSMContext, **kwargs
+):
     callback_data = json.loads(callback.data)
     content_type = callback_data["t"]
     page = callback_data["p"]
 
     if content_type == "admin-country":
-        await add_country(
-            callback,
-            language_code,
-            **kwargs,
-            admin_countries=admin_countries,
-            page=page,
-        )
-
+        await handle_add(callback, language_code, state, country_handler, page)
     elif content_type == "admin-kitchen":
-        await add_kitchen(
-            callback,
-            language_code,
-            **kwargs,
-            admin_kitchens=admin_kitchens,
-            page=page,
-        )
+        await handle_add(callback, language_code, state, kitchen_handler, page)
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "edit")
-async def handle_edit(callback: CallbackQuery, language_code: str, state: FSMContext):
+async def handle_edit_action(
+    callback: CallbackQuery, language_code: str, state: FSMContext
+):
     callback_data = json.loads(callback.data)
     content_type = callback_data["t"]
     page = callback_data["p"]
-    country_id = callback_data["id"]
+    item_id = callback_data["id"]
 
     if content_type == "admin-country":
-        await edit_country(
-            callback,
-            language_code,
-            state,
-            admin_countries,
-            page,
-            country_id,
+        await handle_edit(
+            callback, language_code, state, country_handler, page, item_id
         )
     elif content_type == "admin-kitchen":
-        await edit_kitchen(
-            callback,
-            language_code,
-            state,
-            admin_kitchens,
-            page,
-            country_id,
+        await handle_edit(
+            callback, language_code, state, kitchen_handler, page, item_id
         )
 
 
@@ -222,29 +254,15 @@ async def handle_item_details(callback: CallbackQuery, language_code: str, **kwa
     item_id = callback_data["id"]
 
     if content_type == "admin-country":
-        await render_country_details_content(
-            callback.message,
-            page,
-            language_code,
-            item_id,
-        )
-
+        await handle_details(callback, language_code, country_handler, page, item_id)
     elif content_type == "admin-kitchen":
-        await render_kitchen_details_content(
-            callback.message,
-            page,
-            language_code,
-            item_id,
-        )
-
+        await handle_details(callback, language_code, kitchen_handler, page, item_id)
     await callback.answer()
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "cancel")
 async def handle_cancel(
-    callback: CallbackQuery,
-    language_code: str,
-    state: FSMContext,
+    callback: CallbackQuery, language_code: str, state: FSMContext
 ) -> None:
     callback_data = json.loads(callback.data)
     content_type = callback_data["t"]
@@ -257,19 +275,17 @@ async def handle_cancel(
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries(new_callback, language_code)
-
     elif content_type == "admin-kitchen":
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_kitchens(new_callback, language_code)
-
     await callback.answer()
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "delete")
-async def handle_delete(
+async def handle_delete_action(
     callback: CallbackQuery, language_code: str, state: FSMContext, **kwargs
 ):
     callback_data = json.loads(callback.data)
@@ -278,25 +294,13 @@ async def handle_delete(
     item_id = callback_data["id"]
 
     if content_type == "admin-country":
-        await delete_country_action(
-            callback,
-            language_code,
-            state,
-            admin_countries,
-            page,
-            item_id,
+        await handle_delete(
+            callback, language_code, state, country_handler, page, item_id
         )
-
     elif content_type == "admin-kitchen":
-        await delete_kitchen_action(
-            callback,
-            language_code,
-            state,
-            admin_kitchens,
-            page,
-            item_id,
+        await handle_delete(
+            callback, language_code, state, kitchen_handler, page, item_id
         )
-
     await callback.answer()
 
 
@@ -311,28 +315,25 @@ async def handle_confirm_delete(
 
     if content_type == "admin-country":
         state_data = await state.get_data()
-        admin_countries_callable = state_data.get("admin_countries")
-        await delete_country(item_id, callback.from_user.id)
+        admin_countries_callable = await state_data.get("admin_callback")
+        await country_service.delete(item_id, callback.from_user.id)
         await callback.message.edit_text(
             text=text_service.get_text("successful_deleting", language_code)
         )
-
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-country"}, separators=(",", ":")
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries_callable(new_callback, language_code, make_send=True)
-
         await state.clear()
 
     elif content_type == "admin-kitchen":
         state_data = await state.get_data()
-        admin_kitchens_callable = state_data.get("admin_kitchens")
-        await delete_kitchen(item_id, callback.from_user.id)
+        admin_kitchens_callable = await state_data.get("admin_callback")
+        await kitchen_service.delete(item_id, callback.from_user.id)
         await callback.message.edit_text(
             text=text_service.get_text("successful_deleting", language_code)
         )
-
         new_callback_data = json.dumps(
             {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
         )

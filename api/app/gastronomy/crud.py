@@ -27,7 +27,7 @@ async def get_all_countries(
 ) -> CountryListResponse:
     result = await country_service.get_all(session, page, limit)
     return CountryListResponse(
-        countries=result["items"], total_pages=result["total_pages"]
+        countrys=result["items"], total_pages=result["total_pages"]
     )
 
 

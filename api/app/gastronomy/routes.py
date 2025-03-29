@@ -28,7 +28,7 @@ from ..user.crud import is_admin
 router = APIRouter()
 
 
-@router.get("/countries/", response_model=CountryListResponse)
+@router.get("/countrys/", response_model=CountryListResponse)
 async def get_countries(
     session: SessionDep,
     page: int = 1,
@@ -70,7 +70,7 @@ async def get_kitchens(
     return await get_all_kitchens(session=session, page=page, limit=limit)
 
 
-@router.post("/countries/", response_model=CountryResponse)
+@router.post("/countrys/", response_model=CountryResponse)
 async def post_country(
     session: SessionDep,
     country: CountryCreate,
@@ -110,7 +110,7 @@ async def post_kitchen(
     return await create_kitchen(session=session, kitchen_create=kitchen)
 
 
-@router.get("/countries/{country_id}/", response_model=CountryResponse)
+@router.get("/countrys/{country_id}/", response_model=CountryResponse)
 async def get_country(
     session: SessionDep,
     country_id: int,
@@ -148,7 +148,7 @@ async def get_kitchen(
     return await get_kitchen_by_id(session=session, kitchen_id=kitchen_id)
 
 
-@router.patch("/countries/{country_id}/", response_model=CountryResponse)
+@router.patch("/countrys/{country_id}/", response_model=CountryResponse)
 async def put_country(
     session: SessionDep,
     country_id: int,
@@ -200,7 +200,7 @@ async def put_kitchen(
     )
 
 
-@router.delete("/countries/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/countrys/{country_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_country(
     session: SessionDep,
     country_id: int,
