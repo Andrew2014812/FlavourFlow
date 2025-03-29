@@ -5,19 +5,24 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from ..common.services.gastronomy_service import delete_country
+from ..common.services.gastronomy_service import delete_country, delete_kitchen
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.gastronomy_handlers import (
     add_country,
+    add_kitchen,
     delete_country_action,
+    delete_kitchen_action,
     edit_country,
+    edit_kitchen,
     render_country_details_content,
+    render_kitchen_details_content,
 )
 from .pagination_handlers import (
     company_admin_handler,
     company_handler,
     country_handler,
+    kitchen_handler,
     product_handler,
 )
 from .reply_buttons_handlers import handle_admin, handle_restaurants
@@ -83,6 +88,14 @@ async def admin_countries(callback: CallbackQuery, language_code: str, **kwargs)
 
 
 @register_callback_handler(
+    lambda data: json.loads(data).get("t") == "admin-kitchen"
+    and json.loads(data).get("a") == "nav"
+)
+async def admin_kitchens(callback: CallbackQuery, language_code: str, **kwargs):
+    await kitchen_handler(callback, language_code, **kwargs)
+
+
+@register_callback_handler(
     lambda data: json.loads(data).get("t") == "user-company"
     and json.loads(data).get("a") == "nav"
 )
@@ -127,7 +140,7 @@ async def handle_back(callback: CallbackQuery, language_code: str, **kwargs):
         await callback.message.delete()
         await handle_restaurants(callback.message, language_code)
 
-    elif content_type in ["admin-company", "admin-country"]:
+    elif content_type in ["admin-company", "admin-country", "admin-kitchen"]:
         await handle_admin(
             callback.message, language_code, telegram_id=callback.from_user.id
         )
@@ -138,6 +151,13 @@ async def handle_back(callback: CallbackQuery, language_code: str, **kwargs):
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries(new_callback, language_code)
+
+    elif content_type == "admin-kitchen-details":
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_kitchens(new_callback, language_code)
 
     await callback.answer()
 
@@ -154,6 +174,15 @@ async def handle_add(callback: CallbackQuery, language_code: str, **kwargs):
             language_code,
             **kwargs,
             admin_countries=admin_countries,
+            page=page,
+        )
+
+    elif content_type == "admin-kitchen":
+        await add_kitchen(
+            callback,
+            language_code,
+            **kwargs,
+            admin_kitchens=admin_kitchens,
             page=page,
         )
 
@@ -174,6 +203,15 @@ async def handle_edit(callback: CallbackQuery, language_code: str, state: FSMCon
             page,
             country_id,
         )
+    elif content_type == "admin-kitchen":
+        await edit_kitchen(
+            callback,
+            language_code,
+            state,
+            admin_kitchens,
+            page,
+            country_id,
+        )
 
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "details")
@@ -185,6 +223,14 @@ async def handle_item_details(callback: CallbackQuery, language_code: str, **kwa
 
     if content_type == "admin-country":
         await render_country_details_content(
+            callback.message,
+            page,
+            language_code,
+            item_id,
+        )
+
+    elif content_type == "admin-kitchen":
+        await render_kitchen_details_content(
             callback.message,
             page,
             language_code,
@@ -212,6 +258,15 @@ async def handle_cancel(
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries(new_callback, language_code)
 
+    elif content_type == "admin-kitchen":
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_kitchens(new_callback, language_code)
+
+    await callback.answer()
+
 
 @register_callback_handler(lambda data: json.loads(data).get("a") == "delete")
 async def handle_delete(
@@ -228,6 +283,16 @@ async def handle_delete(
             language_code,
             state,
             admin_countries,
+            page,
+            item_id,
+        )
+
+    elif content_type == "admin-kitchen":
+        await delete_kitchen_action(
+            callback,
+            language_code,
+            state,
+            admin_kitchens,
             page,
             item_id,
         )
@@ -257,6 +322,22 @@ async def handle_confirm_delete(
         )
         new_callback = callback.model_copy(update={"data": new_callback_data})
         await admin_countries_callable(new_callback, language_code, make_send=True)
+
+        await state.clear()
+
+    elif content_type == "admin-kitchen":
+        state_data = await state.get_data()
+        admin_kitchens_callable = state_data.get("admin_kitchens")
+        await delete_kitchen(item_id, callback.from_user.id)
+        await callback.message.edit_text(
+            text=text_service.get_text("successful_deleting", language_code)
+        )
+
+        new_callback_data = json.dumps(
+            {"a": "nav", "p": page, "t": "admin-kitchen"}, separators=(",", ":")
+        )
+        new_callback = callback.model_copy(update={"data": new_callback_data})
+        await admin_kitchens_callable(new_callback, language_code, make_send=True)
 
         await state.clear()
 

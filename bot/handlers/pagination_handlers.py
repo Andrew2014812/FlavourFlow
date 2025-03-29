@@ -14,6 +14,7 @@ from ..handlers.entity_handlers.company_handlers import (
 )
 from ..handlers.entity_handlers.gastronomy_handlers import (
     render_admin_countries_content,
+    render_admin_kitchens_content,
 )
 from ..handlers.entity_handlers.product_handlers import render_product_content
 
@@ -305,4 +306,8 @@ company_admin_handler = create_pagination_handler(
 product_handler = create_pagination_handler("product", render_product_content)
 country_handler = create_pagination_handler(
     "admin-country", render_admin_countries_content
+)
+
+kitchen_handler = create_pagination_handler(
+    "admin-kitchen", render_admin_kitchens_content
 )
