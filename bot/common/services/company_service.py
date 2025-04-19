@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict
+from typing import Dict, List, Optional
 
 from api.app.company.schemas import CompanyResponse
 
@@ -30,3 +30,61 @@ async def create_company(telegram_id: int, body: Dict) -> CompanyResponse | None
     )
 
     return CompanyResponse.model_validate(response.get("data"))
+
+
+class CompanyService:
+
+    async def get_list(self, page: int = 1) -> Optional[List[CompanyResponse]]:
+        response = await make_request(
+            sub_url=f"{self.prefix}/",
+            method=APIMethods.GET.value,
+            params={"page": page},
+        )
+        return CompanyResponse.model_validate(response.get("data"))
+
+    async def get_item(self, item_id: int) -> Optional[CompanyResponse]:
+        response = await make_request(
+            sub_url=f"{self.prefix}/{item_id}/",
+            method=APIMethods.GET.value,
+        )
+        return CompanyResponse.model_validate(response.get("data"))
+
+    async def create(self, body: Dict, telegram_id: int) -> Optional[CompanyResponse]:
+        user_info = await get_user_info(telegram_id)
+
+        response = await make_request(
+            sub_url=f"{self.prefix}/",
+            method=APIMethods.POST.value,
+            body=body,
+            headers={
+                APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+            },
+        )
+        return CompanyResponse.model_validate(response.get("data"))
+
+    async def update(
+        self, item_id: int, body: Dict, telegram_id: int
+    ) -> Optional[CompanyResponse]:
+        user_info = await get_user_info(telegram_id)
+
+        response = await make_request(
+            sub_url=f"{self.prefix}/{item_id}/",
+            method=APIMethods.PATCH.value,
+            body=body,
+            headers={
+                APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+            },
+        )
+
+        return CompanyResponse.model_validate(response.get("data"))
+
+    async def delete(self, item_id: int, telegram_id: int) -> None:
+        user_info = await get_user_info(telegram_id)
+
+        await make_request(
+            sub_url=f"{self.prefix}/{item_id}/",
+            method=APIMethods.DELETE.value,
+            headers={
+                APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+            },
+        )

@@ -1,10 +1,17 @@
 import json
+from enum import Enum
 from typing import Dict
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.common.services.text_service import text_service
+
+
+class ActionType(Enum):
+    ADD = "add"
+    EDIT = "edit"
+    DELETE = "delete"
 
 
 async def build_admin_buttons(

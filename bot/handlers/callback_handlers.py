@@ -126,14 +126,21 @@ async def handle_navigation(
 
 
 def create_callback_data(
-    action: str, content_type: str, page: int = 1, **kwargs
+    action: str,
+    content_type: str,
+    page: int = 1,
+    **kwargs,
 ) -> str:
     data = {"a": action, "p": page, "t": content_type, **kwargs}
     return json.dumps(data, separators=(",", ":"))
 
 
 async def modify_callback(
-    callback: CallbackQuery, action: str, content_type: str, page: int = 1, **kwargs
+    callback: CallbackQuery,
+    action: str,
+    content_type: str,
+    page: int = 1,
+    **kwargs,
 ) -> CallbackQuery:
     new_data = create_callback_data(action, content_type, page, **kwargs)
 
@@ -141,7 +148,10 @@ async def modify_callback(
 
 
 async def handle_back_action(
-    callback: CallbackQuery, language_code: str, content_type: str, page: int = 1
+    callback: CallbackQuery,
+    language_code: str,
+    content_type: str,
+    page: int = 1,
 ):
     if content_type == CONTENT_TYPES["COMPANY"]:
         await callback.message.delete()
@@ -169,7 +179,9 @@ async def handle_back_action(
 
 @registry.register(lambda data: json.loads(data).get("t") == "category")
 async def handle_category_selection(
-    callback: CallbackQuery, language_code: str, **kwargs
+    callback: CallbackQuery,
+    language_code: str,
+    **kwargs,
 ):
     data = json.loads(callback.data)
     category = data["v"].capitalize()
@@ -209,7 +221,9 @@ async def handle_back_navigation(callback: CallbackQuery, language_code: str, **
 
 @registry.register(lambda data: json.loads(data).get("a") == Action.CANCEL)
 async def handle_cancel_action(
-    callback: CallbackQuery, language_code: str, state: FSMContext
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
 ):
     data = json.loads(callback.data)
     content_type = data["t"]
@@ -225,7 +239,9 @@ async def handle_cancel_action(
 
 @registry.register(lambda data: json.loads(data).get("a") == Action.ADD)
 async def handle_add_action(
-    callback: CallbackQuery, language_code: str, state: FSMContext
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
 ):
     data = json.loads(callback.data)
     content_type = data["t"]
@@ -250,7 +266,9 @@ async def handle_add_action(
 
 @registry.register(lambda data: json.loads(data).get("a") == Action.EDIT)
 async def handle_edit_action(
-    callback: CallbackQuery, language_code: str, state: FSMContext
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
 ):
     data = json.loads(callback.data)
     content_type = data["t"]
@@ -300,7 +318,9 @@ async def handle_item_details(callback: CallbackQuery, language_code: str, **kwa
 
 @registry.register(lambda data: json.loads(data).get("a") == Action.DELETE)
 async def handle_delete_action(
-    callback: CallbackQuery, language_code: str, state: FSMContext
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
 ):
     data = json.loads(callback.data)
     content_type = data["t"]
@@ -329,7 +349,9 @@ async def handle_delete_action(
 
 @registry.register(lambda data: json.loads(data).get("a") == Action.CONFIRM_DELETE)
 async def handle_confirm_delete(
-    callback: CallbackQuery, language_code: str, state: FSMContext
+    callback: CallbackQuery,
+    language_code: str,
+    state: FSMContext,
 ):
     data = json.loads(callback.data)
     content_type = data["t"]

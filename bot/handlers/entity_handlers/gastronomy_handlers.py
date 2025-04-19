@@ -1,5 +1,4 @@
 import json
-from enum import Enum
 from typing import Callable, Optional, Tuple
 
 from aiogram import Dispatcher, Router
@@ -7,20 +6,20 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
-from ...common.services.gastronomy_service import (GastronomyService,
-                                                   country_service,
-                                                   kitchen_service)
+from ...common.services.gastronomy_service import (
+    GastronomyService,
+    country_service,
+    kitchen_service,
+)
 from ...common.services.text_service import text_service
-from .handler_utils import (build_admin_buttons,
-                            convert_raw_text_to_valid_dict,
-                            get_cancel_keyboard, get_confirm_keyboard,
-                            get_item_admin_details_keyboard)
-
-
-class ActionType(Enum):
-    ADD = "add"
-    EDIT = "edit"
-    DELETE = "delete"
+from .handler_utils import (
+    ActionType,
+    build_admin_buttons,
+    convert_raw_text_to_valid_dict,
+    get_cancel_keyboard,
+    get_confirm_keyboard,
+    get_item_admin_details_keyboard,
+)
 
 
 class Form(StatesGroup):
@@ -53,7 +52,10 @@ class GenericGastronomyHandler:
             for item in getattr(result, f"{self.entity_type}s")
         }
         builder = await build_admin_buttons(
-            items_dict, f"admin-{self.entity_type}", language_code, page
+            items_dict,
+            f"admin-{self.entity_type}",
+            language_code,
+            page,
         )
         text = f"{self.entity_type.capitalize()} listing - Page {page} of {total_pages} (lang: ua / en)"
         return text, None, total_pages, builder
@@ -175,6 +177,7 @@ async def process_country_submission(message: Message, state: FSMContext) -> Non
     action = ActionType(state_data.get("action", ActionType.ADD.value))
     admin_callback = state_data.get("admin_callback")
     item_id = state_data.get("item_id")
+
     await country_handler.process_action(
         message,
         state,
