@@ -10,9 +10,9 @@ from aiogram.types import (
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from ..handlers.entity_handlers.company_handlers import (
-    render_company_content,
-    render_company_content_for_admin,
+    company_handler as company_entity_handler,
 )
+from ..handlers.entity_handlers.company_handlers import render_company_content
 from ..handlers.entity_handlers.gastronomy_handlers import (
     country_handler as country_gastronomy_handler,
 )
@@ -278,10 +278,10 @@ class PaginationHandler:
     ) -> Optional[Tuple[str, Optional[str], int, Optional[InlineKeyboardBuilder]]]:
         handlers = {
             "user-company": render_company_content,
-            "admin-company": render_company_content_for_admin,
+            "admin-company": company_entity_handler.render_admin_list_content,
             "product": render_product_content,
-            "admin-country": country_gastronomy_handler.render_list_content,
-            "admin-kitchen": kitchen_gastronomy_handler.render_list_content,
+            "admin-country": country_gastronomy_handler.render_admin_list_content,
+            "admin-kitchen": kitchen_gastronomy_handler.render_admin_list_content,
         }
 
         if handler := handlers.get(content_type):
@@ -328,7 +328,7 @@ company_handler = PaginationHandler.create_handler(
 )
 
 company_admin_handler = PaginationHandler.create_handler(
-    PaginationConfig("admin-company", render_company_content_for_admin)
+    PaginationConfig("admin-company", company_entity_handler.render_admin_list_content)
 )
 
 product_handler = PaginationHandler.create_handler(
@@ -336,11 +336,15 @@ product_handler = PaginationHandler.create_handler(
 )
 
 country_handler = PaginationHandler.create_handler(
-    PaginationConfig("admin-country", country_gastronomy_handler.render_list_content)
+    PaginationConfig(
+        "admin-country", country_gastronomy_handler.render_admin_list_content
+    )
 )
 
 kitchen_handler = PaginationHandler.create_handler(
-    PaginationConfig("admin-kitchen", kitchen_gastronomy_handler.render_list_content)
+    PaginationConfig(
+        "admin-kitchen", kitchen_gastronomy_handler.render_admin_list_content
+    )
 )
 
 

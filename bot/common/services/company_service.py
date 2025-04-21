@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Optional
 
-from api.app.company.schemas import CompanyResponse
+from api.app.company.schemas import CompanyListResponse, CompanyResponse
 
 from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
@@ -33,6 +33,10 @@ async def create_company(telegram_id: int, body: Dict) -> CompanyResponse | None
 
 
 class CompanyService:
+    def __init__(self, list_schema: type, item_schema: type):
+        self.prefix = "company"
+        self.list_schema = list_schema
+        self.item_schema = item_schema
 
     async def get_list(self, page: int = 1) -> Optional[List[CompanyResponse]]:
         response = await make_request(
@@ -40,7 +44,7 @@ class CompanyService:
             method=APIMethods.GET.value,
             params={"page": page},
         )
-        return CompanyResponse.model_validate(response.get("data"))
+        return CompanyListResponse.model_validate(response.get("data"))
 
     async def get_item(self, item_id: int) -> Optional[CompanyResponse]:
         response = await make_request(
@@ -88,3 +92,6 @@ class CompanyService:
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
             },
         )
+
+
+company_service = CompanyService(CompanyListResponse, CompanyResponse)

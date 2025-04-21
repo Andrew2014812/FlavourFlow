@@ -44,7 +44,7 @@ class GenericGastronomyHandler:
         self.service = service
         self.state_key = state_key
 
-    async def render_list_content(self, page: int, language_code: str) -> Tuple:
+    async def render_admin_list_content(self, page: int, language_code: str) -> Tuple:
         result = await self.service.get_list(page)
         total_pages = result.total_pages
         items_dict = {

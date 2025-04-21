@@ -8,13 +8,15 @@ from aiogram.types import CallbackQuery
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
+from .entity_handlers.company_handlers import company_handler
 from .entity_handlers.gastronomy_handlers import (
     ActionType,
     GenericGastronomyHandler,
     country_handler,
     kitchen_handler,
 )
-from .pagination_handlers import company_admin_handler, company_handler
+from .pagination_handlers import company_admin_handler
+from .pagination_handlers import company_handler as company_pagination_handler
 from .pagination_handlers import country_handler as country_pagination_handler
 from .pagination_handlers import create_pagination_handler
 from .pagination_handlers import kitchen_handler as kitchen_pagination_handler
@@ -86,7 +88,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
 async def create_admin_handler(handler: GenericGastronomyHandler):
     return create_pagination_handler(
-        f"admin-{handler.entity_type}", handler.render_list_content
+        f"admin-{handler.entity_type}", handler.render_admin_list_content
     )
 
 
@@ -102,7 +104,13 @@ async def handle_gastronomy_action(
     admin_handler = await create_admin_handler(handler)
 
     await handler.initiate_action(
-        callback, language_code, state, action, page, admin_handler, item_id
+        callback,
+        language_code,
+        state,
+        action,
+        page,
+        admin_handler,
+        item_id,
     )
 
 
@@ -117,7 +125,7 @@ async def handle_navigation(
         CONTENT_TYPES["ADMIN_COMPANY"]: company_admin_handler,
         CONTENT_TYPES["ADMIN_COUNTRY"]: country_pagination_handler,
         CONTENT_TYPES["ADMIN_KITCHEN"]: kitchen_pagination_handler,
-        CONTENT_TYPES["COMPANY"]: company_handler,
+        CONTENT_TYPES["COMPANY"]: company_pagination_handler,
         CONTENT_TYPES["PRODUCT"]: product_handler,
     }
 
@@ -197,6 +205,7 @@ async def handle_back_navigation(callback: CallbackQuery, language_code: str, **
     content_type = data["t"]
     page = data.get("p", 1)
 
+    print(content_type, page)
     if content_type == "admin-country-details":
         new_callback = await modify_callback(
             callback, Action.NAV, CONTENT_TYPES["ADMIN_COUNTRY"], page
@@ -211,6 +220,14 @@ async def handle_back_navigation(callback: CallbackQuery, language_code: str, **
         )
         await handle_navigation(
             new_callback, language_code, CONTENT_TYPES["ADMIN_KITCHEN"], page
+        )
+
+    elif content_type == "admin-company-details":
+        new_callback = await modify_callback(
+            callback, Action.NAV, CONTENT_TYPES["ADMIN_COMPANY"], page
+        )
+        await handle_navigation(
+            new_callback, language_code, CONTENT_TYPES["ADMIN_COMPANY"], page
         )
 
     else:
@@ -230,7 +247,11 @@ async def handle_cancel_action(
     page = data["p"]
     await state.clear()
 
-    if content_type in [CONTENT_TYPES["ADMIN_COUNTRY"], CONTENT_TYPES["ADMIN_KITCHEN"]]:
+    if content_type in [
+        CONTENT_TYPES["ADMIN_COUNTRY"],
+        CONTENT_TYPES["ADMIN_KITCHEN"],
+        CONTENT_TYPES["ADMIN_COMPANY"],
+    ]:
         new_callback = await modify_callback(callback, Action.NAV, content_type, page)
         await handle_navigation(new_callback, language_code, content_type)
 
@@ -250,6 +271,7 @@ async def handle_add_action(
     handlers = {
         CONTENT_TYPES["ADMIN_COUNTRY"]: (country_handler, ActionType.ADD),
         CONTENT_TYPES["ADMIN_KITCHEN"]: (kitchen_handler, ActionType.ADD),
+        CONTENT_TYPES["ADMIN_COMPANY"]: (company_handler, ActionType.ADD),
     }
 
     if handler_info := handlers.get(content_type):

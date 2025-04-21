@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, PhotoSize
 
 from ...common.services import text_service
-from ...common.services.company_service import CompanyService
+from ...common.services.company_service import CompanyService, company_service
 from ...common.services.text_service import text_service
 from ...common.services.user_info_service import get_user_info
 from ...common.utils import make_request
@@ -25,7 +25,7 @@ router = Router()
 
 
 class Form(StatesGroup):
-    process_country = State()
+    process_company = State()
     confirm_delete = State()
     process_kitchen = State()
 
@@ -44,20 +44,24 @@ FIELD_MAPPING = {
 
 class CompanyHandler:
     def __init__(self, service: CompanyService, state_key: str):
+        self.entity_type = "company"
         self.service = service
         self.state_key = state_key
 
-    async def render_list_content(self, page: int, language_code: str) -> Tuple:
+    async def render_admin_list_content(self, page: int, language_code: str) -> Tuple:
         result = await self.service.get_list(page)
 
         total_pages = result.total_pages
         items_dict = {
             item.id: f"{item.title_ua} / {item.title_en}"
-            for item in getattr(result, f"{self.entity_type}s")
+            for item in getattr(result, "companies")
         }
 
         builder = await build_admin_buttons(
-            items_dict, f"admin-{self.entity_type}", language_code, page
+            items_dict,
+            f"admin-{self.entity_type}",
+            language_code,
+            page,
         )
 
         text = f"{self.entity_type.capitalize()} listing - Page {page} of {total_pages} (lang: ua / en)"
@@ -107,9 +111,9 @@ class CompanyHandler:
             await state.set_state(Form.confirm_delete)
         else:
             instruction_key = (
-                "country-kitchen_add_instruction"
+                "company_add_instruction"
                 if action == ActionType.ADD
-                else "country-kitchen_edit_instruction"
+                else "company_edit_instruction"
             )
             text = text_service.get_text(instruction_key, language_code)
             keyboard = get_cancel_keyboard(
@@ -167,6 +171,25 @@ class CompanyHandler:
         await state.clear()
 
 
+company_handler = CompanyHandler(company_service, "admin_company")
+
+
+@router.message(Form.process_company)
+async def process_country_submission(message: Message, state: FSMContext) -> None:
+    state_data = await state.get_data()
+    action = ActionType(state_data.get("action", ActionType.ADD.value))
+    admin_callback = state_data.get("admin_callback")
+    item_id = state_data.get("item_id")
+
+    await company_handler.process_action(
+        message,
+        state,
+        action,
+        admin_callback,
+        item_id,
+    )
+
+
 async def render_company_content(
     page: int, language_code: str, category: str
 ) -> Tuple[str, Optional[str], int]:
@@ -177,28 +200,6 @@ async def render_company_content(
 
     caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
     return caption, image_url, total_pages, None
-
-
-async def render_company_content_for_admin(
-    page: int,
-    language_code: str,
-) -> Tuple:
-    total_pages = 15
-    companies = {
-        1: "Tesla",
-        2: "SpaceX",
-        3: "Netflix",
-        4: "Spotify",
-        5: "Adobe",
-        6: "Nvidia",
-    }
-    # companies = []
-    text = f"Company listing - Page {page} of {total_pages} (lang: {language_code})"
-
-    result = await build_admin_buttons(companies, "company", language_code, page)
-    builder = result
-
-    return text, None, total_pages, builder
 
 
 # @router.message()

@@ -65,7 +65,9 @@ async def create_company(
 
 
 async def get_all_companies(
-    session: SessionDep, page: int = 1, limit: int = 6
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 6,
 ) -> CompanyListResponse:
     statement = select(func.count()).select_from(Company)
     result = await session.exec(statement)
