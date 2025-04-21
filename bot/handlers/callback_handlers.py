@@ -5,6 +5,7 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
@@ -185,27 +186,12 @@ async def handle_back_action(
         )
 
 
-@registry.register(lambda data: json.loads(data).get("t") == "category")
-async def handle_category_selection(
-    callback: CallbackQuery,
-    language_code: str,
-    **kwargs,
-):
-    data = json.loads(callback.data)
-    category = data["v"].capitalize()
-    new_callback = await modify_callback(
-        callback, Action.NAV, CONTENT_TYPES["COMPANY"], 1, e=category
-    )
-    await handle_navigation(new_callback, language_code, CONTENT_TYPES["COMPANY"])
-
-
 @registry.register(lambda data: json.loads(data).get("a") == Action.BACK)
 async def handle_back_navigation(callback: CallbackQuery, language_code: str, **kwargs):
     data = json.loads(callback.data)
     content_type = data["t"]
     page = data.get("p", 1)
 
-    print(content_type, page)
     if content_type == "admin-country-details":
         new_callback = await modify_callback(
             callback, Action.NAV, CONTENT_TYPES["ADMIN_COUNTRY"], page
@@ -300,6 +286,7 @@ async def handle_edit_action(
     handlers = {
         CONTENT_TYPES["ADMIN_COUNTRY"]: (country_handler, ActionType.EDIT),
         CONTENT_TYPES["ADMIN_KITCHEN"]: (kitchen_handler, ActionType.EDIT),
+        CONTENT_TYPES["ADMIN_COMPANY"]: (company_handler, ActionType.EDIT),
     }
 
     if handler_info := handlers.get(content_type):
@@ -325,6 +312,7 @@ async def handle_item_details(callback: CallbackQuery, language_code: str, **kwa
     handlers = {
         CONTENT_TYPES["ADMIN_COUNTRY"]: country_handler,
         CONTENT_TYPES["ADMIN_KITCHEN"]: kitchen_handler,
+        CONTENT_TYPES["ADMIN_COMPANY"]: company_handler,
     }
 
     if handler := handlers.get(content_type):
@@ -352,6 +340,7 @@ async def handle_delete_action(
     handlers = {
         CONTENT_TYPES["ADMIN_COUNTRY"]: (country_handler, ActionType.DELETE),
         CONTENT_TYPES["ADMIN_KITCHEN"]: (kitchen_handler, ActionType.DELETE),
+        CONTENT_TYPES["ADMIN_COMPANY"]: (company_handler, ActionType.DELETE),
     }
 
     if handler_info := handlers.get(content_type):
@@ -383,6 +372,7 @@ async def handle_confirm_delete(
     services = {
         CONTENT_TYPES["ADMIN_COUNTRY"]: country_service,
         CONTENT_TYPES["ADMIN_KITCHEN"]: kitchen_service,
+        CONTENT_TYPES["ADMIN_COMPANY"]: company_service,
     }
 
     if service := services.get(content_type):

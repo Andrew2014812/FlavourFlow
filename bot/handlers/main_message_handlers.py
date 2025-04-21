@@ -5,6 +5,7 @@ from aiogram.types import Message
 
 from api.app.user.schemas import Token, UserCreate
 
+from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import (
     create_user_info,
@@ -14,7 +15,7 @@ from ..common.services.user_info_service import (
 from ..common.services.user_service import get_user, login_user, register_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
 from ..handlers.main_keyboard_handlers import get_contact_keyboard
-from ..handlers.reply_buttons_handlers import button_handlers
+from ..handlers.reply_buttons_handlers import button_handlers, handle_kitchen_selection
 
 router = Router()
 
@@ -75,9 +76,21 @@ async def handle_buttons(message: Message):
     telegram_id = message.from_user.id
     user_info = await get_user_info(telegram_id)
     language_code = user_info.language_code
+    message_text = message.text
 
-    if message.text in text_service.buttons.get(language_code, {}).values():
-        handler = button_handlers.get(message.text)
+    kitchen_list = await kitchen_service.get_list(page=1)
+    kitchen_titles = [
+        kitchen.title_en if language_code == "en" else kitchen.title_ua
+        for kitchen in kitchen_list.kitchens
+    ]
+
+    if message_text in kitchen_titles:
+        await handle_kitchen_selection(message, language_code)
+        return
+
+    # Обрабатываем зарегистрированные кнопки
+    if message_text in text_service.buttons.get(language_code, {}).values():
+        handler = button_handlers.get(message_text)
         if handler:
             await handler(message, language_code)
         else:

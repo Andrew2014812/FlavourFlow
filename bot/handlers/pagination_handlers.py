@@ -6,13 +6,16 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InputMediaPhoto,
+    KeyboardButton,
+    Message,
 )
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from ..common.services.gastronomy_service import kitchen_service
+from ..common.services.text_service import text_service
 from ..handlers.entity_handlers.company_handlers import (
     company_handler as company_entity_handler,
 )
-from ..handlers.entity_handlers.company_handlers import render_company_content
 from ..handlers.entity_handlers.gastronomy_handlers import (
     country_handler as country_gastronomy_handler,
 )
@@ -270,6 +273,41 @@ class PaginationHandler:
             await callback.message.edit_text(caption, reply_markup=keyboard)
 
     @staticmethod
+    async def send_paginated_message(
+        message: Message,
+        content_type: str,
+        page: int,
+        language_code: str,
+        extra_arg: str = "",
+    ) -> None:
+        content_result = await PaginationHandler.get_content(
+            content_type, page, language_code, extra_arg
+        )
+
+        if not content_result:
+            await message.answer("Content not available")
+            return
+
+        caption, image_url, total_pages, builder = content_result
+
+        keyboard = PaginationBuilder.build_pagination_keyboard(
+            page, total_pages, content_type, extra_arg
+        )
+
+        if image_url:
+            await message.answer_photo(
+                photo=image_url,
+                caption=caption,
+                reply_markup=keyboard,
+            )
+        elif builder:
+            for row in keyboard.inline_keyboard:
+                builder.row(*row)
+            await message.answer(caption, reply_markup=builder.as_markup())
+        else:
+            await message.answer(caption, reply_markup=keyboard)
+
+    @staticmethod
     async def get_content(
         content_type: str,
         page: int,
@@ -277,7 +315,7 @@ class PaginationHandler:
         extra_arg: str = "",
     ) -> Optional[Tuple[str, Optional[str], int, Optional[InlineKeyboardBuilder]]]:
         handlers = {
-            "user-company": render_company_content,
+            "user-company": company_entity_handler.render_list_content,
             "admin-company": company_entity_handler.render_admin_list_content,
             "product": render_product_content,
             "admin-country": country_gastronomy_handler.render_admin_list_content,
@@ -324,7 +362,7 @@ def create_pagination_handler(content_type: str, render_content: Callable):
 
 
 company_handler = PaginationHandler.create_handler(
-    PaginationConfig("user-company", render_company_content)
+    PaginationConfig("user-company", company_entity_handler.render_list_content)
 )
 
 company_admin_handler = PaginationHandler.create_handler(
@@ -348,21 +386,14 @@ kitchen_handler = PaginationHandler.create_handler(
 )
 
 
-def get_category_keyboard() -> InlineKeyboardMarkup:
-    categories = [
-        {"text": "Tech", "value": "tech"},
-        {"text": "Retail", "value": "retail"},
-        {"text": "Finance", "value": "finance"},
-    ]
+async def get_category_keyboard(language_code: str):
+    kitchen_list = await kitchen_service.get_list(page=1)
+    builder = ReplyKeyboardBuilder()
 
-    buttons = [
-        PaginationBuilder.create_button(
-            category["text"],
-            json.dumps(
-                {"t": "category", "v": category["value"]}, separators=(",", ":")
-            ),
-        )
-        for category in categories
-    ]
+    for kitchen in kitchen_list.kitchens:
+        title = kitchen.title_en if language_code == "en" else kitchen.title_ua
+        builder.add(KeyboardButton(text=title))
 
-    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+    builder.add(KeyboardButton(text=text_service.buttons[language_code]["back"]))
+
+    return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)

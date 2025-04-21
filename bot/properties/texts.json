@@ -82,7 +82,9 @@
       "country-kitchen_delete_confirm": "Are you sure you want to delete this kitchen?",
       "successful_deleting": "Successfully deleted!",
       "country-kitchen_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
-      "country-kitchen_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1"
+      "country-kitchen_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
+      "company_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
+      "company_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1"
     }
   },
   "admin_buttons": {

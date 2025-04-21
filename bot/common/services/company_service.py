@@ -6,6 +6,7 @@ from api.app.company.schemas import CompanyListResponse, CompanyResponse
 from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
 from ..utils import make_request
+from .gastronomy_service import kitchen_service
 
 company_prefix = "company"
 
@@ -38,11 +39,21 @@ class CompanyService:
         self.list_schema = list_schema
         self.item_schema = item_schema
 
-    async def get_list(self, page: int = 1) -> Optional[List[CompanyResponse]]:
+    async def get_categories(self, language_code: str):
+        kitchens = await kitchen_service.get_list()
+        print(kitchens)
+
+        return [{"text": cat[1]} for cat in kitchens]
+
+    async def get_list(
+        self,
+        page: int = 1,
+        limit: int = 6,
+    ) -> Optional[List[CompanyResponse]]:
         response = await make_request(
             sub_url=f"{self.prefix}/",
             method=APIMethods.GET.value,
-            params={"page": page},
+            params={"page": page, "limit": limit},
         )
         return CompanyListResponse.model_validate(response.get("data"))
 

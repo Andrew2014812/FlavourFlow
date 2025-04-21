@@ -68,6 +68,21 @@ class CompanyHandler:
 
         return text, None, total_pages, builder
 
+    async def render_list_content(
+        self,
+        page: int,
+        language_code: str,
+        category: str,
+    ) -> Tuple:
+        result = await self.service.get_list(page, limit=1)
+
+        total_pages = result.total_pages
+        company = getattr(result, "companies")[0]
+
+        text = f"{self.entity_type.capitalize()} ({category}) listing - Page {page} of {total_pages} (lang: {language_code})"
+
+        return text, company.image_link, total_pages, None
+
     async def render_details_content(
         self, message: Message, current_page: int, language_code: str, item_id: int
     ) -> None:
@@ -188,18 +203,6 @@ async def process_country_submission(message: Message, state: FSMContext) -> Non
         admin_callback,
         item_id,
     )
-
-
-async def render_company_content(
-    page: int, language_code: str, category: str
-) -> Tuple[str, Optional[str], int]:
-    total_pages = 15
-    image_url = (
-        "https://i.pinimg.com/736x/bd/e5/64/bde56448f3661d1ea72631c07e400338.jpg"
-    )
-
-    caption = f"Company listing ({category}) - Page {page} of {total_pages} (lang: {language_code})"
-    return caption, image_url, total_pages, None
 
 
 # @router.message()
