@@ -3,12 +3,13 @@ import json
 from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, Message, PhotoSize
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from ...common.services.company_service import company_service
 from ...common.services.gastronomy_service import country_service, kitchen_service
 from ...common.services.text_service import text_service
+from ..pagination_handlers import send_paginated_message
 from .handler_utils import (
     ActionType,
     convert_raw_text_to_valid_dict,
@@ -20,18 +21,16 @@ from .handler_utils import (
 router = Router()
 
 
-# Состояния для форм
 class Form(StatesGroup):
     process_company = State()
     process_country = State()
     process_kitchen = State()
     confirm_delete = State()
-    select_countries = State()  # Выбор страны
-    select_kitchens = State()  # Выбор кухни
-    upload_image = State()  # Загрузка изображения
+    select_countries = State()
+    select_kitchens = State()
+    upload_image = State()
 
 
-# Маппинг полей для ввода
 COMPANY_FIELD_MAPPING = {
     "Title ua:": "title_ua",
     "Title en:": "title_en",
@@ -50,7 +49,6 @@ COUNTRY_KITCHEN_FIELD_MAPPING = {
     "Назва en:": "title_en",
 }
 
-# Сервисы для разных сущностей
 SERVICES = {
     "company": company_service,
     "country": country_service,
@@ -58,7 +56,6 @@ SERVICES = {
 }
 
 
-# Отображение деталей элемента
 async def render_details(
     message: Message, entity_type: str, item_id: int, page: int, language_code: str
 ):
@@ -71,7 +68,6 @@ async def render_details(
     await message.edit_text(text, reply_markup=keyboard)
 
 
-# Инициировать действие (добавить, редактировать, удалить)
 async def initiate_action(
     callback: CallbackQuery,
     entity_type: str,
@@ -110,7 +106,6 @@ async def initiate_action(
     )
 
 
-# Клавиатура для выбора стран
 async def get_countries_keyboard(language_code: str):
     countries = await country_service.get_list(page=1)
     builder = InlineKeyboardBuilder()
@@ -127,7 +122,6 @@ async def get_countries_keyboard(language_code: str):
     return builder.as_markup()
 
 
-# Клавиатура для выбора кухонь
 async def get_kitchens_keyboard(language_code: str):
     kitchens = await kitchen_service.get_list(page=1)
     builder = InlineKeyboardBuilder()
@@ -144,7 +138,6 @@ async def get_kitchens_keyboard(language_code: str):
     return builder.as_markup()
 
 
-# Обработка ввода данных
 async def process_action(message: Message, state: FSMContext, entity_type: str):
     from ..pagination_handlers import send_paginated_message
 
@@ -172,20 +165,20 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
         return
 
     if entity_type == "company" and action == ActionType.ADD:
-        # Сохраняем данные компании и переходим к выбору стран
         await state.update_data(company_data=result)
         await message.answer(
             text_service.get_text("select_countries", language_code),
             reply_markup=await get_countries_keyboard(language_code),
         )
         await state.set_state(Form.select_countries)
+
     else:
-        # Для стран, кухонь или редактирования компании
         if action == ActionType.ADD:
             await service.create(result, message.from_user.id)
             await message.answer(
                 text_service.get_text("successful_adding", language_code)
             )
+
         elif action == ActionType.EDIT:
             await service.update(item_id, result, message.from_user.id)
             await message.answer(
@@ -199,85 +192,75 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
         await state.clear()
 
 
-# Обработка выбора стран
-@router.callback_query(lambda c: json.loads(c.data).get("t") == "select_country")
-async def process_country_selection(callback: CallbackQuery, state: FSMContext):
-    print("here")
-    data = json.loads(callback.data)
-    action = data["a"]
+async def process_country_selection(
+    callback: CallbackQuery,
+    state: FSMContext,
+    item_id: int,
+):
     language_code = (await state.get_data())["language_code"]
 
-    if action == "select":
-        item_id = data["id"]
-        await state.update_data(country_ids=[item_id])
-        await callback.message.edit_text(
-            text_service.get_text("select_kitchens", language_code),
-            reply_markup=await get_kitchens_keyboard(language_code),
-        )
-        await state.set_state(Form.select_kitchens)
+    await state.update_data(country_id=item_id)
+    await callback.message.edit_text(
+        text_service.get_text("select_kitchens", language_code),
+        reply_markup=await get_kitchens_keyboard(language_code),
+    )
+    await state.set_state(Form.select_kitchens)
 
     await callback.answer()
 
 
-# Обработка выбора кухонь
-@router.callback_query(lambda c: json.loads(c.data).get("t") == "select_kitchen")
-async def process_kitchen_selection(callback: CallbackQuery, state: FSMContext):
-    data = json.loads(callback.data)
-    action = data["a"]
+async def process_kitchen_selection(
+    callback: CallbackQuery, state: FSMContext, item_id: int
+):
     language_code = (await state.get_data())["language_code"]
 
-    if action == "select":
-        item_id = data["id"]
-        await state.update_data(kitchen_ids=[item_id])
-        await callback.message.edit_text(
-            text_service.get_text("upload_company_image", language_code)
-        )
-        await state.set_state(Form.upload_image)
+    await state.update_data(kitchen_id=item_id)
+    await callback.message.edit_text(
+        text_service.get_text("upload_company_image", language_code)
+    )
+    await state.set_state(Form.upload_image)
 
     await callback.answer()
 
 
-# Обработка загрузки изображения
 @router.message(Form.upload_image)
 async def process_image_upload(message: Message, state: FSMContext):
-    from ..pagination_handlers import send_paginated_message
-
     state_data = await state.get_data()
     language_code = state_data["language_code"]
     page = state_data["page"]
     company_data = state_data["company_data"]
-    country_ids = state_data.get("country_ids", [])
-    kitchen_ids = state_data.get("kitchen_ids", [])
+    country_id = str(state_data.get("country_id"))
+    kitchen_id = str(state_data.get("kitchen_id"))
 
-    # Проверяем, что отправлено фото
-    if not message.photo:
-        await message.answer(text_service.get_text("please_send_photo", language_code))
-        return
+    if message.photo:
+        photo: PhotoSize = message.photo[-1]
+        file_id = photo.file_id
 
-    # Получаем ID самого большого изображения
-    photo = message.photo[-1]
-    file_id = photo.file_id
+    elif message.sticker:
+        file_id = message.sticker.file_id
 
-    # Формируем данные для отправки на сервер
+    file = await message.bot.get_file(file_id)
+    file_path = file.file_path
+
+    downloaded_file = await message.bot.download_file(file_path)
+    image_bytes = downloaded_file.read()
+
     data = {
         **company_data,
-        "country_ids": country_ids,
-        "kitchen_ids": kitchen_ids,
-        "image_file_id": file_id,
+        "country_id": country_id,
+        "kitchen_id": kitchen_id,
+        "image": image_bytes,
     }
 
-    # Отправляем данные на сервер
     await company_service.create(data, message.from_user.id)
     await message.answer(text_service.get_text("successful_adding", language_code))
 
-    # Удаляем сообщение с изображением
     await message.delete()
-    # Возвращаемся к списку
+
     await send_paginated_message(message, "admin-company", page, language_code)
     await state.clear()
 
 
-# Хендлеры для обработки ввода
 @router.message(Form.process_company)
 async def process_company_submission(message: Message, state: FSMContext):
     await process_action(message, state, "company")
@@ -293,6 +276,5 @@ async def process_kitchen_submission(message: Message, state: FSMContext):
     await process_action(message, state, "kitchen")
 
 
-# Регистрация хендлеров
 def register_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)

@@ -8,7 +8,12 @@ from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
-from .entity_handlers.entity_handlers import initiate_action, render_details
+from .entity_handlers.entity_handlers import (
+    initiate_action,
+    process_country_selection,
+    process_kitchen_selection,
+    render_details,
+)
 from .entity_handlers.handler_utils import ActionType
 from .pagination_handlers import update_paginated_message
 from .reply_buttons_handlers import handle_admin, handle_restaurants
@@ -114,6 +119,12 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer(
             text_service.get_text("update_profile_instruction", language_code)
         )
+
+    elif action == "select" and content_type == "select_country":
+        await process_country_selection(callback, state, item_id)
+
+    elif action == "select" and content_type == "select_kitchen":
+        await process_kitchen_selection(callback, state, item_id)
 
     await callback.answer()
 
