@@ -52,7 +52,7 @@
       "successful_deleting": "Видалено успішно!",
       "country-kitchen_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua: [назва українською]\nНазва en: [назва англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1",
       "country-kitchen_edit_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua: [назва українською]\nНазва en: [назва англійською]\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1",
-      "company_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською",
+      "company_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською;",
       "company_edit_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською"
     },
     "en": {
@@ -83,7 +83,7 @@
       "successful_deleting": "Successfully deleted!",
       "country-kitchen_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
       "country-kitchen_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
-      "company_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
+      "company_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1; Description ua: ukrainian description; Description en: english description",
       "company_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1"
     }
   },

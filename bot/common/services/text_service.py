@@ -4,26 +4,19 @@ from typing import Dict, List
 
 
 class TextService:
-    _instance = None
-    _texts: Dict = {}
-    _buttons: Dict = {}
-    _language_buttons: List = []
-    _admin_buttons: Dict = {}
-    _admin_actions: Dict = {}
+    def __init__(self):
+        self._texts = {}
+        self._buttons = {}
+        self._language_buttons = []
+        self._admin_buttons = {}
+        self._admin_actions = {}
+        self._load_data()
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(TextService, cls).__new__(cls)
-            cls._instance._load_data()
-
-        return cls._instance
-
-    def _load_data(self) -> None:
+    def _load_data(self):
         current_dir = os.path.dirname(__file__)
         texts_json_path = os.path.join(
             current_dir, "..", "..", "properties", "texts.json"
         )
-
         with open(texts_json_path, encoding="utf-8") as file:
             data = json.load(file)
             self._texts = data.get("texts", {})

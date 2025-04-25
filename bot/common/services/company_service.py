@@ -8,50 +8,40 @@ from ...config import APIAuth, APIMethods
 from ..utils import make_request
 from .gastronomy_service import kitchen_service
 
-company_prefix = "company"
-
 
 class CompanyEndpoints(Enum):
-    COMPANY_GET = f"{company_prefix}/"
-    COMPANY_UPDATE = f"{company_prefix}/"
-    COMPANY_CREATE = f"{company_prefix}/"
-    COMPANY_DELETE = f"{company_prefix}/"
+    BASE = "company/"
 
 
-async def create_company(telegram_id: int, body: Dict) -> CompanyResponse | None:
-    user_info = get_user_info(telegram_id)
-
+async def create_company(telegram_id: int, data: Dict) -> Optional[CompanyResponse]:
+    user_info = await get_user_info(telegram_id)
     response = await make_request(
-        sub_url=CompanyEndpoints.COMPANY_CREATE.value,
+        sub_url=CompanyEndpoints.BASE.value,
         method=APIMethods.POST.value,
         headers={
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
         },
-        body=body,
+        body=data,
     )
-
     return CompanyResponse.model_validate(response.get("data"))
 
 
 class CompanyService:
-    def __init__(self, list_schema: type, item_schema: type):
-        self.prefix = "company"
-        self.list_schema = list_schema
-        self.item_schema = item_schema
+    def __init__(self):
+        self.prefix = "company/"
 
-    async def get_categories(self, language_code: str):
+    async def get_categories(self, language_code: str) -> List[Dict]:
         kitchens = await kitchen_service.get_list()
-        print(kitchens)
-
-        return [{"text": cat[1]} for cat in kitchens]
+        return [
+            {"text": kitchen.title_ua if language_code == "ua" else kitchen.title_en}
+            for kitchen in kitchens
+        ]
 
     async def get_list(
-        self,
-        page: int = 1,
-        limit: int = 6,
-    ) -> Optional[List[CompanyResponse]]:
+        self, page: int = 1, limit: int = 6
+    ) -> Optional[CompanyListResponse]:
         response = await make_request(
-            sub_url=f"{self.prefix}/",
+            sub_url=self.prefix,
             method=APIMethods.GET.value,
             params={"page": page, "limit": limit},
         )
@@ -59,18 +49,17 @@ class CompanyService:
 
     async def get_item(self, item_id: int) -> Optional[CompanyResponse]:
         response = await make_request(
-            sub_url=f"{self.prefix}/{item_id}/",
+            sub_url=f"{self.prefix}{item_id}/",
             method=APIMethods.GET.value,
         )
         return CompanyResponse.model_validate(response.get("data"))
 
-    async def create(self, body: Dict, telegram_id: int) -> Optional[CompanyResponse]:
+    async def create(self, data: Dict, telegram_id: int) -> Optional[CompanyResponse]:
         user_info = await get_user_info(telegram_id)
-
         response = await make_request(
-            sub_url=f"{self.prefix}/",
+            sub_url=self.prefix,
             method=APIMethods.POST.value,
-            body=body,
+            body=data,
             headers={
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
             },
@@ -78,26 +67,23 @@ class CompanyService:
         return CompanyResponse.model_validate(response.get("data"))
 
     async def update(
-        self, item_id: int, body: Dict, telegram_id: int
+        self, item_id: int, data: Dict, telegram_id: int
     ) -> Optional[CompanyResponse]:
         user_info = await get_user_info(telegram_id)
-
         response = await make_request(
-            sub_url=f"{self.prefix}/{item_id}/",
+            sub_url=f"{self.prefix}{item_id}/",
             method=APIMethods.PATCH.value,
-            body=body,
+            body=data,
             headers={
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
             },
         )
-
         return CompanyResponse.model_validate(response.get("data"))
 
     async def delete(self, item_id: int, telegram_id: int) -> None:
         user_info = await get_user_info(telegram_id)
-
         await make_request(
-            sub_url=f"{self.prefix}/{item_id}/",
+            sub_url=f"{self.prefix}{item_id}/",
             method=APIMethods.DELETE.value,
             headers={
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
@@ -105,4 +91,4 @@ class CompanyService:
         )
 
 
-company_service = CompanyService(CompanyListResponse, CompanyResponse)
+company_service = CompanyService()
