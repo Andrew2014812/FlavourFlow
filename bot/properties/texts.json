@@ -53,7 +53,15 @@
       "country-kitchen_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua: [назва українською]\nНазва en: [назва англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1",
       "country-kitchen_edit_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua: [назва українською]\nНазва en: [назва англійською]\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1",
       "company_add_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською;",
-      "company_edit_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською"
+      "company_edit_instruction": "Будь ласка відправте повідомлення у наступному форматі:\n\nНазва ua ua: [назва українською]\nНазва en: [назва англійською]\nОпис ua: [опис українською]\nОпис en: [опис англійською]\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Опис ua: Опис українською; Опис en: Опис англійською",
+      "select_countries": "Виберіть країну для компанії:",
+      "select_kitchens": "Виберіть кухню для компанії:",
+      "upload_company_image": "Будь ласка, надішліть зображення компанії.",
+      "please_send_photo": "Будь ласка, надішліть зображення!",
+      "error_loading_countries": "Помилка завантаження країн. Спробуйте ще раз.",
+      "error_loading_kitchens": "Помилка завантаження кухонь. Спробуйте ще раз.",
+      "error_processing_callback": "Помилка обробки вибору. Спробуйте ще раз.",
+      "text_not_found": "Текст не знайдено. Спробуйте ще раз."
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",
@@ -84,7 +92,15 @@
       "country-kitchen_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
       "country-kitchen_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
       "company_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample:\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1; Description ua: ukrainian description; Description en: english description",
-      "company_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1"
+      "company_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\n\nExample (enter only what you need):\n\nTitle ua: Фаст-фуд 1; Title en: Fast-food 1",
+      "select_countries": "Select a country for the company:",
+      "select_kitchens": "Select a kitchen for the company:",
+      "upload_company_image": "Please send an image for the company.",
+      "please_send_photo": "Please send a photo!",
+      "error_loading_countries": "Error loading countries. Please try again.",
+      "error_loading_kitchens": "Error loading kitchens. Please try again.",
+      "error_processing_callback": "Error processing selection. Please try again.",
+      "text_not_found": "Text not found. Please try again."
     }
   },
   "admin_buttons": {

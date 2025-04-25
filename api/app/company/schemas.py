@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import Form, UploadFile, File
+from fastapi import File, Form, UploadFile
 from sqlmodel import Field, SQLModel
 
 
@@ -24,7 +24,7 @@ class CompanyResponse(CompanyBase):
 
 
 class CompanyListResponse(SQLModel):
-    companies: list[CompanyResponse]
+    companys: list[CompanyResponse]
     total_pages: int
 
 

@@ -79,7 +79,7 @@ async def get_all_companies(
     result = await session.exec(statement)
     companies = result.all()
 
-    return CompanyListResponse(companies=companies, total_pages=total_pages)
+    return CompanyListResponse(companys=companies, total_pages=total_pages)
 
 
 async def get_company_by_id(session: SessionDep, company_id: int) -> CompanyResponse:

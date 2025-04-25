@@ -34,10 +34,10 @@ async def render_company_list(
 ) -> Tuple[str, Optional[str], int, None]:
     result = await company_service.get_list(page=page, limit=1)
     total_pages = result.total_pages
-    if not result.companies:
+    if not result.companys:
         return "No companies found", None, 1, None
 
-    company = result.companies[0]
+    company = result.companys[0]
     text = (
         f"Company ({kitchen_id}) - Page {page} of {total_pages} (lang: {language_code})"
     )
