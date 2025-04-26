@@ -1,4 +1,6 @@
-from aiogram import Dispatcher, Router
+from aiogram import Dispatcher
+from aiogram import F as FILTER
+from aiogram import Router
 from aiogram.types import Message
 
 from ...common.services.text_service import text_service
@@ -10,10 +12,10 @@ router = Router()
 
 
 @router.message(
-    lambda message: any(
-        key in message.text
-        for key in ["Прізвище:", "Ім'я:", "First name:", "Last name:"]
-    )
+    FILTER.text.contains("Прізвище:")
+    | FILTER.text.contains("Ім'я:")
+    | FILTER.text.contains("First name:")
+    | FILTER.text.contains("Last name:")
 )
 async def process_profile_update(message: Message):
     user_info = await get_user_info(message.from_user.id)
@@ -33,6 +35,7 @@ async def process_profile_update(message: Message):
 
         if not data:
             raise ValueError
+
     except ValueError:
         await message.answer(text_service.get_text("invalid_format", language_code))
         return

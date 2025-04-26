@@ -11,34 +11,44 @@ async def get_user_info(telegram_id: int) -> Optional[UserInfo]:
     async with AsyncSession(engine) as session:
         statement = select(UserInfo).where(UserInfo.telegram_id == telegram_id)
         result = await session.exec(statement)
-        return result.first()
+        user_info = result.first()
+        return user_info
 
 
 async def create_user_info(telegram_id: int, language_code: str) -> UserInfo:
     async with AsyncSession(engine) as session:
-        user_info = await get_user_info(telegram_id)
-        if user_info:
-            user_info.language_code = language_code
-        else:
-            user_info = UserInfo(telegram_id=telegram_id, language_code=language_code)
-            session.add(user_info)
+        existing_user = await get_user_info(telegram_id)
+
+        if existing_user:
+            existing_user.language_code = language_code
+            await session.commit()
+            return existing_user
+
+        user_info = UserInfo(telegram_id=telegram_id, language_code=language_code)
+        session.add(user_info)
         await session.commit()
         await session.refresh(user_info)
+
         return user_info
 
 
 async def update_user_info(telegram_id: int, **fields) -> UserInfo:
     async with AsyncSession(engine) as session:
-        user_info = await get_user_info(telegram_id)
-        if not user_info:
+        existing_user = await get_user_info(telegram_id)
+
+        if existing_user is None:
             raise ValueError(f"User with telegram_id {telegram_id} not found")
 
-        for key, value in fields.items():
-            if not hasattr(user_info, key):
-                raise AttributeError(f"Field {key} does not exist")
-            setattr(user_info, key, value)
+        for field_name, new_value in fields.items():
+            if not hasattr(existing_user, field_name):
+                raise AttributeError(
+                    f"Field {field_name} does not exist in user object"
+                )
 
-        session.add(user_info)
+            setattr(existing_user, field_name, new_value)
+
+        session.add(existing_user)
         await session.commit()
-        await session.refresh(user_info)
-        return user_info
+        await session.refresh(existing_user)
+
+        return existing_user

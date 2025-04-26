@@ -1,7 +1,9 @@
-from aiogram import Dispatcher, Router
+from aiogram import Dispatcher
+from aiogram import F as FILTER
+from aiogram import Router
 from aiogram.types import Message
 
-from api.app.user.schemas import UserCreate
+from api.app.user.schemas import Token, UserCreate
 
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
@@ -37,9 +39,11 @@ async def handle_language_choice(message: Message):
         )
 
 
-@router.message(lambda msg: msg.content_type == "contact")
+@router.message(FILTER.content_type == "contact")
 async def handle_contact(message: Message):
-    user_info = await get_user_info(message.from_user.id)
+    user_id = message.from_user.id
+    user_info = await get_user_info(user_id)
+
     if not user_info.is_registered:
         user_create = UserCreate(
             first_name=message.contact.first_name,
@@ -48,19 +52,21 @@ async def handle_contact(message: Message):
             telegram_id=message.from_user.id,
         )
         user = await register_user(user_create)
-        await update_user_info(
+        user_info = await update_user_info(
             user.telegram_id, is_registered=True, phone_number=user.phone_number
         )
 
-    token = await login_user(user_info)
+    token: Token = await login_user(user_info)
     await update_user_info(
         user_info.telegram_id,
         access_token=token.access_token,
         token_type=token.token_type,
     )
+
     await message.answer(
         text_service.get_text("contact_received", user_info.language_code)
     )
+
     await show_main_menu(message, user_info.language_code)
 
 

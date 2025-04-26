@@ -1,6 +1,9 @@
+import json
 from functools import wraps
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+
+from api.app.user.schemas import UserResponseMe
 
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
@@ -38,28 +41,34 @@ def admin_required(func):
     text_service.buttons["en"]["profile"], text_service.buttons["ua"]["profile"]
 )
 async def handle_profile(message: Message, language_code: str):
-    user = await get_user(message.from_user.id)
-    last_name = user.last_name or ""
+    user_data: UserResponseMe = await get_user(message.from_user.id)
+
+    last_name = user_data.last_name or ""
     profile_data = {
-        "name": f"{user.first_name} {last_name}",
+        "name": f"{user_data.first_name} {last_name}",
         "language": "Українська" if language_code == "ua" else "English",
-        "bonuses": user.bonuses,
-        "phone": user.phone_number,
+        "bonuses": user_data.bonuses,
+        "phone": user_data.phone_number,
     }
-    text = text_service.get_text("profile_message", language_code).format(
+
+    profile_text = text_service.get_text("profile_message", language_code).format(
         **profile_data
     )
+
+    callback_data = json.dumps({"a": "edit_profile"}, separators=(",", ":"))
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text=text_service.get_text("profile_edit", language_code),
-                    callback_data="edit_profile",
-                )
+                    callback_data=callback_data,
+                ),
             ]
         ]
     )
-    await message.answer(text, reply_markup=keyboard)
+
+    await message.answer(profile_text, reply_markup=keyboard)
 
 
 @register_button_handler(
