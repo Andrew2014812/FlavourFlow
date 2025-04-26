@@ -1,4 +1,5 @@
 import json
+import logging
 
 from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
@@ -17,6 +18,9 @@ from .handler_utils import (
     get_confirm_keyboard,
     get_item_admin_details_keyboard,
 )
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = Router()
 
@@ -61,6 +65,15 @@ async def render_details(
 ):
     service = SERVICES[entity_type]
     item = await service.get_item(item_id)
+
+    if isinstance(item, dict) and "error" in item:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": {item['error']} (Status: {item['status_code']})"
+        )
+        await message.edit_text(error_text)
+        return
+
     text = f"Title ua: {item.title_ua}\nTitle en: {item.title_en}"
     keyboard = get_item_admin_details_keyboard(
         f"admin-{entity_type}", page, language_code, item_id
@@ -84,6 +97,7 @@ async def initiate_action(
         )
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.confirm_delete)
+
     else:
         key = (
             "company_add_instruction"
@@ -94,6 +108,7 @@ async def initiate_action(
             key = key.replace("company", "country-kitchen")
         text = text_service.get_text(key, language_code)
         keyboard = get_cancel_keyboard(language_code, f"admin-{entity_type}", page)
+
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(getattr(Form, f"process_{entity_type}"))
 
@@ -108,6 +123,10 @@ async def initiate_action(
 
 async def get_countries_keyboard(language_code: str):
     countries = await country_service.get_list(page=1)
+
+    if isinstance(countries, dict) and "error" in countries:
+        return None, countries["error"], countries["status_code"]
+
     builder = InlineKeyboardBuilder()
 
     for country in countries.countrys:
@@ -119,11 +138,15 @@ async def get_countries_keyboard(language_code: str):
         builder.add(InlineKeyboardButton(text=title, callback_data=callback_data))
 
     builder.adjust(1)
-    return builder.as_markup()
+    return builder.as_markup(), None, None
 
 
 async def get_kitchens_keyboard(language_code: str):
     kitchens = await kitchen_service.get_list(page=1)
+
+    if isinstance(kitchens, dict) and "error" in kitchens:
+        return None, kitchens["error"], kitchens["status_code"]
+
     builder = InlineKeyboardBuilder()
 
     for kitchen in kitchens.kitchens:
@@ -135,12 +158,10 @@ async def get_kitchens_keyboard(language_code: str):
         builder.add(InlineKeyboardButton(text=title, callback_data=callback_data))
 
     builder.adjust(1)
-    return builder.as_markup()
+    return builder.as_markup(), None, None
 
 
 async def process_action(message: Message, state: FSMContext, entity_type: str):
-    from ..pagination_handlers import send_paginated_message
-
     data = await state.get_data()
     language_code = data["language_code"]
     page = data["page"]
@@ -166,21 +187,51 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
 
     if entity_type == "company" and action == ActionType.ADD:
         await state.update_data(company_data=result)
+        keyboard, error, status_code = await get_countries_keyboard(language_code)
+        if error:
+            error_text = (
+                text_service.get_text("generic_error", language_code)
+                + f": {error} (Status: {status_code})"
+            )
+            await message.answer(error_text)
+            await state.clear()
+            return
+
         await message.answer(
             text_service.get_text("select_countries", language_code),
-            reply_markup=await get_countries_keyboard(language_code),
+            reply_markup=keyboard,
         )
         await state.set_state(Form.select_countries)
 
     else:
         if action == ActionType.ADD:
-            await service.create(result, message.from_user.id)
+            response = await service.create(result, message.from_user.id)
+
+            if isinstance(response, dict) and "error" in response:
+                error_text = (
+                    text_service.get_text("generic_error", language_code)
+                    + f": {response['error']} (Status: {response['status_code']})"
+                )
+                await message.answer(error_text)
+                await state.clear()
+                return
+
             await message.answer(
                 text_service.get_text("successful_adding", language_code)
             )
 
         elif action == ActionType.EDIT:
-            await service.update(item_id, result, message.from_user.id)
+            response = await service.update(item_id, result, message.from_user.id)
+
+            if isinstance(response, dict) and "error" in response:
+                error_text = (
+                    text_service.get_text("generic_error", language_code)
+                    + f": {response['error']} (Status: {response['status_code']})"
+                )
+                await message.answer(error_text)
+                await state.clear()
+                return
+
             await message.answer(
                 text_service.get_text("successful_editing", language_code)
             )
@@ -200,9 +251,20 @@ async def process_country_selection(
     language_code = (await state.get_data())["language_code"]
 
     await state.update_data(country_id=item_id)
+    keyboard, error, status_code = await get_kitchens_keyboard(language_code)
+
+    if error:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": {error} (Status: {status_code})"
+        )
+        await callback.message.edit_text(error_text)
+        await state.clear()
+        return
+
     await callback.message.edit_text(
         text_service.get_text("select_kitchens", language_code),
-        reply_markup=await get_kitchens_keyboard(language_code),
+        reply_markup=keyboard,
     )
     await state.set_state(Form.select_kitchens)
 
@@ -239,11 +301,29 @@ async def process_image_upload(message: Message, state: FSMContext):
     elif message.sticker:
         file_id = message.sticker.file_id
 
-    file = await message.bot.get_file(file_id)
-    file_path = file.file_path
+    else:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + ": No valid image or sticker provided"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
 
-    downloaded_file = await message.bot.download_file(file_path)
-    image_bytes = downloaded_file.read()
+    try:
+        file = await message.bot.get_file(file_id)
+        file_path = file.file_path
+        downloaded_file = await message.bot.download_file(file_path)
+        image_bytes = downloaded_file.read()
+
+    except Exception as e:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": Failed to download image - {str(e)}"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
 
     data = {
         **company_data,
@@ -252,11 +332,19 @@ async def process_image_upload(message: Message, state: FSMContext):
         "image": image_bytes,
     }
 
-    await company_service.create(data, message.from_user.id)
+    response = await company_service.create(data, message.from_user.id)
+    if isinstance(response, dict) and "error" in response:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": {response['error']}"
+        )
+
+        await message.answer(error_text)
+        await state.clear()
+        return
+
     await message.answer(text_service.get_text("successful_adding", language_code))
-
     await message.delete()
-
     await send_paginated_message(message, "admin-company", page, language_code)
     await state.clear()
 
@@ -274,6 +362,35 @@ async def process_country_submission(message: Message, state: FSMContext):
 @router.message(Form.process_kitchen)
 async def process_kitchen_submission(message: Message, state: FSMContext):
     await process_action(message, state, "kitchen")
+
+
+@router.callback_query(Form.confirm_delete)
+async def process_delete_confirmation(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    language_code = data["language_code"]
+    page = data["page"]
+    entity_type = data["entity_type"]
+    item_id = data["item_id"]
+    service = SERVICES[entity_type]
+
+    response = await service.delete(item_id, callback.from_user.id)
+    if isinstance(response, dict) and "error" in response:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": {response['error']} (Status: {response['status_code']})"
+        )
+        await callback.message.edit_text(error_text)
+        await state.clear()
+        return
+
+    await callback.message.edit_text(
+        text_service.get_text("successful_deleting", language_code)
+    )
+    await send_paginated_message(
+        callback.message, f"admin-{entity_type}", page, language_code
+    )
+    await state.clear()
+    await callback.answer()
 
 
 def register_handlers(dispatcher: Dispatcher):
