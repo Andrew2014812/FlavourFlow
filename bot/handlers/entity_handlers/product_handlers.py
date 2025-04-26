@@ -1,4 +1,3 @@
-# api/app/telegram/handlers/entity_handlers/product_handlers.py
 import json
 import logging
 
@@ -25,13 +24,13 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-class Form(StatesGroup):  # Исправлено: наследование от StatesGroup
+class Form(StatesGroup):
     process_product = State()
     confirm_delete = State()
     edit_product_menu = State()
     edit_product_text = State()
     edit_product_image = State()
-    upload_image = State()
+    upload_product_image = State()
 
 
 PRODUCT_FIELD_MAPPING = {
@@ -42,7 +41,6 @@ PRODUCT_FIELD_MAPPING = {
     "Composition ua:": "composition_ua",
     "Composition en:": "composition_en",
     "Product category:": "product_category",
-    "Company id:": "company_id",
     "Назва ua:": "title_ua",
     "Назва en:": "title_en",
     "Опис ua:": "description_ua",
@@ -50,7 +48,6 @@ PRODUCT_FIELD_MAPPING = {
     "Склад ua:": "composition_ua",
     "Склад en:": "composition_en",
     "Категорія продукту:": "product_category",
-    "ID компанії:": "company_id",
 }
 
 
@@ -60,7 +57,7 @@ async def render_details(
     page: int,
     language_code: str,
     company_id: int,
-    state: FSMContext,  # Добавлен параметр state
+    state: FSMContext,
 ):
     item = await product_service.get_item(item_id)
 
@@ -137,6 +134,9 @@ async def initiate_action(
     company_id: int,
     item_id: int = None,
 ):
+    logger.info(
+        f"Initiating action {action} for company_id={company_id}, item_id={item_id}"
+    )
     await state.update_data(company_id=company_id)
 
     if action == ActionType.DELETE:
@@ -144,6 +144,7 @@ async def initiate_action(
         keyboard = get_confirm_keyboard(language_code, "admin-product", page, item_id)
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.confirm_delete)
+        logger.info(f"Set state to Form.confirm_delete for item_id={item_id}")
 
     elif action == ActionType.EDIT:
         text = text_service.get_text("select_edit_option", language_code)
@@ -152,13 +153,14 @@ async def initiate_action(
         )
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.edit_product_menu)
+        logger.info(f"Set state to Form.edit_product_menu for item_id={item_id}")
 
     else:  # ADD
         text = text_service.get_text("product_add_instruction", language_code)
         keyboard = get_cancel_keyboard(language_code, "admin-product", page)
-
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.process_product)
+        logger.info(f"Set state to Form.process_product for company_id={company_id}")
 
     await state.update_data(
         entity_type="product",
@@ -167,6 +169,7 @@ async def initiate_action(
         action=action.value,
         item_id=item_id,
     )
+    logger.info(f"Updated state data: {await state.get_data()}")
 
 
 async def process_action(message: Message, state: FSMContext):
@@ -177,24 +180,34 @@ async def process_action(message: Message, state: FSMContext):
     item_id = data.get("item_id")
     company_id = data["company_id"]
 
+    logger.info(
+        f"Processing action {action} for company_id={company_id}, message={message.text}"
+    )
+
     is_allow_empty = action == ActionType.EDIT
     result = await convert_raw_text_to_valid_dict(
         message.text, PRODUCT_FIELD_MAPPING, is_allow_empty
     )
 
     if result.get("error"):
-        await message.answer(text_service.get_text(result["error"], language_code))
-        await state.clear()
-        return
+        error_text = (
+            text_service.get_text("invalid_format", language_code)
+            + "\n\n"
+            + text_service.get_text("product_add_instruction", language_code)
+        )
+        await message.answer(error_text)
+        return  # Оставляем состояние для повторной попытки
 
     if action == ActionType.ADD:
-        result["company_id"] = str(company_id)
+        result["company_id"] = int(company_id)  # Преобразуем в int для API
         await state.update_data(product_data=result)
         await message.answer(
             text_service.get_text("upload_product_image", language_code)
         )
-        await state.set_state(Form.upload_image)
-
+        await state.set_state(Form.upload_product_image)
+        logger.info(
+            f"Set state to Form.upload_product_image with product_data={result}"
+        )
     else:  # EDIT
         response = await product_service.update(item_id, result, message.from_user.id)
 
@@ -249,14 +262,9 @@ async def process_edit_product_text(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(Form.upload_image)
+@router.message(Form.upload_product_image)
 async def process_image_upload(message: Message, state: FSMContext):
     state_data = await state.get_data()
-    language_code = state_data["language_code"]
-    page = state_data["page"]
-    product_data = state_data.get("product_data")
-    company_id = state_data["company_id"]
-    item_id = state_data.get("item_id")
 
     if message.photo:
         photo: PhotoSize = message.photo[-1]
@@ -265,59 +273,16 @@ async def process_image_upload(message: Message, state: FSMContext):
     elif message.sticker:
         file_id = message.sticker.file_id
 
-    else:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + ": No valid image or sticker provided"
-        )
-        await message.answer(error_text)
-        await state.clear()
-        return
+    file = await message.bot.get_file(file_id)
+    file_path = file.file_path
+    downloaded_file = await message.bot.download_file(file_path)
+    image_bytes = downloaded_file.read()
 
-    try:
-        file = await message.bot.get_file(file_id)
-        file_path = file.file_path
-        downloaded_file = await message.bot.download_file(file_path)
-        image_bytes = downloaded_file.read()
+    data = {
+        "image": image_bytes,
+    }
 
-    except Exception as e:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + f": Failed to download image - {str(e)}"
-        )
-        await message.answer(error_text)
-        await state.clear()
-        return
-
-    data = {"image": image_bytes}
-    if product_data:
-        data.update(product_data)
-
-    response = (
-        await product_service.create(data, message.from_user.id)
-        if product_data
-        else await product_service.update(item_id, data, message.from_user.id)
-    )
-
-    if isinstance(response, dict) and "error" in response:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + f": {response['error']}"
-        )
-        await message.answer(error_text)
-        await state.clear()
-        return
-
-    await message.answer(
-        text_service.get_text(
-            "successful_adding" if product_data else "successful_editing", language_code
-        )
-    )
-    await message.delete()
-    await send_paginated_message(
-        message, "admin-product", page, language_code, extra_arg=str(company_id)
-    )
-    await state.clear()
+    await product_service.create(data, message.from_user.id)
 
 
 @router.message(Form.process_product)
@@ -397,7 +362,7 @@ async def handle_edit_product_image(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         text_service.get_text("upload_product_image", language_code)
     )
-    await state.set_state(Form.upload_image)
+    await state.set_state(Form.upload_product_image)
     await callback.answer()
 
 

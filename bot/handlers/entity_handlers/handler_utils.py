@@ -15,7 +15,11 @@ class ActionType(Enum):
 
 
 async def build_admin_buttons(
-    names: Dict[int, str], content_type: str, language_code: str, page: int
+    names: Dict[int, str],
+    content_type: str,
+    language_code: str,
+    page: int,
+    extra_arg: str = "",
 ):
     builder = InlineKeyboardBuilder()
     items = list(names.items())
@@ -42,12 +46,13 @@ async def build_admin_buttons(
         builder.row(*buttons)
 
     add_text = "🆕 Додати" if language_code == "ua" else "🆕 Add"
+    callback_data = {"a": "add", "t": content_type, "p": page}
+    if extra_arg:
+        callback_data["e"] = extra_arg
     builder.row(
         InlineKeyboardButton(
             text=add_text,
-            callback_data=json.dumps(
-                {"a": "add", "t": content_type, "p": page}, separators=(",", ":")
-            ),
+            callback_data=json.dumps(callback_data, separators=(",", ":")),
         )
     )
     return builder

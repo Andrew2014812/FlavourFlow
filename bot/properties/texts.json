@@ -121,7 +121,7 @@
       "product_title": "Products",
       "no_products": "No products found",
       "add_product_button": "Add Product",
-      "product_add_instruction": "Please provide product details in the format:\nTitle ua:\nTitle en:\nDescription ua:\nDescription en:\nComposition ua:\nComposition en:\nProduct category:\nCompany id:",
+      "product_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nDescription ua: [description in Ukrainian]\nDescription en: [description in English]\nComposition ua: [composition in Ukrainian]\nComposition en: [composition in English]\nProduct category: [category]\n\nExample:\n\nTitle ua: Бургер; Title en: Burger; Description ua: Смачний бургер; Description en: Tasty burger; Composition ua: Булка, м'ясо; Composition en: Bun, meat; Product category: Fast food",
       "product_edit_instruction": "Please provide product details to update (only fields you want to change):\nTitle ua:\nTitle en:\nDescription ua:\nDescription en:\nComposition ua:\nComposition en:\nProduct category:\nCompany id:",
       "product_delete_confirm": "Are you sure you want to delete this product?",
       "upload_product_image": "Please upload a product image"

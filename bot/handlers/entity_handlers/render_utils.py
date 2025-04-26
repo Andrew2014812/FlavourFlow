@@ -1,6 +1,7 @@
+import json
 from typing import Optional, Tuple
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 from api.app.product.schemas import ProductListResponse
 
@@ -49,6 +50,15 @@ async def render_company_list(
 
 
 async def render_product_list(page: int, language_code: str, company_id: str):
+    if not company_id or not company_id.isdigit():
+        return (
+            text_service.get_text("generic_error", language_code)
+            + ": Invalid company ID",
+            None,
+            0,
+            None,
+        )
+
     try:
         result: ProductListResponse = await product_service.get_list(
             company_id=int(company_id), page=page, limit=6
@@ -57,12 +67,28 @@ async def render_product_list(page: int, language_code: str, company_id: str):
         return None, None, 0, None
 
     builder = InlineKeyboardBuilder()
+    caption = text_service.get_text("product_title", language_code)
+
+    if not result or not result.products:
+        add_text = text_service.get_text("add_product_button", language_code)
+        builder.row(
+            InlineKeyboardButton(
+                text=add_text,
+                callback_data=json.dumps(
+                    {"a": "add", "t": "admin-product", "p": page, "e": company_id},
+                    separators=(",", ":"),
+                ),
+            )
+        )
+        return caption, None, 1, builder
+
     names = {
         item.id: item.title_ua if language_code == "ua" else item.title_en
         for item in result.products
     }
+    builder = await build_admin_buttons(
+        names, "admin-product", language_code, page, extra_arg=company_id
+    )
     total_pages = result.total_pages
-    builder = await build_admin_buttons(names, "admin-product", language_code, page)
-    caption = text_service.get_text("product_title", language_code)
 
     return caption, None, total_pages, builder
