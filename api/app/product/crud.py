@@ -1,12 +1,11 @@
-from typing import List
-
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
 from ..product.models import Product
-from ..product.schemas import ProductCreate, ProductResponse
+from ..product.schemas import ProductCreate, ProductListResponse, ProductResponse
 from ..utils import delete_file, upload_file
 
 PRODUCT_NOT_FOUND = "Product not found"
@@ -60,10 +59,18 @@ async def create_product(
 
 async def get_all_products(
     session: SessionDep, page: int = 1, limit: int = 10
-) -> List[ProductResponse]:
+) -> ProductListResponse:
+    statement = select(func.count()).select_from(Product)
+    result = await session.exec(statement)
+    total_records = result.one()
+
+    total_pages = (total_records + limit - 1) // limit
+
     statement = select(Product).limit(limit).offset((page - 1) * limit)
     result = await session.exec(statement)
-    return result.all()
+    products = result.all()
+
+    return ProductListResponse(products=products, total_pages=total_pages)
 
 
 def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:

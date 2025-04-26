@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import Form, UploadFile, File
+from fastapi import File, Form, UploadFile
 from sqlmodel import Field, SQLModel
 
 
@@ -36,17 +36,17 @@ class ProductCreate(SQLModel):
 
     @classmethod
     def as_form(
-            cls,
-            title_ua: str = Form(...),
-            title_en: str = Form(...),
-            description_ua: str = Form(...),
-            description_en: str = Form(...),
-            composition_ua: str = Form(...),
-            composition_en: str = Form(...),
-            product_category: str = Form(...),
-            price: float = Form(...),
-            company_id: int = Form(1),
-            image: UploadFile = File(...)
+        cls,
+        title_ua: str = Form(...),
+        title_en: str = Form(...),
+        description_ua: str = Form(...),
+        description_en: str = Form(...),
+        composition_ua: str = Form(...),
+        composition_en: str = Form(...),
+        product_category: str = Form(...),
+        price: float = Form(...),
+        company_id: int = Form(1),
+        image: UploadFile = File(...),
     ):
         return cls(
             title_ua=title_ua,
@@ -58,12 +58,17 @@ class ProductCreate(SQLModel):
             product_category=product_category,
             price=price,
             company_id=company_id,
-            image=image
+            image=image,
         )
 
 
 class ProductResponse(ProductBase):
     id: int
+
+
+class ProductListResponse(SQLModel):
+    products: list[ProductResponse]
+    total_pages: int
 
 
 class ProductPatch(SQLModel):
@@ -80,17 +85,17 @@ class ProductPatch(SQLModel):
 
     @classmethod
     def as_form(
-            cls,
-            title_ua: Optional[str] = Form(None),
-            title_en: Optional[str] = Form(None),
-            description_ua: Optional[str] = Form(None),
-            description_en: Optional[str] = Form(None),
-            composition_ua: Optional[str] = Form(None),
-            composition_en: Optional[str] = Form(None),
-            product_category: Optional[str] = Form(None),
-            price: Optional[float] = Form(None),
-            company_id: Optional[int] = Form(None),
-            image: Optional[UploadFile] = File(None),
+        cls,
+        title_ua: Optional[str] = Form(None),
+        title_en: Optional[str] = Form(None),
+        description_ua: Optional[str] = Form(None),
+        description_en: Optional[str] = Form(None),
+        composition_ua: Optional[str] = Form(None),
+        composition_en: Optional[str] = Form(None),
+        product_category: Optional[str] = Form(None),
+        price: Optional[float] = Form(None),
+        company_id: Optional[int] = Form(None),
+        image: Optional[UploadFile] = File(None),
     ):
         return cls(
             title_ua=title_ua,

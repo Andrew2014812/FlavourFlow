@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -14,23 +15,61 @@ from bot.handlers.entity_handlers.entity_handlers import (
 from bot.handlers.entity_handlers.profile_handlers import register_profile_handlers
 from bot.handlers.main_message_handlers import register_main_message_handlers
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("bot.log"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
 
 async def main():
-    await create_db_and_tables()
-    logging.basicConfig(level=logging.INFO)
-    bot = Bot(token=TG_TOKEN)
-    dispatcher = Dispatcher(storage=MemoryStorage())
-    register_command_handlers(dispatcher)
-    register_callback_handlers(dispatcher)
-    register_company_handlers(dispatcher)
-    register_profile_handlers(dispatcher)
-    register_main_message_handlers(dispatcher)
+    try:
+        await create_db_and_tables()
+        bot = Bot(token=TG_TOKEN)
+        dispatcher = Dispatcher(storage=MemoryStorage())
+        register_command_handlers(dispatcher)
+        register_callback_handlers(dispatcher)
+        register_company_handlers(dispatcher)
+        register_profile_handlers(dispatcher)
+        register_main_message_handlers(dispatcher)
 
-    await dispatcher.start_polling(bot)
+        logger.info("Starting bot polling...")
+        await dispatcher.start_polling(bot)
+
+    except Exception as e:
+        logger.error(f"Error in main: {e}", exc_info=True)
+        raise
+
+
+def run_bot_with_retries():
+    max_retries = 10
+    retry_count = 0
+    backoff_time = 5
+
+    while retry_count < max_retries:
+        try:
+            logger.info("Attempting to start bot...")
+            asyncio.run(main())
+
+        except KeyboardInterrupt:
+            logger.info("Bot stopped by user")
+            break
+
+        except Exception as e:
+            retry_count += 1
+            logger.error(f"Bot crashed (attempt {retry_count}/{max_retries}): {e}")
+
+            if retry_count >= max_retries:
+                logger.critical("Max retries reached. Exiting.")
+                break
+
+            time.sleep(backoff_time)
+            backoff_time *= 2
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Exit")
+    run_bot_with_retries()
