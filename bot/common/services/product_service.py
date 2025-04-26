@@ -1,3 +1,4 @@
+# api/app/common/services/product_service.py
 from enum import Enum
 from typing import Dict, Optional
 
@@ -22,7 +23,7 @@ class ProductService:
         response = await make_request(
             sub_url=self.prefix,
             method=APIMethods.GET.value,
-            params={"company_id": company_id, "page": page, "limit": limit},
+            params={"page": page, "limit": limit, "company_id": company_id},
         )
         return ProductListResponse.model_validate(response.get("data"))
 

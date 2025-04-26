@@ -2,8 +2,12 @@ from typing import Optional, Tuple
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from api.app.product.schemas import ProductListResponse
+
 from ...common.services.company_service import company_service
 from ...common.services.gastronomy_service import country_service, kitchen_service
+from ...common.services.product_service import product_service
+from ...common.services.text_service import text_service
 from .handler_utils import build_admin_buttons
 
 SERVICES = {
@@ -42,3 +46,23 @@ async def render_company_list(
         f"Company ({kitchen_id}) - Page {page} of {total_pages} (lang: {language_code})"
     )
     return text, company.image_link, total_pages, None
+
+
+async def render_product_list(page: int, language_code: str, company_id: str):
+    try:
+        result: ProductListResponse = await product_service.get_list(
+            company_id=int(company_id), page=page, limit=6
+        )
+    except Exception:
+        return None, None, 0, None
+
+    builder = InlineKeyboardBuilder()
+    names = {
+        item.id: item.title_ua if language_code == "ua" else item.title_en
+        for item in result.products
+    }
+    total_pages = result.total_pages
+    builder = await build_admin_buttons(names, "admin-product", language_code, page)
+    caption = text_service.get_text("product_title", language_code)
+
+    return caption, None, total_pages, builder

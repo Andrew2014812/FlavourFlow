@@ -79,22 +79,42 @@ async def convert_raw_text_to_valid_dict(
 
 
 def get_item_admin_details_keyboard(
-    content_type: str, current_page: int, language_code: str, item_id: int
+    content_type: str, page: int, language_code: str, item_id: int
 ):
     builder = InlineKeyboardBuilder()
-    for key, text in text_service.admin_actions.get(language_code, {}).items():
+    buttons = [
+        ("edit", "edit_button", "Змінити" if language_code == "ua" else "Edit"),
+        ("delete", "delete_button", "Видалити" if language_code == "ua" else "Delete"),
+    ]
+
+    if content_type == "admin-company":
+        buttons.append(
+            (
+                "products",
+                "products_button",
+                "Продукти" if language_code == "ua" else "Products",
+            )
+        )
+
+    for action, text_key, button_text in buttons:
         callback_data = json.dumps(
-            {"t": content_type, "id": item_id, "a": key.lower(), "p": current_page},
+            {"t": content_type, "p": page, "a": action, "id": item_id},
             separators=(",", ":"),
         )
-        builder.add(InlineKeyboardButton(text=text, callback_data=callback_data))
+        builder.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
 
-    builder.adjust(2)
-    back_data = json.dumps(
-        {"t": f"{content_type}-details", "a": "back", "p": current_page},
+    callback_data = json.dumps(
+        {"t": f"{content_type}-details", "p": page, "a": "back"},
         separators=(",", ":"),
     )
-    builder.row(InlineKeyboardButton(text="↩️", callback_data=back_data))
+    builder.add(
+        InlineKeyboardButton(
+            text=text_service.get_text("back_button", language_code),
+            callback_data=callback_data,
+        )
+    )
+
+    builder.adjust(1)
     return builder.as_markup()
 
 

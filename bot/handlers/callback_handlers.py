@@ -4,8 +4,11 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from bot.common.services import product_service
+
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
+from ..common.services.product_service import product_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.entity_handlers import (
@@ -21,6 +24,12 @@ from .entity_handlers.entity_handlers import (
     render_details,
 )
 from .entity_handlers.handler_utils import ActionType
+from .entity_handlers.product_handlers import (
+    handle_edit_product_image,
+    handle_edit_product_text,
+)
+from .entity_handlers.product_handlers import initiate_action as initiate_product_action
+from .entity_handlers.product_handlers import render_details as render_product_details
 from .pagination_handlers import update_paginated_message
 from .reply_buttons_handlers import handle_admin, handle_restaurants
 
@@ -31,13 +40,16 @@ CONTENT_TYPES = {
     "ADMIN_COMPANY": "admin-company",
     "ADMIN_COUNTRY": "admin-country",
     "ADMIN_KITCHEN": "admin-kitchen",
+    "ADMIN_PRODUCT": "admin-product",
     "PRODUCT": "product",
 }
 
+# Обновляем SERVICES
 SERVICES = {
     "admin-company": company_service,
     "admin-country": country_service,
     "admin-kitchen": kitchen_service,
+    "admin-product": product_service,
 }
 
 
@@ -61,6 +73,10 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         if content_type == CONTENT_TYPES["COMPANY"]:
             await callback.message.delete()
             await handle_restaurants(callback.message, language_code)
+        elif content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
+            await update_paginated_message(
+                callback, "admin-company", page, language_code
+            )
         elif content_type in [
             CONTENT_TYPES["ADMIN_COMPANY"],
             CONTENT_TYPES["ADMIN_COUNTRY"],
@@ -72,38 +88,76 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         elif content_type.endswith("-details"):
             new_content_type = content_type.replace("-details", "")
             await update_paginated_message(
-                callback, new_content_type, page, language_code
+                callback, new_content_type, page, language_code, extra_arg
             )
 
     elif action == "add":
         entity_type = content_type.replace("admin-", "")
-        await initiate_action(
-            callback, entity_type, ActionType.ADD, page, language_code, state
-        )
+        if content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
+            await initiate_product_action(
+                callback, ActionType.ADD, page, language_code, state, int(extra_arg)
+            )
+        else:
+            await initiate_action(
+                callback, entity_type, ActionType.ADD, page, language_code, state
+            )
 
     elif action == "edit":
         entity_type = content_type.replace("admin-", "")
-        await initiate_action(
-            callback, entity_type, ActionType.EDIT, page, language_code, state, item_id
-        )
+        if content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
+            await initiate_product_action(
+                callback,
+                ActionType.EDIT,
+                page,
+                language_code,
+                state,
+                int(extra_arg),
+                item_id,
+            )
+        else:
+            await initiate_action(
+                callback,
+                entity_type,
+                ActionType.EDIT,
+                page,
+                language_code,
+                state,
+                item_id,
+            )
 
     elif action == "details":
         entity_type = content_type.replace("admin-", "")
-        await render_details(
-            callback.message, entity_type, item_id, page, language_code
-        )
+        if content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
+            await render_product_details(
+                callback.message, item_id, page, language_code, int(extra_arg)
+            )
+        else:
+            await render_details(
+                callback.message, entity_type, item_id, page, language_code
+            )
 
     elif action == "delete":
         entity_type = content_type.replace("admin-", "")
-        await initiate_action(
-            callback,
-            entity_type,
-            ActionType.DELETE,
-            page,
-            language_code,
-            state,
-            item_id,
-        )
+        if content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
+            await initiate_product_action(
+                callback,
+                ActionType.DELETE,
+                page,
+                language_code,
+                state,
+                int(extra_arg),
+                item_id,
+            )
+        else:
+            await initiate_action(
+                callback,
+                entity_type,
+                ActionType.DELETE,
+                page,
+                language_code,
+                state,
+                item_id,
+            )
 
     elif action == "confirm_delete":
         service = SERVICES.get(content_type)
@@ -113,13 +167,20 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 text_service.get_text("successful_deleting", language_code)
             )
             await update_paginated_message(
-                callback, content_type, page, language_code, make_send=True
+                callback, content_type, page, language_code, extra_arg, make_send=True
             )
             await state.clear()
 
     elif action == "cancel":
         await state.clear()
-        await update_paginated_message(callback, content_type, page, language_code)
+        await update_paginated_message(
+            callback, content_type, page, language_code, extra_arg
+        )
+
+    elif action == "products":
+        await update_paginated_message(
+            callback, "admin-product", 1, language_code, extra_arg=str(item_id)
+        )
 
     elif action == "edit_profile":
         await callback.message.answer(
@@ -149,6 +210,12 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     elif content_type == "edit_company_image":
         await handle_edit_company_image(callback, state)
+
+    elif content_type == "edit_product_text":
+        await handle_edit_product_text(callback, state)
+
+    elif content_type == "edit_product_image":
+        await handle_edit_product_image(callback, state)
 
     await callback.answer()
 

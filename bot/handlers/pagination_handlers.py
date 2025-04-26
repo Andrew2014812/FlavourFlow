@@ -12,7 +12,11 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
-from .entity_handlers.render_utils import render_admin_list, render_company_list
+from .entity_handlers.render_utils import (
+    render_admin_list,
+    render_company_list,
+    render_product_list,
+)
 
 ARROW_LEFT = "⬅️"
 ARROW_RIGHT = "➡️"
@@ -166,6 +170,8 @@ async def get_content(
     elif content_type in ["admin-company", "admin-country", "admin-kitchen"]:
         entity_type = content_type.replace("admin-", "")
         return await render_admin_list(entity_type, page, language_code)
+    elif content_type == "admin-product":
+        return await render_product_list(page, language_code, extra_arg)
     return None
 
 
