@@ -61,7 +61,12 @@
       "error_loading_countries": "Помилка завантаження країн. Спробуйте ще раз.",
       "error_loading_kitchens": "Помилка завантаження кухонь. Спробуйте ще раз.",
       "error_processing_callback": "Помилка обробки вибору. Спробуйте ще раз.",
-      "text_not_found": "Текст не знайдено. Спробуйте ще раз."
+      "text_not_found": "Текст не знайдено. Спробуйте ще раз.",
+      "select_edit_option": "Будь ласка, виберіть, що ви хочете редагувати:",
+      "edit_text_button": "Редагувати текст",
+      "edit_country_button": "Редагувати країну",
+      "edit_kitchen_button": "Редагувати кухню",
+      "edit_image_button": "Редагувати зображення"
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",
@@ -100,7 +105,12 @@
       "error_loading_countries": "Error loading countries. Please try again.",
       "error_loading_kitchens": "Error loading kitchens. Please try again.",
       "error_processing_callback": "Error processing selection. Please try again.",
-      "text_not_found": "Text not found. Please try again."
+      "text_not_found": "Text not found. Please try again.",
+      "select_edit_option": "Please select what you want to edit:",
+      "edit_text_button": "Edit text",
+      "edit_country_button": "Edit country",
+      "edit_kitchen_button": "Edit kitchen",
+      "edit_image_button": "Edit image"
     }
   },
   "admin_buttons": {

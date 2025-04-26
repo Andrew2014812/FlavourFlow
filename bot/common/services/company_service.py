@@ -73,7 +73,7 @@ class CompanyService:
         response = await make_request(
             sub_url=f"{self.prefix}{item_id}/",
             method=APIMethods.PATCH.value,
-            body=data,
+            data=data,
             headers={
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
             },

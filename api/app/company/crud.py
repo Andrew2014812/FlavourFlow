@@ -108,7 +108,7 @@ async def update_company(
         )
 
     if company.image:
-        result = delete_file(existing_company.image_id)
+        result = await delete_file(existing_company.image_id)
 
         if not result:
             raise HTTPException(

@@ -9,8 +9,14 @@ from ..common.services.gastronomy_service import country_service, kitchen_servic
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.entity_handlers import (
+    handle_edit_company_country,
+    handle_edit_company_image,
+    handle_edit_company_kitchen,
+    handle_edit_company_text,
     initiate_action,
     process_country_selection,
+    process_edit_company_country,
+    process_edit_company_kitchen,
     process_kitchen_selection,
     render_details,
 )
@@ -120,11 +126,29 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             text_service.get_text("update_profile_instruction", language_code)
         )
 
-    elif action == "select" and content_type == "select_country":
+    elif content_type == "select_country_create":
         await process_country_selection(callback, state, item_id)
 
-    elif action == "select" and content_type == "select_kitchen":
+    elif content_type == "select_kitchen_create":
         await process_kitchen_selection(callback, state, item_id)
+
+    elif content_type == "select_country_edit":
+        await process_edit_company_country(callback, state, item_id)
+
+    elif content_type == "select_kitchen_edit":
+        await process_edit_company_kitchen(callback, state, item_id)
+
+    elif content_type == "edit_company_text":
+        await handle_edit_company_text(callback, state)
+
+    elif content_type == "edit_company_country":
+        await handle_edit_company_country(callback, state)
+
+    elif content_type == "edit_company_kitchen":
+        await handle_edit_company_kitchen(callback, state)
+
+    elif content_type == "edit_company_image":
+        await handle_edit_company_image(callback, state)
 
     await callback.answer()
 

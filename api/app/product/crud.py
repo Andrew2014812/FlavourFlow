@@ -94,7 +94,7 @@ async def update_product(
         )
 
     if product.image:
-        result = delete_file(existing_product.image_id)
+        result = await delete_file(existing_product.image_id)
 
         if not result:
             raise HTTPException(
@@ -134,7 +134,7 @@ async def remove_product(session: SessionDep, product_id: int):
             status_code=status.HTTP_404_NOT_FOUND, detail=PRODUCT_NOT_FOUND
         )
 
-    result = delete_file(existing_product.image_id)
+    result = await delete_file(existing_product.image_id)
 
     if not result:
         raise HTTPException(
