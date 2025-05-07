@@ -128,9 +128,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     elif action == "details":
         entity_type = content_type.replace("admin-", "")
         if content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
-            await render_product_details(
-                callback.message, item_id, page, language_code, int(extra_arg)
-            )
+            await render_product_details(callback.message, item_id, page, language_code)
         else:
             await render_details(
                 callback.message, entity_type, item_id, page, language_code
@@ -145,7 +143,6 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 page,
                 language_code,
                 state,
-                int(extra_arg),
                 item_id,
             )
         else:

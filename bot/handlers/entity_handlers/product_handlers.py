@@ -56,8 +56,6 @@ async def render_details(
     item_id: int,
     page: int,
     language_code: str,
-    company_id: int,
-    state: FSMContext,
 ):
     item = await product_service.get_item(item_id)
 
@@ -76,14 +74,12 @@ async def render_details(
         f"Description en: {item.description_en}\n"
         f"Composition ua: {item.composition_ua}\n"
         f"Composition en: {item.composition_en}\n"
-        f"Product category: {item.product_category}\n"
         f"Company id: {item.company_id}"
     )
     keyboard = get_item_admin_details_keyboard(
         "admin-product", page, language_code, item_id
     )
     await message.edit_text(text, reply_markup=keyboard)
-    await state.update_data(company_id=company_id)
 
 
 async def get_edit_product_menu_keyboard(
@@ -131,20 +127,14 @@ async def initiate_action(
     page: int,
     language_code: str,
     state: FSMContext,
-    company_id: int,
     item_id: int = None,
 ):
-    logger.info(
-        f"Initiating action {action} for company_id={company_id}, item_id={item_id}"
-    )
-    await state.update_data(company_id=company_id)
 
     if action == ActionType.DELETE:
         text = text_service.get_text("product_delete_confirm", language_code)
         keyboard = get_confirm_keyboard(language_code, "admin-product", page, item_id)
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.confirm_delete)
-        logger.info(f"Set state to Form.confirm_delete for item_id={item_id}")
 
     elif action == ActionType.EDIT:
         text = text_service.get_text("select_edit_option", language_code)
@@ -153,14 +143,12 @@ async def initiate_action(
         )
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.edit_product_menu)
-        logger.info(f"Set state to Form.edit_product_menu for item_id={item_id}")
 
-    else:  # ADD
+    else:
         text = text_service.get_text("product_add_instruction", language_code)
         keyboard = get_cancel_keyboard(language_code, "admin-product", page)
         await callback.message.edit_text(text, reply_markup=keyboard)
         await state.set_state(Form.process_product)
-        logger.info(f"Set state to Form.process_product for company_id={company_id}")
 
     await state.update_data(
         entity_type="product",
@@ -169,7 +157,6 @@ async def initiate_action(
         action=action.value,
         item_id=item_id,
     )
-    logger.info(f"Updated state data: {await state.get_data()}")
 
 
 async def process_action(message: Message, state: FSMContext):
@@ -274,6 +261,7 @@ async def process_image_upload(message: Message, state: FSMContext):
     if message.photo:
         photo: PhotoSize = message.photo[-1]
         file_id = photo.file_id
+
     elif message.sticker:
         file_id = message.sticker.file_id
     else:

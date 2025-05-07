@@ -129,16 +129,12 @@
   },
   "admin_buttons": {
     "en": {
-      "admin-users": "👥 Manage users",
-      "admin-company": "🏢 Manage companies",
-      "admin-country": "🌍 Manage countries",
-      "admin-kitchen": "🍳 Manage kitchens"
+      "admin-company": "🏢 companies and products",
+      "admin-kitchen": "🍳 Kitchens"
     },
     "ua": {
-      "admin-users": "👥 Дії над користувачами",
-      "admin-company": "🏢 Дії над компаніями",
-      "admin-country": "🌍 Дії над країнами",
-      "admin-kitchen": "🍳 Дії над кухнями"
+      "admin-company": "🏢 Компанії та продукти",
+      "admin-kitchen": "🍳 Кухні"
     }
   },
   "admin_actions": {

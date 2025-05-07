@@ -73,9 +73,9 @@ async def get_all_products(
     return ProductListResponse(products=products, total_pages=total_pages)
 
 
-def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
+async def get_product_by_id(session: SessionDep, product_id: int) -> ProductResponse:
     statement = select(Product).filter(Product.id == product_id)
-    result = session.exec(statement)
+    result = await session.exec(statement)
     db_product = result.first()
 
     if not db_product:
