@@ -11,7 +11,7 @@ from api.app.user.schemas import (
 )
 
 from ...config import APIAuth, APIMethods
-from ..services.user_info_service import get_user_info
+from ..services.user_info_service import delete_user_info, get_user_info
 from ..utils import make_request
 
 user_prefix = "users"
@@ -37,6 +37,10 @@ async def get_user(telegram_id: int) -> UserResponseMe | None:
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
         },
     )
+
+    if response.get("status") == status.HTTP_401_UNAUTHORIZED:
+        await delete_user_info(telegram_id)
+        return None
 
     return UserResponseMe.model_validate(response.get("data"))
 

@@ -14,7 +14,10 @@ from ..common.services.user_info_service import (
 )
 from ..common.services.user_service import login_user, register_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
-from ..handlers.main_keyboard_handlers import get_contact_keyboard
+from ..handlers.main_keyboard_handlers import (
+    get_contact_keyboard,
+    get_language_keyboard,
+)
 from ..handlers.pagination_handlers import send_paginated_message
 from ..handlers.reply_buttons_handlers import button_handlers
 
@@ -73,6 +76,14 @@ async def handle_contact(message: Message):
 @router.message()
 async def handle_buttons(message: Message):
     user_info = await get_user_info(message.from_user.id)
+
+    if not user_info:
+        await message.answer(
+            text_service.get_text("select_language", "ua"),
+            reply_markup=get_language_keyboard(),
+        )
+        return
+
     language_code = user_info.language_code
     text = message.text
 

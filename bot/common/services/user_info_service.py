@@ -52,3 +52,14 @@ async def update_user_info(telegram_id: int, **fields) -> UserInfo:
         await session.refresh(existing_user)
 
         return existing_user
+
+
+async def delete_user_info(telegram_id: int) -> None:
+    async with AsyncSession(engine) as session:
+        existing_user = await get_user_info(telegram_id)
+
+        if existing_user is None:
+            raise ValueError(f"User with telegram_id {telegram_id} not found")
+
+        await session.delete(existing_user)
+        await session.commit()

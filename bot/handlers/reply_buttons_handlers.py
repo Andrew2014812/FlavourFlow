@@ -8,7 +8,10 @@ from api.app.user.schemas import UserResponseMe
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
-from ..handlers.main_keyboard_handlers import get_admin_panel_keyboard
+from ..handlers.main_keyboard_handlers import (
+    get_admin_panel_keyboard,
+    get_language_keyboard,
+)
 from ..handlers.pagination_handlers import get_category_keyboard
 
 button_handlers = {}
@@ -29,6 +32,14 @@ def admin_required(func):
         user = await get_user(message.from_user.id) or await get_user(
             kwargs.get("telegram_id", message.from_user.id)
         )
+
+        if not user:
+            await message.answer(
+                text_service.get_text("select_language", "ua"),
+                reply_markup=get_language_keyboard(),
+            )
+            return
+
         if user.role != "admin":
             await message.answer(text_service.get_text("no_access", language_code))
             return
@@ -42,6 +53,13 @@ def admin_required(func):
 )
 async def handle_profile(message: Message, language_code: str):
     user_data: UserResponseMe = await get_user(message.from_user.id)
+
+    if not user_data:
+        await message.answer(
+            text_service.get_text("select_language", "ua"),
+            reply_markup=get_language_keyboard(),
+        )
+        return
 
     last_name = user_data.last_name or ""
     profile_data = {

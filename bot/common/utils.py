@@ -29,7 +29,7 @@ async def make_request(
                 data = await response.json()
 
                 if status_code >= 400:
-                    return {"status": status_code, "data": data.get("error")}
+                    return {"status": status_code, "error": data.get("error")}
 
                 return {"status": status_code, "data": data}
 
