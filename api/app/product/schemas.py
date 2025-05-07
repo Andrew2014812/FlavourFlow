@@ -16,7 +16,6 @@ class ProductBase(SQLModel):
 
     image_link: str = Field(max_length=255, nullable=True, unique=True)
     image_id: str = Field(max_length=255, nullable=True, unique=True)
-    product_category: str = Field(max_length=30)
     price: float = Field(default=1)
 
     company_id: Optional[int] = Field(default=None, foreign_key="company.id")
@@ -29,7 +28,6 @@ class ProductCreate(SQLModel):
     description_en: str
     composition_ua: str
     composition_en: str
-    product_category: str
     price: float
     company_id: int = 1
     image: UploadFile = File(...)
@@ -43,10 +41,9 @@ class ProductCreate(SQLModel):
         description_en: str = Form(...),
         composition_ua: str = Form(...),
         composition_en: str = Form(...),
-        product_category: str = Form(...),
         price: float = Form(...),
         company_id: int = Form(1),
-        image: UploadFile = File(...),
+        image: Optional[UploadFile] = File(...),
     ):
         return cls(
             title_ua=title_ua,
@@ -55,7 +52,6 @@ class ProductCreate(SQLModel):
             description_en=description_en,
             composition_ua=composition_ua,
             composition_en=composition_en,
-            product_category=product_category,
             price=price,
             company_id=company_id,
             image=image,
@@ -78,7 +74,6 @@ class ProductPatch(SQLModel):
     description_en: Optional[str] = Field(default=None)
     composition_ua: Optional[str] = Field(default=None)
     composition_en: Optional[str] = Field(default=None)
-    product_category: Optional[str] = Field(default=None)
     price: Optional[float] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
     company_id: Optional[int] = Field(default=None)
@@ -92,7 +87,6 @@ class ProductPatch(SQLModel):
         description_en: Optional[str] = Form(None),
         composition_ua: Optional[str] = Form(None),
         composition_en: Optional[str] = Form(None),
-        product_category: Optional[str] = Form(None),
         price: Optional[float] = Form(None),
         company_id: Optional[int] = Form(None),
         image: Optional[UploadFile] = File(None),
@@ -105,7 +99,6 @@ class ProductPatch(SQLModel):
             composition_ua=composition_ua,
             composition_en=composition_en,
             image=image,
-            product_category=product_category,
             price=price,
             company_id=company_id,
         )

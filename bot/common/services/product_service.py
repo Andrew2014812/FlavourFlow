@@ -1,8 +1,13 @@
-# api/app/common/services/product_service.py
 from enum import Enum
+from io import BytesIO
 from typing import Dict, Optional
 
-from api.app.product.schemas import ProductListResponse, ProductResponse
+from fastapi import UploadFile
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from api.app.common.database import engine
+from api.app.product.crud import create_product
+from api.app.product.schemas import ProductCreate, ProductListResponse, ProductResponse
 
 from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
@@ -34,17 +39,19 @@ class ProductService:
         )
         return ProductResponse.model_validate(response.get("data"))
 
-    async def create(self, data: Dict, telegram_id: int) -> Optional[ProductResponse]:
-        user_info = await get_user_info(telegram_id)
-        response = await make_request(
-            sub_url=self.prefix,
-            method=APIMethods.POST.value,
-            data=data,
-            headers={
-                APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
-            },
-        )
-        return ProductResponse.model_validate(response.get("data"))
+    async def create(self, data: Dict, image_bytes: bytes) -> Optional[ProductResponse]:
+        image_file = UploadFile(filename="image.jpg", file=BytesIO(image_bytes))
+
+        product_create_data = {
+            **data,
+            "image": image_file,
+        }
+        product_create = ProductCreate(**product_create_data)
+
+        async with AsyncSession(engine) as session:
+            response = await create_product(
+                session=session, product_create=product_create
+            )
 
     async def update(
         self, item_id: int, data: Dict, telegram_id: int

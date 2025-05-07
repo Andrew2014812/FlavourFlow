@@ -40,14 +40,14 @@ PRODUCT_FIELD_MAPPING = {
     "Description en:": "description_en",
     "Composition ua:": "composition_ua",
     "Composition en:": "composition_en",
-    "Product category:": "product_category",
+    "Price:": "price",
     "Назва ua:": "title_ua",
     "Назва en:": "title_en",
     "Опис ua:": "description_ua",
     "Опис en:": "description_en",
     "Склад ua:": "composition_ua",
     "Склад en:": "composition_en",
-    "Категорія продукту:": "product_category",
+    "Ціна:": "price",
 }
 
 
@@ -196,10 +196,10 @@ async def process_action(message: Message, state: FSMContext):
             + text_service.get_text("product_add_instruction", language_code)
         )
         await message.answer(error_text)
-        return  # Оставляем состояние для повторной попытки
+        return
 
     if action == ActionType.ADD:
-        result["company_id"] = int(company_id)  # Преобразуем в int для API
+        result["company_id"] = int(company_id)
         await state.update_data(product_data=result)
         await message.answer(
             text_service.get_text("upload_product_image", language_code)
@@ -208,7 +208,7 @@ async def process_action(message: Message, state: FSMContext):
         logger.info(
             f"Set state to Form.upload_product_image with product_data={result}"
         )
-    else:  # EDIT
+    else:
         response = await product_service.update(item_id, result, message.from_user.id)
 
         if isinstance(response, dict) and "error" in response:
@@ -265,24 +265,96 @@ async def process_edit_product_text(message: Message, state: FSMContext):
 @router.message(Form.upload_product_image)
 async def process_image_upload(message: Message, state: FSMContext):
     state_data = await state.get_data()
+    language_code = state_data["language_code"]
+    page = state_data["page"]
+    product_data = state_data.get("product_data")
+    item_id = state_data.get("item_id")
+    company_id = str(state_data.get("company_id"))
 
     if message.photo:
         photo: PhotoSize = message.photo[-1]
         file_id = photo.file_id
-
     elif message.sticker:
         file_id = message.sticker.file_id
+    else:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + ": No valid image or sticker provided"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
 
-    file = await message.bot.get_file(file_id)
-    file_path = file.file_path
-    downloaded_file = await message.bot.download_file(file_path)
-    image_bytes = downloaded_file.read()
+    try:
+        file = await message.bot.get_file(file_id)
+        file_path = file.file_path
+        downloaded_file = await message.bot.download_file(file_path)
+        image_bytes = downloaded_file.read()
+    except Exception as e:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": Failed to download image - {str(e)}"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
 
     data = {
         "image": image_bytes,
     }
+    if product_data:
+        data.update({**product_data})
 
-    await product_service.create(data, message.from_user.id)
+    required_fields = [
+        "title_ua",
+        "title_en",
+        "description_ua",
+        "description_en",
+        "composition_ua",
+        "composition_en",
+        "price",
+    ]
+    if product_data and not all(field in product_data for field in required_fields):
+        missing_fields = [
+            field for field in required_fields if field not in product_data
+        ]
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": Missing required fields: {', '.join(missing_fields)}"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
+
+    response = (
+        await product_service.create(data, image_bytes=image_bytes)
+        if product_data
+        else await product_service.update(item_id, data, message.from_user.id)
+    )
+
+    if isinstance(response, dict) and "error" in response:
+        error_text = (
+            text_service.get_text("generic_error", language_code)
+            + f": {response['error']}"
+        )
+        await message.answer(error_text)
+        await state.clear()
+        return
+
+    await message.answer(
+        text_service.get_text(
+            "successful_adding" if product_data else "successful_editing", language_code
+        )
+    )
+    await message.delete()
+    await send_paginated_message(
+        message,
+        "admin-product",
+        page,
+        language_code,
+        extra_arg=str(company_id),
+    )
+    await state.clear()
 
 
 @router.message(Form.process_product)
