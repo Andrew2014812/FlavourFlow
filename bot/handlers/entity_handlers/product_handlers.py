@@ -127,8 +127,15 @@ async def initiate_action(
     page: int,
     language_code: str,
     state: FSMContext,
+    company_id: int = None,
     item_id: int = None,
 ):
+
+    if not company_id:
+        product = await product_service.get_item(item_id)
+        company_id = product.company_id
+
+    await state.update_data(company_id=company_id)
 
     if action == ActionType.DELETE:
         text = text_service.get_text("product_delete_confirm", language_code)

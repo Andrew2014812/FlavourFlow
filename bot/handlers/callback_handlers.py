@@ -44,7 +44,6 @@ CONTENT_TYPES = {
     "PRODUCT": "product",
 }
 
-# Обновляем SERVICES
 SERVICES = {
     "admin-company": company_service,
     "admin-country": country_service,
@@ -111,7 +110,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 page,
                 language_code,
                 state,
-                int(extra_arg),
+                int(extra_arg) if extra_arg else None,
                 item_id,
             )
         else:
@@ -143,6 +142,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 page,
                 language_code,
                 state,
+                int(extra_arg) if extra_arg else None,
                 item_id,
             )
         else:
