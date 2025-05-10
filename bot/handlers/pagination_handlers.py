@@ -226,7 +226,8 @@ async def update_paginated_message(
     caption, image_url, total_pages, builder = content
     keyboard = build_pagination_keyboard(page, total_pages, content_type, extra_arg)
 
-    if image_url and content_type == "user-company":
+    if image_url and content_type in ["user-company", "user-products"]:
+        # Merge the builder with pagination keyboard
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:
@@ -234,20 +235,29 @@ async def update_paginated_message(
             reply_markup = merged_builder.as_markup()
         else:
             reply_markup = keyboard
-        await callback.message.edit_media(
-            InputMediaPhoto(media=image_url, caption=caption), reply_markup=reply_markup
-        )
+        try:
+            await callback.message.edit_media(
+                InputMediaPhoto(media=image_url, caption=caption),
+                reply_markup=reply_markup,
+            )
+        except Exception:
+            # If editing fails (e.g., message type mismatch), delete and send new
+            await callback.message.delete()
+            await callback.message.answer_photo(
+                photo=image_url, caption=caption, reply_markup=reply_markup
+            )
     elif builder:
         for row in keyboard.inline_keyboard:
             builder.row(*row)
         reply_markup = builder.as_markup()
-        if make_send or content_type == "user-products":
+        if make_send:
             await callback.message.delete()
             await callback.message.answer(caption, reply_markup=reply_markup)
         else:
             try:
                 await callback.message.edit_text(caption, reply_markup=reply_markup)
             except Exception:
+                # Fallback in case the message cannot be edited (e.g., was a photo)
                 await callback.message.delete()
                 await callback.message.answer(caption, reply_markup=reply_markup)
     else:
@@ -269,8 +279,8 @@ async def send_paginated_message(
     caption, image_url, total_pages, builder = content
     keyboard = build_pagination_keyboard(page, total_pages, content_type, extra_arg)
 
-    if image_url and content_type == "user-company":
-        # Merge the builder (with "Go to Products" button) with pagination keyboard
+    if image_url and content_type in ["user-company", "user-products"]:
+        # Merge the builder with pagination keyboard
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:
