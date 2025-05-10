@@ -4,8 +4,8 @@ from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from bot.common.services import product_service
-
+from ..common.services import product_service
+from ..common.services.cart_service import add_to_cart
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.product_service import product_service
@@ -197,11 +197,16 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     elif action == "add_to_cart" and content_type == "user-products":
         product_id = extra_arg
-        await callback.message.answer(
-            "Product added to cart!"
-            if language_code == "en"
-            else "Продукт додано до кошика!"
-        )
+        response = await add_to_cart(callback.from_user.id, product_id)
+        if response["status"] == 200:
+            await callback.message.answer(
+                "Product added to cart!"
+                if language_code == "en"
+                else "Продукт додано до кошика!"
+            )
+        else:
+            await callback.message.answer("something went wrong")
+
         await callback.answer()
 
     elif action == "add_to_wishlist" and content_type == "user-products":

@@ -1,8 +1,8 @@
-from typing import Optional, List
+from typing import List, Optional
 
-from sqlmodel import Relationship, Field
+from sqlmodel import Field, Relationship
 
-from api.app.cart.schemas import CartBase, CartItemBase
+from .schemas import CartBase, CartItemBase
 
 
 class Cart(CartBase, table=True):

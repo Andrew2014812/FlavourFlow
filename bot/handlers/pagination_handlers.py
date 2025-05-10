@@ -136,7 +136,6 @@ async def update_paginated_message(
     )
 
     if image_url and content_type in ["user-company", "user-products"]:
-        # Merge the builder with pagination keyboard
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:
@@ -150,7 +149,6 @@ async def update_paginated_message(
                 reply_markup=reply_markup,
             )
         except Exception:
-            # If editing fails (e.g., message type mismatch), delete and send new
             await callback.message.delete()
             await callback.message.answer_photo(
                 photo=image_url, caption=caption, reply_markup=reply_markup
@@ -166,7 +164,6 @@ async def update_paginated_message(
             try:
                 await callback.message.edit_text(caption, reply_markup=reply_markup)
             except Exception:
-                # Fallback in case the message cannot be edited (e.g., was a photo)
                 await callback.message.delete()
                 await callback.message.answer(caption, reply_markup=reply_markup)
     else:
@@ -194,7 +191,6 @@ async def send_paginated_message(
     )
 
     if image_url and content_type in ["user-company", "user-products"]:
-        # Merge the builder with pagination keyboard
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:

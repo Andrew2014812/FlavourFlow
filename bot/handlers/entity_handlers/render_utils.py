@@ -154,22 +154,22 @@ async def render_user_product_list(
                 separators=(",", ":"),
             ),
         ),
-        InlineKeyboardButton(
-            text=(
-                "Add to Wishlist"
-                if language_code == "en"
-                else "Додати до списку бажань"
-            ),
-            callback_data=json.dumps(
-                {
-                    "a": "add_to_wishlist",
-                    "t": "user-products",
-                    "p": page,
-                    "e": str(product.id),
-                },
-                separators=(",", ":"),
-            ),
-        ),
+        # InlineKeyboardButton(
+        #     text=(
+        #         "Add to Wishlist"
+        #         if language_code == "en"
+        #         else "Додати до списку бажань"
+        #     ),
+        #     callback_data=json.dumps(
+        #         {
+        #             "a": "add_to_wishlist",
+        #             "t": "user-products",
+        #             "p": page,
+        #             "e": str(product.id),
+        #         },
+        #         separators=(",", ":"),
+        #     ),
+        # ),
     )
 
     total_pages = result.total_pages
