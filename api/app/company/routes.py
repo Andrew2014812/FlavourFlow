@@ -24,20 +24,12 @@ async def company_list(
     session: SessionDep,
     page: int = 1,
     limit: int = 6,
+    kitchen_id: int | None = None,
 ) -> CompanyListResponse:
-    """
-    Retrieve a list of all companies.
 
-    Args:
-        session (SessionDep): The database session.
-        page (int, optional): The page number. Defaults to 1.
-        limit (int, optional): The page size. Defaults to 10.
-
-    Returns:
-        List[CompanyResponse]: A list of company details.
-    """
-
-    return await get_all_companies(session=session, page=page, limit=limit)
+    return await get_all_companies(
+        session=session, page=page, limit=limit, kitchen_id=kitchen_id
+    )
 
 
 @router.get("/{company_id}/")

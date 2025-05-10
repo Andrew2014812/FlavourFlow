@@ -68,6 +68,7 @@ async def get_all_companies(
     session: SessionDep,
     page: int = 1,
     limit: int = 6,
+    kitchen_id: int = None,
 ) -> CompanyListResponse:
     statement = select(func.count()).select_from(Company)
     result = await session.exec(statement)
@@ -75,7 +76,12 @@ async def get_all_companies(
 
     total_pages = (total_records + limit - 1) // limit
 
-    statement = select(Company).limit(limit).offset((page - 1) * limit)
+    statement = (
+        select(Company)
+        .where(Company.kitchen_id == kitchen_id)
+        .limit(limit)
+        .offset((page - 1) * limit)
+    )
     result = await session.exec(statement)
     companies = result.all()
 

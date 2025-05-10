@@ -35,18 +35,27 @@ async def render_admin_list(
 
 
 async def render_company_list(
-    page: int, language_code: str, kitchen_id: str
+    page: int, language_code: str, kitchen_id: str, company_id: str = None
 ) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
-    result = await company_service.get_list(page=page, limit=1)
-    total_pages = result.total_pages
-    if not result.companys:
-        return "No companies found", None, 1, None
+    if company_id and company_id.isdigit():
+        company = await company_service.get_item(int(company_id))
+        if not company:
+            return "Company not found", None, 1, None
+        result = type("Result", (), {"companys": [company], "total_pages": 1})()
+        total_pages = 1
+    else:
+        result = await company_service.get_list(
+            page=page, limit=1, kitchen_id=kitchen_id
+        )
+        total_pages = result.total_pages
+        if not result.companys:
+            return "No companies found", None, 1, None
 
     company = result.companys[0]
     if language_code == "ua":
-        text = f"{company.title_ua}\n" "{company.description_ua}\n"
+        text = f"{company.title_ua}\n\n{company.description_ua}\n"
     else:
-        text = f"{company.title_en}\n" "{company.description_en}\n"
+        text = f"{company.title_en}\n\n{company.description_en}\n"
 
     builder = InlineKeyboardBuilder()
     products_button_text = (
@@ -56,7 +65,14 @@ async def render_company_list(
         InlineKeyboardButton(
             text=products_button_text,
             callback_data=json.dumps(
-                {"a": "list", "t": "user-products", "p": 1, "e": str(company.id)},
+                {
+                    "a": "list",
+                    "t": "user-products",
+                    "p": 1,
+                    "e": str(company.id),
+                    "k": kitchen_id or "",
+                    "cp": page,
+                },
                 separators=(",", ":"),
             ),
         )
@@ -112,17 +128,19 @@ async def render_product_list(page: int, language_code: str, company_id: str):
 
 async def render_user_product_list(
     page: int, language_code: str, company_id: str
-) -> Tuple[str, None, int, InlineKeyboardBuilder]:
+) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
     result: ProductListResponse = await product_service.get_list(
         company_id=int(company_id), page=page, limit=1
     )
 
     builder = InlineKeyboardBuilder()
-    caption = "Products" if language_code == "en" else "Продукти"
-    product = result.products[0]
 
+    product = result.products[0]
     product_name = product.title_en if language_code == "en" else product.title_ua
-    caption += f"\n- {product_name}"
+    composition = (
+        product.composition_en if language_code == "en" else product.composition_ua
+    )
+    caption = f"{product_name}\n\n{composition}"
     builder.row(
         InlineKeyboardButton(
             text="Add to Cart" if language_code == "en" else "Додати до кошика",

@@ -62,6 +62,8 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     page = data.get("p", 1)
     item_id = data.get("id")
     extra_arg = data.get("e", "")
+    kitchen_id = data.get("k", "")
+    company_page = data.get("cp", page)
 
     if action == "nav":
         await update_paginated_message(
@@ -74,7 +76,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             await handle_restaurants(callback.message, language_code)
         elif content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
             await update_paginated_message(
-                callback, "admin-company", page, language_code
+                callback, "admin-company", page, language_code, extra_arg
             )
         elif content_type in [
             CONTENT_TYPES["ADMIN_COMPANY"],
@@ -83,6 +85,15 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         ]:
             await handle_admin(
                 callback.message, language_code, telegram_id=callback.from_user.id
+            )
+        elif content_type == "user-products":
+            await update_paginated_message(
+                callback,
+                "user-company",
+                company_page,
+                language_code,
+                extra_arg,
+                kitchen_id,
             )
         elif content_type.endswith("-details"):
             new_content_type = content_type.replace("-details", "")
