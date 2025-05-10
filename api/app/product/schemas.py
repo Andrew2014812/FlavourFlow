@@ -8,15 +8,12 @@ class ProductBase(SQLModel):
     title_ua: str = Field(max_length=100)
     title_en: str = Field(max_length=100)
 
-    description_ua: str = Field(max_length=255)
-    description_en: str = Field(max_length=255)
-
     composition_ua: str = Field(max_length=255)
     composition_en: str = Field(max_length=255)
 
     image_link: str = Field(max_length=255, nullable=True, unique=True)
     image_id: str = Field(max_length=255, nullable=True, unique=True)
-    price: float = Field(default=1)
+    price: str = Field(max_length=255)
 
     company_id: Optional[int] = Field(default=None, foreign_key="company.id")
 
@@ -24,11 +21,9 @@ class ProductBase(SQLModel):
 class ProductCreate(SQLModel):
     title_ua: str
     title_en: str
-    description_ua: str
-    description_en: str
     composition_ua: str
     composition_en: str
-    price: float
+    price: str
     company_id: int = 1
     image: UploadFile = File(...)
 
@@ -37,19 +32,15 @@ class ProductCreate(SQLModel):
         cls,
         title_ua: str = Form(...),
         title_en: str = Form(...),
-        description_ua: str = Form(...),
-        description_en: str = Form(...),
         composition_ua: str = Form(...),
         composition_en: str = Form(...),
-        price: float = Form(...),
+        price: str = Form(...),
         company_id: int = Form(1),
         image: Optional[UploadFile] = File(...),
     ):
         return cls(
             title_ua=title_ua,
             title_en=title_en,
-            description_ua=description_ua,
-            description_en=description_en,
             composition_ua=composition_ua,
             composition_en=composition_en,
             price=price,
@@ -70,11 +61,9 @@ class ProductListResponse(SQLModel):
 class ProductPatch(SQLModel):
     title_ua: Optional[str] = Field(default=None)
     title_en: Optional[str] = Field(default=None)
-    description_ua: Optional[str] = Field(default=None)
-    description_en: Optional[str] = Field(default=None)
     composition_ua: Optional[str] = Field(default=None)
     composition_en: Optional[str] = Field(default=None)
-    price: Optional[float] = Field(default=None)
+    price: Optional[str] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
     company_id: Optional[int] = Field(default=None)
 
@@ -83,19 +72,15 @@ class ProductPatch(SQLModel):
         cls,
         title_ua: Optional[str] = Form(None),
         title_en: Optional[str] = Form(None),
-        description_ua: Optional[str] = Form(None),
-        description_en: Optional[str] = Form(None),
         composition_ua: Optional[str] = Form(None),
         composition_en: Optional[str] = Form(None),
-        price: Optional[float] = Form(None),
+        price: Optional[str] = Form(None),
         company_id: Optional[int] = Form(None),
         image: Optional[UploadFile] = File(None),
     ):
         return cls(
             title_ua=title_ua,
             title_en=title_en,
-            description_ua=description_ua,
-            description_en=description_en,
             composition_ua=composition_ua,
             composition_en=composition_en,
             image=image,

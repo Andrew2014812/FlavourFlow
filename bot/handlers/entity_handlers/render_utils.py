@@ -43,9 +43,11 @@ async def render_company_list(
         return "No companies found", None, 1, None
 
     company = result.companys[0]
-    text = (
-        f"Company ({kitchen_id}) - Page {page} of {total_pages} (lang: {language_code})"
-    )
+    if language_code == "ua":
+        text = f"{company.title_ua}\n" f"{company.description_ua}\n"
+    else:
+        text = f"{company.title_en}\n" f"{company.description_en}\n"
+
     return text, company.image_link, total_pages, None
 
 

@@ -36,15 +36,11 @@ class Form(StatesGroup):
 PRODUCT_FIELD_MAPPING = {
     "Title ua:": "title_ua",
     "Title en:": "title_en",
-    "Description ua:": "description_ua",
-    "Description en:": "description_en",
     "Composition ua:": "composition_ua",
     "Composition en:": "composition_en",
     "Price:": "price",
     "Назва ua:": "title_ua",
     "Назва en:": "title_en",
-    "Опис ua:": "description_ua",
-    "Опис en:": "description_en",
     "Склад ua:": "composition_ua",
     "Склад en:": "composition_en",
     "Ціна:": "price",
@@ -70,11 +66,9 @@ async def render_details(
     text = (
         f"Title ua: {item.title_ua}\n"
         f"Title en: {item.title_en}\n"
-        f"Description ua: {item.description_ua}\n"
-        f"Description en: {item.description_en}\n"
         f"Composition ua: {item.composition_ua}\n"
         f"Composition en: {item.composition_en}\n"
-        f"Company id: {item.company_id}"
+        f"Price: {item.price}"
     )
     keyboard = get_item_admin_details_keyboard(
         "admin-product", page, language_code, item_id
@@ -303,8 +297,6 @@ async def process_image_upload(message: Message, state: FSMContext):
     required_fields = [
         "title_ua",
         "title_en",
-        "description_ua",
-        "description_en",
         "composition_ua",
         "composition_en",
         "price",

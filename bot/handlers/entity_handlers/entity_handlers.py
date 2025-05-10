@@ -66,7 +66,11 @@ SERVICES = {
 
 
 async def render_details(
-    message: Message, entity_type: str, item_id: int, page: int, language_code: str
+    message: Message,
+    entity_type: str,
+    item_id: int,
+    page: int,
+    language_code: str,
 ):
     service = SERVICES[entity_type]
     item = await service.get_item(item_id)
