@@ -3,8 +3,10 @@ from typing import Optional, Tuple
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
+from api.app.cart.schemas import CartItemFullResponse
 from api.app.product.schemas import ProductListResponse
 
+from ...common.services.cart_service import get_cart_items
 from ...common.services.company_service import company_service
 from ...common.services.gastronomy_service import country_service, kitchen_service
 from ...common.services.product_service import product_service
@@ -174,3 +176,64 @@ async def render_user_product_list(
 
     total_pages = result.total_pages
     return caption, product.image_link, total_pages, builder
+
+
+async def render_user_cart_product(
+    page: int, language_code: str, telegram_id: int
+) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
+    cart_item: CartItemFullResponse = await get_cart_items(
+        telegram_id=telegram_id, page=page
+    )
+
+    builder = InlineKeyboardBuilder()
+
+    product_name = (
+        cart_item.product_title_en
+        if language_code == "en"
+        else cart_item.product_title_ua
+    )
+    composition = (
+        cart_item.composition_en if language_code == "en" else cart_item.composition_ua
+    )
+    caption = f"{product_name}\n\n{composition}\n\nQuantity: {cart_item.quantity}"
+    builder.row(
+        InlineKeyboardButton(
+            text="╋",
+            callback_data=json.dumps(
+                {
+                    "a": "plus_quantity",
+                    "t": "user-cart",
+                    "p": page,
+                    "id": str(cart_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+        InlineKeyboardButton(
+            text=("–"),
+            callback_data=json.dumps(
+                {
+                    "a": "minus_quantity",
+                    "t": "user-cart",
+                    "p": page,
+                    "id": str(cart_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+        InlineKeyboardButton(
+            text=("Remove"),
+            callback_data=json.dumps(
+                {
+                    "a": "remove_from_cart",
+                    "t": "user-cart",
+                    "p": page,
+                    "id": str(cart_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+    )
+
+    total_pages = cart_item.total_pages
+    return caption, cart_item.image_link, total_pages, builder

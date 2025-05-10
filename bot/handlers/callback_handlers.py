@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from ..common.services import product_service
-from ..common.services.cart_service import add_to_cart
+from ..common.services.cart_service import add_to_cart, change_amount
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.product_service import product_service
@@ -209,12 +209,36 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
         await callback.answer()
 
-    elif action == "add_to_wishlist" and content_type == "user-products":
-        product_id = extra_arg
-        await callback.message.answer(
-            "Product added to wishlist!"
-            if language_code == "en"
-            else "Продукт додано до списку бажань!"
+    # elif action == "add_to_wishlist" and content_type == "user-products":
+    #     product_id = extra_arg
+    #     await callback.message.answer(
+    #         "Product added to wishlist!"
+    #         if language_code == "en"
+    #         else "Продукт додано до списку бажань!"
+    #     )
+    #     await callback.answer()
+
+    elif action == "plus_quantity":
+        await change_amount(callback.from_user.id, item_id, 1)
+        await update_paginated_message(
+            callback,
+            "cart",
+            page,
+            language_code,
+            callback.from_user.id,
+            with_back_button=False,
+        )
+        await callback.answer()
+
+    elif action == "minus_quantity":
+        await change_amount(callback.from_user.id, item_id, -1)
+        await update_paginated_message(
+            callback,
+            "cart",
+            page,
+            language_code,
+            callback.from_user.id,
+            with_back_button=False,
         )
         await callback.answer()
 

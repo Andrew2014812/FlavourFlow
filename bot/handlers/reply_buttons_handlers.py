@@ -12,7 +12,7 @@ from ..handlers.main_keyboard_handlers import (
     get_admin_panel_keyboard,
     get_language_keyboard,
 )
-from ..handlers.pagination_handlers import get_category_keyboard
+from ..handlers.pagination_handlers import get_category_keyboard, send_paginated_message
 
 button_handlers = {}
 
@@ -104,6 +104,15 @@ async def handle_restaurants(message: Message, language_code: str):
 )
 async def handle_back(message: Message, language_code: str):
     await show_main_menu(message, language_code)
+
+
+@register_button_handler(
+    text_service.buttons["en"]["cart"], text_service.buttons["ua"]["cart"]
+)
+async def handle_cart(message: Message, language_code: str):
+    await send_paginated_message(
+        message, "cart", 1, language_code, message.from_user.id, with_back_button=False
+    )
 
 
 @register_button_handler(

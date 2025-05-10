@@ -1,11 +1,16 @@
-from typing import List
-
 from fastapi import HTTPException, status
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
+from ..product.models import Product
+from ..utils import get_entity_by_params
 from .models import Cart, CartItem
-from .schemas import CartItemCreate, CartItemResponse
+from .schemas import (
+    CartItemChangeAmount,
+    CartItemCreate,
+    CartItemFullResponse,
+    CartItemResponse,
+)
 
 
 async def add_to_cart(
@@ -13,9 +18,7 @@ async def add_to_cart(
     user_id: int,
     new_item: CartItemCreate,
 ) -> CartItemResponse:
-    statement = select(Cart).filter(Cart.user_id == user_id)
-    result = await session.exec(statement)
-    cart: Cart = result.first()
+    cart = await get_entity_by_params(session, Cart, user_id=user_id)
 
     if not cart:
         cart = Cart(user_id=user_id)
@@ -23,18 +26,30 @@ async def add_to_cart(
         await session.commit()
         await session.refresh(cart)
 
-    statement = select(CartItem).filter(
-        CartItem.cart_id == cart.id, CartItem.product_id == new_item.product_id
+    cart_item = await get_entity_by_params(
+        session,
+        CartItem,
+        cart_id=cart.id,
+        product_id=new_item.product_id,
     )
-    result = await session.exec(statement)
-    cart_item: CartItem = result.first()
 
     if cart_item:
         return cart_item
 
     else:
+        product: Product = await get_entity_by_params(
+            session, Product, id=new_item.product_id
+        )
         cart_item = CartItem(
-            cart_id=cart.id, product_id=new_item.product_id, quantity=new_item.quantity
+            cart_id=cart.id,
+            product_id=new_item.product_id,
+            quantity=new_item.quantity,
+            price=product.price,
+            product_title_ua=product.title_ua,
+            product_title_en=product.title_en,
+            composition_ua=product.composition_ua,
+            composition_en=product.composition_en,
+            image_link=product.image_link,
         )
         session.add(cart_item)
 
@@ -44,15 +59,27 @@ async def add_to_cart(
     return cart_item
 
 
-async def get_cart_items(session: SessionDep, user_id: int) -> List[CartItemResponse]:
-    statement = select(Cart).filter(Cart.user_id == user_id)
-    result = await session.exec(statement)
-    cart: Cart = result.first()
+async def get_cart_items(
+    session: SessionDep,
+    user_id: int,
+    page: int,
+    limit: int = 1,
+) -> CartItemFullResponse | None:
+    cart: Cart = await get_entity_by_params(session, Cart, user_id=user_id)
+    cart_items, total_pages = await get_entity_by_params(
+        session,
+        CartItem,
+        cart_id=cart.id,
+        page=page,
+        limit=limit,
+        with_total_pages=True,
+        return_all=True,
+    )
 
-    if not cart:
-        return []
+    if not cart_items:
+        return None
 
-    return cart.items
+    return CartItemFullResponse(**cart_items[0].model_dump(), total_pages=total_pages)
 
 
 async def get_item_by_id(session: SessionDep, item_id: int) -> CartItemResponse:
@@ -66,6 +93,20 @@ async def get_item_by_id(session: SessionDep, item_id: int) -> CartItemResponse:
         )
 
     return item
+
+
+async def change_amount(session: SessionDep, item: CartItemChangeAmount):
+    cart_item: CartItem = await get_entity_by_params(
+        session,
+        CartItem,
+        id=item.item_id,
+    )
+    if cart_item.quantity == 1 and item.amount < 0:
+        return
+
+    cart_item.quantity += item.amount
+
+    await session.commit()
 
 
 async def remove_cart_item(session: SessionDep, user_id: int, item_id: int):

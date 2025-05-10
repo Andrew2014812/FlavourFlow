@@ -16,6 +16,7 @@ from .entity_handlers.render_utils import (
     render_admin_list,
     render_company_list,
     render_product_list,
+    render_user_cart_product,
     render_user_product_list,
 )
 
@@ -42,6 +43,7 @@ def build_pagination_keyboard(
     content_type: str,
     extra_arg: str = "",
     kitchen_id: str = "",
+    with_back_button: bool = True,
 ):
     buttons = []
 
@@ -106,13 +108,16 @@ def build_pagination_keyboard(
             )
         )
 
-    back_button = InlineKeyboardButton(
-        text=ARROW_BACK,
-        callback_data=make_callback_data(
-            content_type, "back", current_page, extra_arg, kitchen_id
-        ),
-    )
-    return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
+    if with_back_button:
+        back_button = InlineKeyboardButton(
+            text=ARROW_BACK,
+            callback_data=make_callback_data(
+                content_type, "back", current_page, extra_arg, kitchen_id
+            ),
+        )
+        return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
+
+    return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
 async def update_paginated_message(
@@ -122,6 +127,7 @@ async def update_paginated_message(
     language_code: str,
     extra_arg: str = "",
     kitchen_id: str = "",
+    with_back_button: bool = True,
 ):
     content = await get_content(
         content_type, page, language_code, extra_arg, kitchen_id
@@ -132,10 +138,10 @@ async def update_paginated_message(
 
     caption, image_url, total_pages, builder = content
     keyboard = build_pagination_keyboard(
-        page, total_pages, content_type, extra_arg, kitchen_id
+        page, total_pages, content_type, extra_arg, kitchen_id, with_back_button
     )
 
-    if image_url and content_type in ["user-company", "user-products"]:
+    if image_url and content_type in ["user-company", "user-products", "cart"]:
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:
@@ -177,6 +183,7 @@ async def send_paginated_message(
     language_code: str,
     extra_arg: str = "",
     kitchen_id: str = "",
+    with_back_button: bool = True,
 ):
     content = await get_content(
         content_type, page, language_code, extra_arg, kitchen_id
@@ -187,10 +194,10 @@ async def send_paginated_message(
 
     caption, image_url, total_pages, builder = content
     keyboard = build_pagination_keyboard(
-        page, total_pages, content_type, extra_arg, kitchen_id
+        page, total_pages, content_type, extra_arg, kitchen_id, with_back_button
     )
 
-    if image_url and content_type in ["user-company", "user-products"]:
+    if image_url and content_type in ["user-company", "user-products", "cart"]:
         if builder:
             merged_builder = builder
             for row in keyboard.inline_keyboard:
@@ -225,6 +232,8 @@ async def get_content(
         return await render_product_list(page, language_code, extra_arg)
     elif content_type == "user-products":
         return await render_user_product_list(page, language_code, extra_arg)
+    elif content_type == "cart":
+        return await render_user_cart_product(page, language_code, extra_arg)
     return None
 
 
