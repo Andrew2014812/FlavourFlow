@@ -36,7 +36,7 @@ async def render_admin_list(
 
 async def render_company_list(
     page: int, language_code: str, kitchen_id: str
-) -> Tuple[str, Optional[str], int, None]:
+) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
     result = await company_service.get_list(page=page, limit=1)
     total_pages = result.total_pages
     if not result.companys:
@@ -44,11 +44,25 @@ async def render_company_list(
 
     company = result.companys[0]
     if language_code == "ua":
-        text = f"{company.title_ua}\n" f"{company.description_ua}\n"
+        text = f"{company.title_ua}\n" "{company.description_ua}\n"
     else:
-        text = f"{company.title_en}\n" f"{company.description_en}\n"
+        text = f"{company.title_en}\n" "{company.description_en}\n"
 
-    return text, company.image_link, total_pages, None
+    builder = InlineKeyboardBuilder()
+    products_button_text = (
+        "Go to products" if language_code == "en" else "Перейти до продуктів"
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text=products_button_text,
+            callback_data=json.dumps(
+                {"a": "list", "t": "user-products", "p": 1, "e": str(company.id)},
+                separators=(",", ":"),
+            ),
+        )
+    )
+
+    return text, company.image_link, total_pages, builder
 
 
 async def render_product_list(page: int, language_code: str, company_id: str):
@@ -94,3 +108,51 @@ async def render_product_list(page: int, language_code: str, company_id: str):
     total_pages = result.total_pages
 
     return caption, None, total_pages, builder
+
+
+async def render_user_product_list(
+    page: int, language_code: str, company_id: str
+) -> Tuple[str, None, int, InlineKeyboardBuilder]:
+    result: ProductListResponse = await product_service.get_list(
+        company_id=int(company_id), page=page, limit=1
+    )
+
+    builder = InlineKeyboardBuilder()
+    caption = "Products" if language_code == "en" else "Продукти"
+    product = result.products[0]
+
+    product_name = product.title_en if language_code == "en" else product.title_ua
+    caption += f"\n- {product_name}"
+    builder.row(
+        InlineKeyboardButton(
+            text="Add to Cart" if language_code == "en" else "Додати до кошика",
+            callback_data=json.dumps(
+                {
+                    "a": "add_to_cart",
+                    "t": "user-products",
+                    "p": page,
+                    "e": str(product.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+        InlineKeyboardButton(
+            text=(
+                "Add to Wishlist"
+                if language_code == "en"
+                else "Додати до списку бажань"
+            ),
+            callback_data=json.dumps(
+                {
+                    "a": "add_to_wishlist",
+                    "t": "user-products",
+                    "p": page,
+                    "e": str(product.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+    )
+
+    total_pages = result.total_pages
+    return caption, product.image_link, total_pages, builder

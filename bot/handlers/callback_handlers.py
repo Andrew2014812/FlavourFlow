@@ -179,6 +179,29 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             callback, "admin-product", 1, language_code, extra_arg=str(item_id)
         )
 
+    elif action == "list" and content_type == "user-products":
+        await update_paginated_message(
+            callback, "user-products", page, language_code, extra_arg
+        )
+
+    elif action == "add_to_cart" and content_type == "user-products":
+        product_id = extra_arg
+        await callback.message.answer(
+            "Product added to cart!"
+            if language_code == "en"
+            else "Продукт додано до кошика!"
+        )
+        await callback.answer()
+
+    elif action == "add_to_wishlist" and content_type == "user-products":
+        product_id = extra_arg
+        await callback.message.answer(
+            "Product added to wishlist!"
+            if language_code == "en"
+            else "Продукт додано до списку бажань!"
+        )
+        await callback.answer()
+
     elif action == "edit_profile":
         await callback.message.answer(
             text_service.get_text("update_profile_instruction", language_code)
