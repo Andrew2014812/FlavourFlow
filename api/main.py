@@ -27,12 +27,40 @@ app.include_router(cart_router, prefix="/cart", tags=["card"])
 app.include_router(wishlist_router, prefix="/wishlist", tags=["wishlist"])
 
 
-@app.get("/")
-async def read_root() -> dict:
-    """
-    Simple root endpoint that returns a message.
+import stripe
+from fastapi import FastAPI
 
-    Returns:
-        dict: {"msg": "Hello World"}
-    """
-    return {"msg": "Hello World"}
+app = FastAPI()
+
+# Настройки
+STRIPE_API_KEY = ""
+STRIPE_WEBHOOK_SECRET = ""
+
+stripe.api_key = STRIPE_API_KEY
+
+
+# @app.post("/webhook")
+# async def webhook(request: Request):
+#     payload = await request.body()
+#     sig_header = request.headers.get("stripe-signature")
+
+#     try:
+#         event = stripe.Webhook.construct_event(
+#             payload, sig_header, STRIPE_WEBHOOK_SECRET
+#         )
+#     except ValueError as e:
+#         raise HTTPException(status_code=400, detail="Invalid payload")
+#     except stripe.error.SignatureVerificationError as e:
+
+#         raise HTTPException(status_code=400, detail="Invalid signature")
+
+#     # Проверка успешной оплаты
+#     if event["type"] == "checkout.session.completed":
+#         session = event["data"]["object"]
+#         user_id = session.get("client_reference_id")
+#         if not user_id:
+#             return {"status": "no user ID"}
+
+#         await bot.send_message(user_id, "success")
+
+#     return {"status": "success"}

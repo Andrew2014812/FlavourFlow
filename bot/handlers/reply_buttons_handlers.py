@@ -1,6 +1,7 @@
 import json
 from functools import wraps
 
+import stripe
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.user.schemas import UserResponseMe
@@ -126,3 +127,43 @@ async def handle_admin(message: Message, language_code: str, **kwargs):
         await message.edit_text(text, reply_markup=keyboard)
     else:
         await message.answer(text, reply_markup=keyboard)
+
+
+stripe.api_key = ""
+
+
+@register_button_handler(
+    text_service.buttons["en"]["test_payment"],
+    text_service.buttons["ua"]["test_payment"],
+)
+async def handle_payment(message: Message, language_code: str, **kwargs):
+    # Создание сессии Stripe Checkout
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": "Тестовый товар",
+                        },
+                        "unit_amount": 1000,  # 10.00 USD (в центах)
+                    },
+                    "quantity": 1,
+                }
+            ],
+            mode="payment",
+            success_url="https://example.com/success",
+            cancel_url="https://example.com/cancel",
+        )
+
+        # Отправка ссылки на оплату
+        payment_url = session.url
+        payment_message = (
+            "Для тестирования оплаты переходите по ссылке: " + f": {payment_url}"
+        )
+        await message.answer(payment_message)
+    except Exception as e:
+        error_message = "error in handle_payment: " + str(e)
+        await message.answer(error_message)
