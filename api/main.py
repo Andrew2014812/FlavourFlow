@@ -27,18 +27,6 @@ app.include_router(cart_router, prefix="/cart", tags=["card"])
 app.include_router(wishlist_router, prefix="/wishlist", tags=["wishlist"])
 
 
-import stripe
-from fastapi import FastAPI
-
-app = FastAPI()
-
-# Настройки
-STRIPE_API_KEY = ""
-STRIPE_WEBHOOK_SECRET = ""
-
-stripe.api_key = STRIPE_API_KEY
-
-
 # @app.post("/webhook")
 # async def webhook(request: Request):
 #     payload = await request.body()

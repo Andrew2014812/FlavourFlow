@@ -29,6 +29,7 @@ async def get_entity_by_params(
     options: Optional[List[Load]] = None,
     limit: Optional[int] = None,
     page: Optional[int] = None,
+    order_by: str = None,
     with_total_pages: bool = False,
     **params,
 ) -> Tuple[List[T] | Optional[T], int]:
@@ -38,6 +39,9 @@ async def get_entity_by_params(
         entity_class,
         **params,
     )
+
+    if order_by:
+        statement = statement.order_by(getattr(entity_class, order_by))
 
     if options:
         statement = statement.options(*options)

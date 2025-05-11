@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from ..common.services import product_service
-from ..common.services.cart_service import add_to_cart, change_amount
+from ..common.services.cart_service import add_to_cart, change_amount, remove_from_cart
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import country_service, kitchen_service
 from ..common.services.product_service import product_service
@@ -175,7 +175,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 text_service.get_text("successful_deleting", language_code)
             )
             await update_paginated_message(
-                callback, content_type, page, language_code, extra_arg, make_send=True
+                callback, content_type, page, language_code, extra_arg
             )
             await state.clear()
 
@@ -218,7 +218,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     #     )
     #     await callback.answer()
 
-    elif action == "plus_quantity":
+    elif action == "plus":
         await change_amount(callback.from_user.id, item_id, 1)
         await update_paginated_message(
             callback,
@@ -230,12 +230,24 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         )
         await callback.answer()
 
-    elif action == "minus_quantity":
+    elif action == "minus":
         await change_amount(callback.from_user.id, item_id, -1)
         await update_paginated_message(
             callback,
             "cart",
             page,
+            language_code,
+            callback.from_user.id,
+            with_back_button=False,
+        )
+        await callback.answer()
+
+    elif action == "remove" and content_type == "cart":
+        await remove_from_cart(callback.from_user.id, item_id)
+        await update_paginated_message(
+            callback,
+            "cart",
+            1,
             language_code,
             callback.from_user.id,
             with_back_button=False,

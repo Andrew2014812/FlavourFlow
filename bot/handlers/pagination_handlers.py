@@ -1,5 +1,6 @@
 import json
 
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -8,7 +9,7 @@ from aiogram.types import (
     KeyboardButton,
     Message,
 )
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
@@ -46,7 +47,6 @@ def build_pagination_keyboard(
     with_back_button: bool = True,
 ):
     buttons = []
-
     if current_page > 1:
         buttons.append(
             InlineKeyboardButton(
@@ -75,7 +75,6 @@ def build_pagination_keyboard(
             pages = [1, "...", total_pages - 2, total_pages - 1, total_pages]
         else:
             pages = [1, "...", current_page, "...", total_pages]
-
         for page in pages:
             if page == "...":
                 middle_page = total_pages // 2
@@ -108,7 +107,7 @@ def build_pagination_keyboard(
             )
         )
 
-    if with_back_button:
+    if with_back_button and content_type != "cart":
         back_button = InlineKeyboardButton(
             text=ARROW_BACK,
             callback_data=make_callback_data(
@@ -137,43 +136,60 @@ async def update_paginated_message(
         return
 
     caption, image_url, total_pages, builder = content
+    if page > total_pages:
+        page = max(1, total_pages)
+
+    effective_with_back_button = with_back_button and content_type != "cart"
+
     keyboard = build_pagination_keyboard(
-        page, total_pages, content_type, extra_arg, kitchen_id, with_back_button
+        page,
+        total_pages,
+        content_type,
+        extra_arg,
+        kitchen_id,
+        effective_with_back_button,
     )
 
-    if image_url and content_type in ["user-company", "user-products", "cart"]:
-        if builder:
-            merged_builder = builder
-            for row in keyboard.inline_keyboard:
-                merged_builder.row(*row)
-            reply_markup = merged_builder.as_markup()
-        else:
-            reply_markup = keyboard
+    merged_builder = InlineKeyboardBuilder()
+    if builder:
+        for button in builder.buttons:
+            merged_builder.add(button)
+    for row in keyboard.inline_keyboard:
+        merged_builder.row(*row)
+    reply_markup = merged_builder.as_markup()
+
+    # Проверяем, является ли сообщение медиа (фото) или текстом
+    is_media_content = image_url and content_type in [
+        "user-company",
+        "user-products",
+        "cart",
+    ]
+
+    if is_media_content:
         try:
             await callback.message.edit_media(
                 InputMediaPhoto(media=image_url, caption=caption),
                 reply_markup=reply_markup,
             )
-        except Exception:
+        except TelegramBadRequest as e:
+            # Если редактирование медиа не удалось, отправляем новое сообщение
             await callback.message.delete()
             await callback.message.answer_photo(
                 photo=image_url, caption=caption, reply_markup=reply_markup
             )
-    elif builder:
-        for row in keyboard.inline_keyboard:
-            builder.row(*row)
-        reply_markup = builder.as_markup()
-        if content_type == "user-products":
-            await callback.message.delete()
-            await callback.message.answer(caption, reply_markup=reply_markup)
-        else:
+    else:
+        # Проверяем, содержит ли сообщение текст
+        if callback.message.text or callback.message.caption:
             try:
                 await callback.message.edit_text(caption, reply_markup=reply_markup)
-            except Exception:
+            except TelegramBadRequest as e:
+                # Если редактирование текста не удалось, отправляем новое сообщение
                 await callback.message.delete()
                 await callback.message.answer(caption, reply_markup=reply_markup)
-    else:
-        await callback.message.edit_text(caption, reply_markup=keyboard)
+        else:
+            # Если сообщение не текст и не медиа, отправляем новое
+            await callback.message.delete()
+            await callback.message.answer(caption, reply_markup=reply_markup)
 
 
 async def send_paginated_message(
@@ -193,27 +209,34 @@ async def send_paginated_message(
         return
 
     caption, image_url, total_pages, builder = content
+    if page > total_pages:
+        page = max(1, total_pages)
+
+    effective_with_back_button = with_back_button and content_type != "cart"
+
     keyboard = build_pagination_keyboard(
-        page, total_pages, content_type, extra_arg, kitchen_id, with_back_button
+        page,
+        total_pages,
+        content_type,
+        extra_arg,
+        kitchen_id,
+        effective_with_back_button,
     )
 
+    merged_builder = InlineKeyboardBuilder()
+    if builder:
+        for button in builder.buttons:
+            merged_builder.add(button)
+    for row in keyboard.inline_keyboard:
+        merged_builder.row(*row)
+    reply_markup = merged_builder.as_markup()
+
     if image_url and content_type in ["user-company", "user-products", "cart"]:
-        if builder:
-            merged_builder = builder
-            for row in keyboard.inline_keyboard:
-                merged_builder.row(*row)
-            reply_markup = merged_builder.as_markup()
-        else:
-            reply_markup = keyboard
         await message.answer_photo(
             photo=image_url, caption=caption, reply_markup=reply_markup
         )
-    elif builder:
-        for row in keyboard.inline_keyboard:
-            builder.row(*row)
-        await message.answer(caption, reply_markup=builder.as_markup())
     else:
-        await message.answer(caption, reply_markup=keyboard)
+        await message.answer(caption, reply_markup=reply_markup)
 
 
 async def get_content(

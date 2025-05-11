@@ -185,6 +185,14 @@ async def render_user_cart_product(
         telegram_id=telegram_id, page=page
     )
 
+    if not cart_item:
+        return (
+            "Cart is empty" if language_code == "en" else "Кошик порожній",
+            None,
+            0,
+            None,
+        )
+
     builder = InlineKeyboardBuilder()
 
     product_name = (
@@ -201,8 +209,8 @@ async def render_user_cart_product(
             text="╋",
             callback_data=json.dumps(
                 {
-                    "a": "plus_quantity",
-                    "t": "user-cart",
+                    "a": "plus",
+                    "t": "cart",
                     "p": page,
                     "id": str(cart_item.id),
                 },
@@ -213,8 +221,8 @@ async def render_user_cart_product(
             text=("–"),
             callback_data=json.dumps(
                 {
-                    "a": "minus_quantity",
-                    "t": "user-cart",
+                    "a": "minus",
+                    "t": "cart",
                     "p": page,
                     "id": str(cart_item.id),
                 },
@@ -225,8 +233,8 @@ async def render_user_cart_product(
             text=("Remove"),
             callback_data=json.dumps(
                 {
-                    "a": "remove_from_cart",
-                    "t": "user-cart",
+                    "a": "remove",
+                    "t": "cart",
                     "p": page,
                     "id": str(cart_item.id),
                 },

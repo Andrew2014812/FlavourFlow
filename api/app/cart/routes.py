@@ -45,7 +45,7 @@ async def post_cart_item(
     )
 
 
-@router.delete("/remove/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/remove/{item_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_cart_item(
     session: SessionDep,
     item_id: int,
