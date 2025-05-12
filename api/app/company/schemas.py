@@ -5,15 +5,14 @@ from sqlmodel import Field, SQLModel
 
 
 class CompanyBase(SQLModel):
-    title_ua: str = Field(max_length=100, unique=True, nullable=False, index=True)
-    title_en: str = Field(max_length=100, unique=True, nullable=False, index=True)
+    title_ua: str
+    title_en: str
 
-    description_ua: str = Field(max_length=255, nullable=False)
-    description_en: str = Field(max_length=255, nullable=False)
+    description_ua: str
+    description_en: str
 
     image_link: str = Field(max_length=255, default="in progress", nullable=True)
     image_id: str = Field(max_length=255, default="in progress", nullable=True)
-    rating: float = Field(default=0)
 
     kitchen_id: int = Field(foreign_key="kitchen.id")
 
@@ -63,7 +62,6 @@ class CompanyPatch(SQLModel):
     description_ua: Optional[str] = Field(default=None)
     description_en: Optional[str] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
-    rating: Optional[float] = Field(default=None)
     kitchen_id: Optional[int] = Field(default=None)
 
     @classmethod
@@ -74,7 +72,6 @@ class CompanyPatch(SQLModel):
         description_ua: Optional[str] = Form(None),
         description_en: Optional[str] = Form(None),
         image: Optional[UploadFile] = File(None),
-        rating: Optional[float] = Form(None),
         kitchen_id: Optional[int] = Form(None),
     ):
         return cls(
@@ -83,6 +80,5 @@ class CompanyPatch(SQLModel):
             description_ua=description_ua,
             description_en=description_en,
             image=image,
-            rating=rating,
             kitchen_id=kitchen_id,
         )

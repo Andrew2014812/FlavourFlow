@@ -74,8 +74,8 @@
       "product_title": "Продукти",
       "no_products": "Продуктів не знайдено",
       "add_product_button": "Додати продукт",
-      "product_add_instruction": "Будь ласка, надайте деталі продукту у форматі:\nНазва ua:\nНазва en:\nОпис ua:\nОпис en:\nСклад ua:\nСклад en:\nЦіна:\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Склад ua: Склад українською; Склад en: Склад англійською; Ціна: 20",
-      "product_edit_instruction": "Будь ласка, надайте деталі продукту для оновлення (тільки поля, які хочете змінити):\nНазва ua:\nНазва en:Опис en:\nСклад en:\nPrice:\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Склад ua: Склад українською; Склад en: Склад англійською; Ціна: $20",
+      "product_add_instruction": "Будь ласка, надайте деталі продукту у форматі:\nНазва ua:\nНазва en:\nОпис ua:\nОпис en:\nСклад ua:\nСклад en:\nЦіна:\n\nПриклад:\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Склад ua: Склад українською; Склад en: Склад англійською; Ціна: 20; Вылюта: UAH",
+      "product_edit_instruction": "Будь ласка, надайте деталі продукту для оновлення (тільки поля, які хочете змінити):\nНазва ua:\nНазва en:Опис en:\nСклад en:\nPrice:\n\nПриклад (введіть лише те, що потрібно):\n\nНазва ua: Фаст-фуд 1; Назва en: Fast-food 1; Склад ua: Склад українською; Склад en: Склад англійською; Ціна: 20; Вылюта: UAH",
       "product_delete_confirm": "Ви впевнені, що хочете видалити цей продукт?",
       "upload_product_image": "Будь ласка, завантажте зображення продукту"
     },
@@ -125,8 +125,8 @@
       "product_title": "Products",
       "no_products": "No products found",
       "add_product_button": "Add Product",
-      "product_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nComposition ua: [composition in Ukrainian]\nComposition en: [composition in English]\n\nExample:\n\nTitle ua: Бургер; Title en: Burger; Tasty burger; Composition ua: Булка, м'ясо; Composition en: Bun, meat; Price: $20",
-      "product_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nComposition ua: [composition in Ukrainian]\nComposition en: [composition in English]\n\nExample (input only needed):\n\nTitle ua: Бургер; Title en: Burger; Composition ua: Булка, м'ясо; Composition en: Bun, meat; Price: $20",
+      "product_add_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nComposition ua: [composition in Ukrainian]\nComposition en: [composition in English]\n\nExample:\n\nTitle ua: Бургер; Title en: Burger; Tasty burger; Composition ua: Булка, м'ясо; Composition en: Bun, meat; Price: 20; Currency: UAH",
+      "product_edit_instruction": "Please send a message with the following format:\n\nTitle ua: [title in Ukrainian]\nTitle en: [title in English]\nComposition ua: [composition in Ukrainian]\nComposition en: [composition in English]\n\nExample (input only needed):\n\nTitle ua: Бургер; Title en: Burger; Composition ua: Булка, м'ясо; Composition en: Bun, meat; Price: 20; Currency: UAH",
       "product_delete_confirm": "Are you sure you want to delete this product?",
       "upload_product_image": "Please upload a product image"
     }

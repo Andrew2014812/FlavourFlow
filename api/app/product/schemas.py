@@ -5,15 +5,16 @@ from sqlmodel import Field, SQLModel
 
 
 class ProductBase(SQLModel):
-    title_ua: str = Field(max_length=100)
-    title_en: str = Field(max_length=100)
+    title_ua: str
+    title_en: str
 
-    composition_ua: str = Field(max_length=255)
-    composition_en: str = Field(max_length=255)
+    composition_ua: str
+    composition_en: str
 
-    image_link: str = Field(max_length=255, nullable=True, unique=True)
-    image_id: str = Field(max_length=255, nullable=True, unique=True)
-    price: str = Field(max_length=255)
+    image_link: str = Field(nullable=True, unique=True)
+    image_id: str = Field(nullable=True, unique=True)
+    price: int
+    currency: str = Field(default="UAH")
 
     company_id: Optional[int] = Field(default=None, foreign_key="company.id")
 
@@ -23,7 +24,7 @@ class ProductCreate(SQLModel):
     title_en: str
     composition_ua: str
     composition_en: str
-    price: str
+    price: int
     company_id: int = 1
     image: UploadFile = File(...)
 
@@ -34,7 +35,7 @@ class ProductCreate(SQLModel):
         title_en: str = Form(...),
         composition_ua: str = Form(...),
         composition_en: str = Form(...),
-        price: str = Form(...),
+        price: int = Form(...),
         company_id: int = Form(1),
         image: Optional[UploadFile] = File(...),
     ):
@@ -63,7 +64,7 @@ class ProductPatch(SQLModel):
     title_en: Optional[str] = Field(default=None)
     composition_ua: Optional[str] = Field(default=None)
     composition_en: Optional[str] = Field(default=None)
-    price: Optional[str] = Field(default=None)
+    price: Optional[int] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
     company_id: Optional[int] = Field(default=None)
 
@@ -74,7 +75,7 @@ class ProductPatch(SQLModel):
         title_en: Optional[str] = Form(None),
         composition_ua: Optional[str] = Form(None),
         composition_en: Optional[str] = Form(None),
-        price: Optional[str] = Form(None),
+        price: Optional[int] = Form(None),
         company_id: Optional[int] = Form(None),
         image: Optional[UploadFile] = File(None),
     ):

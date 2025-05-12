@@ -1,11 +1,11 @@
 from typing import List
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import SQLModel
 
 
 class KitchenBase(SQLModel):
-    title_ua: str = Field(max_length=100, unique=True)
-    title_en: str = Field(max_length=100, unique=True)
+    title_ua: str
+    title_en: str
 
 
 class KitchenResponse(KitchenBase):
