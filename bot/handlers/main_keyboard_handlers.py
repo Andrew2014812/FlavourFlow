@@ -3,24 +3,10 @@ import json
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from ..common.services.gastronomy_service import kitchen_service
+
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
-
-
-async def get_main_keyboard(language_code: str, telegram_id: int):
-    builder = ReplyKeyboardBuilder()
-    buttons = text_service.buttons.get(language_code, {}).copy()
-    buttons.pop("back", None)
-
-    user = await get_user(telegram_id)
-    if user and user.role == "user":
-        buttons.pop("admin_panel", None)
-
-    for button in buttons.values():
-        builder.add(KeyboardButton(text=button))
-
-    builder.adjust(2)
-    return builder.as_markup(resize_keyboard=True)
 
 
 def get_language_keyboard():
@@ -51,3 +37,31 @@ def get_admin_panel_keyboard(language_code: str) -> InlineKeyboardMarkup:
         builder.add(InlineKeyboardButton(text=text, callback_data=callback_data))
     builder.adjust(2)
     return builder.as_markup()
+
+
+async def get_main_keyboard(language_code: str, telegram_id: int):
+    builder = ReplyKeyboardBuilder()
+    buttons = text_service.buttons.get(language_code, {}).copy()
+    buttons.pop("back", None)
+
+    user = await get_user(telegram_id)
+    if user and user.role == "user":
+        buttons.pop("admin_panel", None)
+
+    for button in buttons.values():
+        builder.add(KeyboardButton(text=button))
+
+    builder.adjust(2)
+    return builder.as_markup(resize_keyboard=True)
+
+
+async def get_kitchens_keyboard(language_code: str):
+    kitchen_list = await kitchen_service.get_list(page=1)
+    builder = ReplyKeyboardBuilder()
+
+    for kitchen in kitchen_list.kitchens:
+        title = kitchen.title_en if language_code == "en" else kitchen.title_ua
+        builder.add(KeyboardButton(text=title))
+
+    builder.add(KeyboardButton(text=text_service.buttons[language_code]["back"]))
+    return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)

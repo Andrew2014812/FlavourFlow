@@ -15,7 +15,6 @@ class CompanyBase(SQLModel):
     image_id: str = Field(max_length=255, default="in progress", nullable=True)
     rating: float = Field(default=0)
 
-    country_id: int = Field(foreign_key="country.id")
     kitchen_id: int = Field(foreign_key="kitchen.id")
 
 
@@ -36,7 +35,6 @@ class CompanyCreate(SQLModel):
     description_en: str
 
     image: UploadFile = File(...)
-    country_id: int = 1
     kitchen_id: int = 1
 
     @classmethod
@@ -47,7 +45,6 @@ class CompanyCreate(SQLModel):
         description_ua: str = Form(...),
         description_en: str = Form(...),
         image: Optional[UploadFile] = File(...),
-        country_id: int = Form(1),
         kitchen_id: int = Form(1),
     ):
         return cls(
@@ -56,7 +53,6 @@ class CompanyCreate(SQLModel):
             description_ua=description_ua,
             description_en=description_en,
             image=image,
-            country_id=country_id,
             kitchen_id=kitchen_id,
         )
 
@@ -68,7 +64,6 @@ class CompanyPatch(SQLModel):
     description_en: Optional[str] = Field(default=None)
     image: Optional[UploadFile] = File(default=None)
     rating: Optional[float] = Field(default=None)
-    country_id: Optional[int] = Field(default=None)
     kitchen_id: Optional[int] = Field(default=None)
 
     @classmethod
@@ -80,7 +75,6 @@ class CompanyPatch(SQLModel):
         description_en: Optional[str] = Form(None),
         image: Optional[UploadFile] = File(None),
         rating: Optional[float] = Form(None),
-        country_id: Optional[int] = Form(None),
         kitchen_id: Optional[int] = Form(None),
     ):
         return cls(
@@ -90,6 +84,5 @@ class CompanyPatch(SQLModel):
             description_en=description_en,
             image=image,
             rating=rating,
-            country_id=country_id,
             kitchen_id=kitchen_id,
         )

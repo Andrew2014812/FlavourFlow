@@ -7,18 +7,15 @@ from aiogram.types import CallbackQuery
 from ..common.services import product_service
 from ..common.services.cart_service import add_to_cart, change_amount, remove_from_cart
 from ..common.services.company_service import company_service
-from ..common.services.gastronomy_service import country_service, kitchen_service
+from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.product_service import product_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
 from .entity_handlers.entity_handlers import (
-    handle_edit_company_country,
     handle_edit_company_image,
     handle_edit_company_kitchen,
     handle_edit_company_text,
     initiate_action,
-    process_country_selection,
-    process_edit_company_country,
     process_edit_company_kitchen,
     process_kitchen_selection,
     render_details,
@@ -38,7 +35,6 @@ router = Router()
 CONTENT_TYPES = {
     "COMPANY": "user-company",
     "ADMIN_COMPANY": "admin-company",
-    "ADMIN_COUNTRY": "admin-country",
     "ADMIN_KITCHEN": "admin-kitchen",
     "ADMIN_PRODUCT": "admin-product",
     "PRODUCT": "product",
@@ -46,7 +42,6 @@ CONTENT_TYPES = {
 
 SERVICES = {
     "admin-company": company_service,
-    "admin-country": country_service,
     "admin-kitchen": kitchen_service,
     "admin-product": product_service,
 }
@@ -67,20 +62,25 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     if action == "nav":
         await update_paginated_message(
-            callback, content_type, page, language_code, extra_arg
+            callback=callback,
+            content_type=content_type,
+            page=page,
+            language_code=language_code,
+            extra_arg=extra_arg,
+            kitchen_id=kitchen_id,
         )
 
     elif action == "back":
         if content_type == CONTENT_TYPES["COMPANY"]:
             await callback.message.delete()
             await handle_restaurants(callback.message, language_code)
+
         elif content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
             await update_paginated_message(
                 callback, "admin-company", page, language_code, extra_arg
             )
         elif content_type in [
             CONTENT_TYPES["ADMIN_COMPANY"],
-            CONTENT_TYPES["ADMIN_COUNTRY"],
             CONTENT_TYPES["ADMIN_KITCHEN"],
         ]:
             await handle_admin(
@@ -88,13 +88,14 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             )
         elif content_type == "user-products":
             await update_paginated_message(
-                callback,
-                "user-company",
-                company_page,
-                language_code,
-                extra_arg,
-                kitchen_id,
+                callback=callback,
+                content_type="user-company",
+                page=company_page,
+                language_code=language_code,
+                extra_arg=extra_arg,
+                kitchen_id=kitchen_id,
             )
+
         elif content_type.endswith("-details"):
             new_content_type = content_type.replace("-details", "")
             await update_paginated_message(
@@ -259,23 +260,14 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             text_service.get_text("update_profile_instruction", language_code)
         )
 
-    elif content_type == "select_country_create":
-        await process_country_selection(callback, state, item_id)
-
     elif content_type == "select_kitchen_create":
         await process_kitchen_selection(callback, state, item_id)
-
-    elif content_type == "select_country_edit":
-        await process_edit_company_country(callback, state, item_id)
 
     elif content_type == "select_kitchen_edit":
         await process_edit_company_kitchen(callback, state, item_id)
 
     elif content_type == "edit_company_text":
         await handle_edit_company_text(callback, state)
-
-    elif content_type == "edit_company_country":
-        await handle_edit_company_country(callback, state)
 
     elif content_type == "edit_company_kitchen":
         await handle_edit_company_kitchen(callback, state)

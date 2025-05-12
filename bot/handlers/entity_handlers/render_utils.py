@@ -8,14 +8,13 @@ from api.app.product.schemas import ProductListResponse
 
 from ...common.services.cart_service import get_cart_items
 from ...common.services.company_service import company_service
-from ...common.services.gastronomy_service import country_service, kitchen_service
+from ...common.services.gastronomy_service import kitchen_service
 from ...common.services.product_service import product_service
 from ...common.services.text_service import text_service
 from .handler_utils import build_admin_buttons
 
 SERVICES = {
     "company": company_service,
-    "country": country_service,
     "kitchen": kitchen_service,
 }
 
@@ -39,12 +38,16 @@ async def render_admin_list(
 async def render_company_list(
     page: int, language_code: str, kitchen_id: str, company_id: str = None
 ) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
+
     if company_id and company_id.isdigit():
         company = await company_service.get_item(int(company_id))
+
         if not company:
             return "Company not found", None, 1, None
+
         result = type("Result", (), {"companys": [company], "total_pages": 1})()
         total_pages = 1
+
     else:
         result = await company_service.get_list(
             page=page, limit=1, kitchen_id=kitchen_id

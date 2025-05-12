@@ -13,7 +13,8 @@ from ..handlers.main_keyboard_handlers import (
     get_admin_panel_keyboard,
     get_language_keyboard,
 )
-from ..handlers.pagination_handlers import get_category_keyboard, send_paginated_message
+from ..handlers.pagination_handlers import send_paginated_message
+from .main_keyboard_handlers import get_kitchens_keyboard
 
 button_handlers = {}
 
@@ -96,7 +97,7 @@ async def handle_profile(message: Message, language_code: str):
 async def handle_restaurants(message: Message, language_code: str):
     await message.answer(
         text_service.get_text("select_category", language_code),
-        reply_markup=await get_category_keyboard(language_code),
+        reply_markup=await get_kitchens_keyboard(language_code),
     )
 
 
@@ -137,7 +138,6 @@ stripe.api_key = ""
     text_service.buttons["ua"]["test_payment"],
 )
 async def handle_payment(message: Message, language_code: str, **kwargs):
-    # Создание сессии Stripe Checkout
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -148,7 +148,7 @@ async def handle_payment(message: Message, language_code: str, **kwargs):
                         "product_data": {
                             "name": "Тестовый товар",
                         },
-                        "unit_amount": 1000,  # 10.00 USD (в центах)
+                        "unit_amount": 1000,
                     },
                     "quantity": 1,
                 }
@@ -158,7 +158,6 @@ async def handle_payment(message: Message, language_code: str, **kwargs):
             cancel_url="https://example.com/cancel",
         )
 
-        # Отправка ссылки на оплату
         payment_url = session.url
         payment_message = (
             "Для тестирования оплаты переходите по ссылке: " + f": {payment_url}"

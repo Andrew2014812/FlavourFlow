@@ -3,6 +3,7 @@ from aiogram import F as FILTER
 from aiogram import Router
 from aiogram.types import Message
 
+from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
 
 from ..common.services.gastronomy_service import kitchen_service
@@ -87,7 +88,7 @@ async def handle_buttons(message: Message):
     language_code = user_info.language_code
     text = message.text
 
-    kitchen_list = await kitchen_service.get_list(page=1)
+    kitchen_list: KitchenListResponse = await kitchen_service.get_list(page=1)
     kitchen_titles = [
         kitchen.title_en if language_code == "en" else kitchen.title_ua
         for kitchen in kitchen_list.kitchens
@@ -101,7 +102,7 @@ async def handle_buttons(message: Message):
             or (language_code == "ua" and k.title_ua == text)
         )
         await send_paginated_message(
-            message, "user-company", 1, language_code, str(kitchen.id)
+            message, "user-company", 1, language_code, kitchen_id=str(kitchen.id)
         )
         return
 

@@ -1,5 +1,4 @@
 import json
-import logging
 
 from aiogram import Dispatcher, Router
 from aiogram.fsm.context import FSMContext
@@ -7,8 +6,10 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, Message, PhotoSize
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from api.app.company.schemas import CompanyResponse
+
 from ...common.services.company_service import company_service
-from ...common.services.gastronomy_service import country_service, kitchen_service
+from ...common.services.gastronomy_service import kitchen_service
 from ...common.services.text_service import text_service
 from ..pagination_handlers import send_paginated_message
 from .handler_utils import (
@@ -19,23 +20,17 @@ from .handler_utils import (
     get_item_admin_details_keyboard,
 )
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 router = Router()
 
 
 class Form(StatesGroup):
     process_company = State()
-    process_country = State()
     process_kitchen = State()
     confirm_delete = State()
-    select_countries = State()
     select_kitchens = State()
     upload_image = State()
     edit_company_menu = State()
     edit_company_text = State()
-    edit_company_country = State()
     edit_company_kitchen = State()
     edit_company_image = State()
 
@@ -51,7 +46,7 @@ COMPANY_FIELD_MAPPING = {
     "Опис en:": "description_en",
 }
 
-COUNTRY_KITCHEN_FIELD_MAPPING = {
+KITCHEN_FIELD_MAPPING = {
     "Title ua:": "title_ua",
     "Title en:": "title_en",
     "Назва ua:": "title_ua",
@@ -60,7 +55,6 @@ COUNTRY_KITCHEN_FIELD_MAPPING = {
 
 SERVICES = {
     "company": company_service,
-    "country": country_service,
     "kitchen": kitchen_service,
 }
 
@@ -73,7 +67,7 @@ async def render_details(
     language_code: str,
 ):
     service = SERVICES[entity_type]
-    item = await service.get_item(item_id)
+    item: CompanyResponse = await service.get_item(item_id)
 
     if isinstance(item, dict) and "error" in item:
         error_text = (
@@ -103,11 +97,6 @@ async def get_edit_company_menu_keyboard(
             "Змінити текст" if language_code == "ua" else "Edit text",
         ),
         (
-            "edit_company_country",
-            "edit_country_button",
-            "Змінити країну" if language_code == "ua" else "Edit country",
-        ),
-        (
             "edit_company_kitchen",
             "edit_kitchen_button",
             "Змінити кухню" if language_code == "ua" else "Edit kitchen",
@@ -119,7 +108,7 @@ async def get_edit_company_menu_keyboard(
         ),
     ]
 
-    for callback_type, text_key, button_text in buttons:
+    for callback_type, _, button_text in buttons:
         callback_data = json.dumps(
             {"t": callback_type, "p": page, "id": item_id},
             separators=(",", ":"),
@@ -174,6 +163,7 @@ async def initiate_action(
         )
         if entity_type != "company":
             key = key.replace("company", "country-kitchen")
+
         text = text_service.get_text(key, language_code)
         keyboard = get_cancel_keyboard(language_code, f"admin-{entity_type}", page)
 
@@ -187,30 +177,6 @@ async def initiate_action(
         action=action.value,
         item_id=item_id,
     )
-
-
-async def get_countries_keyboard(language_code: str, action: str = "create"):
-    countries = await country_service.get_list(page=1)
-
-    if isinstance(countries, dict) and "error" in countries:
-        return None, countries["error"], countries["status_code"]
-
-    builder = InlineKeyboardBuilder()
-
-    callback_type = (
-        "select_country_create" if action == "create" else "select_country_edit"
-    )
-
-    for country in countries.countrys:
-        title = country.title_ua if language_code == "ua" else country.title_en
-        callback_data = json.dumps(
-            {"t": callback_type, "id": country.id, "a": "select"},
-            separators=(",", ":"),
-        )
-        builder.add(InlineKeyboardButton(text=title, callback_data=callback_data))
-
-    builder.adjust(1)
-    return builder.as_markup(), None, None
 
 
 async def get_kitchens_keyboard(language_code: str, action: str = "create"):
@@ -246,9 +212,7 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
     service = SERVICES[entity_type]
 
     field_mapping = (
-        COMPANY_FIELD_MAPPING
-        if entity_type == "company"
-        else COUNTRY_KITCHEN_FIELD_MAPPING
+        COMPANY_FIELD_MAPPING if entity_type == "company" else KITCHEN_FIELD_MAPPING
     )
 
     is_allow_empty = action == ActionType.EDIT
@@ -263,7 +227,7 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
 
     if entity_type == "company" and action == ActionType.ADD:
         await state.update_data(company_data=result)
-        keyboard, error, status_code = await get_countries_keyboard(
+        keyboard, error, status_code = await get_kitchens_keyboard(
             language_code, action="create"
         )
         if error:
@@ -276,10 +240,10 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
             return
 
         await message.answer(
-            text_service.get_text("select_countries", language_code),
+            text_service.get_text("select_kitchens", language_code),
             reply_markup=keyboard,
         )
-        await state.set_state(Form.select_countries)
+        await state.set_state(Form.select_kitchens)
 
     else:
         if action == ActionType.ADD:
@@ -319,35 +283,6 @@ async def process_action(message: Message, state: FSMContext, entity_type: str):
             message, f"admin-{entity_type}", page, language_code
         )
         await state.clear()
-
-
-async def process_country_selection(
-    callback: CallbackQuery,
-    state: FSMContext,
-    item_id: int,
-):
-    language_code = (await state.get_data())["language_code"]
-
-    await state.update_data(country_id=item_id)
-    keyboard, error, status_code = await get_kitchens_keyboard(
-        language_code, action="create"
-    )
-
-    if error:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + f": {error} (Status: {status_code})"
-        )
-        await callback.message.edit_text(error_text)
-        await state.clear()
-        return
-
-    await callback.message.edit_text(
-        text_service.get_text("select_kitchens", language_code),
-        reply_markup=keyboard,
-    )
-    await state.set_state(Form.select_kitchens)
-    await callback.answer()
 
 
 async def process_kitchen_selection(
@@ -394,35 +329,6 @@ async def process_edit_company_text(message: Message, state: FSMContext):
     await state.clear()
 
 
-async def process_edit_company_country(
-    callback: CallbackQuery, state: FSMContext, item_id: int
-):
-    data = await state.get_data()
-    language_code = data["language_code"]
-    page = data["page"]
-    company_id = data["item_id"]
-
-    response = await company_service.update(
-        company_id, {"country_id": str(item_id)}, callback.from_user.id
-    )
-
-    if isinstance(response, dict) and "error" in response:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + f": {response['error']} (Status: {response['status_code']})"
-        )
-        await callback.message.edit_text(error_text)
-        await state.clear()
-        return
-
-    await callback.message.edit_text(
-        text_service.get_text("successful_editing", language_code)
-    )
-    await send_paginated_message(callback.message, "admin-company", page, language_code)
-    await state.clear()
-    await callback.answer()
-
-
 async def process_edit_company_kitchen(
     callback: CallbackQuery, state: FSMContext, item_id: int
 ):
@@ -457,7 +363,6 @@ async def process_image_upload(message: Message, state: FSMContext):
     language_code = state_data["language_code"]
     page = state_data["page"]
     company_data = state_data.get("company_data")
-    country_id = str(state_data.get("country_id"))
     kitchen_id = str(state_data.get("kitchen_id"))
     item_id = state_data.get("item_id")
 
@@ -499,7 +404,6 @@ async def process_image_upload(message: Message, state: FSMContext):
         data.update(
             {
                 **company_data,
-                "country_id": country_id,
                 "kitchen_id": kitchen_id,
             }
         )
@@ -532,11 +436,6 @@ async def process_image_upload(message: Message, state: FSMContext):
 @router.message(Form.process_company)
 async def process_company_submission(message: Message, state: FSMContext):
     await process_action(message, state, "company")
-
-
-@router.message(Form.process_country)
-async def process_country_submission(message: Message, state: FSMContext):
-    await process_action(message, state, "country")
 
 
 @router.message(Form.process_kitchen)
@@ -595,38 +494,6 @@ async def handle_edit_company_text(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(text, reply_markup=keyboard)
     await state.set_state(Form.edit_company_text)
-    await callback.answer()
-
-
-async def handle_edit_company_country(callback: CallbackQuery, state: FSMContext):
-    data = json.loads(callback.data)
-    language_code = (await state.get_data()).get("language_code", "en")
-    page = data["p"]
-    item_id = data["id"]
-
-    await state.update_data(
-        item_id=item_id,
-        page=page,
-        language_code=language_code,
-    )
-
-    keyboard, error, status_code = await get_countries_keyboard(
-        language_code, action="edit"
-    )
-    if error:
-        error_text = (
-            text_service.get_text("generic_error", language_code)
-            + f": {error} (Status: {status_code})"
-        )
-        await callback.message.edit_text(error_text)
-        await state.clear()
-        return
-
-    await callback.message.edit_text(
-        text_service.get_text("select_countries", language_code),
-        reply_markup=keyboard,
-    )
-    await state.set_state(Form.edit_company_country)
     await callback.answer()
 
 

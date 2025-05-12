@@ -1,7 +1,7 @@
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import selectinload
-from sqlmodel import func, select
+from sqlmodel import select
 
 from ..common.dependencies import SessionDep
 from ..company.models import Company
@@ -12,7 +12,7 @@ from ..company.schemas import (
     CompanyResponse,
 )
 from ..product.crud import remove_product
-from ..utils import delete_file, upload_file
+from ..utils import delete_file, get_entity_by_params, upload_file
 
 COMPANY_NOT_FOUND = "Company not found"
 
@@ -70,20 +70,17 @@ async def get_all_companies(
     limit: int = 6,
     kitchen_id: int = None,
 ) -> CompanyListResponse:
-    statement = select(func.count()).select_from(Company)
-    result = await session.exec(statement)
-    total_records = result.one()
-
-    total_pages = (total_records + limit - 1) // limit
-
-    statement = (
-        select(Company)
-        .where(Company.kitchen_id == kitchen_id)
-        .limit(limit)
-        .offset((page - 1) * limit)
+    result = await get_entity_by_params(
+        session,
+        Company,
+        page=page,
+        limit=limit,
+        kitchen_id=kitchen_id,
+        return_all=True,
+        with_total_pages=True,
     )
-    result = await session.exec(statement)
-    companies = result.all()
+
+    companies, total_pages = result
 
     return CompanyListResponse(companys=companies, total_pages=total_pages)
 

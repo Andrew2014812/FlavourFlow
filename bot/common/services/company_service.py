@@ -38,12 +38,23 @@ class CompanyService:
         ]
 
     async def get_list(
-        self, page: int = 1, limit: int = 6, kitchen_id: int = 1
+        self, page: int = 1, limit: int = 6, kitchen_id: int = None
     ) -> Optional[CompanyListResponse]:
+        if kitchen_id:
+            params_dict = {
+                "page": page,
+                "limit": limit,
+                "kitchen_id": kitchen_id,
+            }
+        else:
+            params_dict = {
+                "page": page,
+                "limit": limit,
+            }
         response = await make_request(
             sub_url=self.prefix,
             method=APIMethods.GET.value,
-            params={"page": page, "limit": limit, "kitchen_id": kitchen_id},
+            params=params_dict,
         )
         return CompanyListResponse.model_validate(response.get("data"))
 

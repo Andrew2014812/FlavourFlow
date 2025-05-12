@@ -5,14 +5,13 @@ from bot.config import PG_DB_HOST, PG_DB_NAME, PG_DB_PASSWORD, PG_DB_PORT, PG_DB
 
 from ..cart.models import Cart
 from ..company.models import Company
-from ..gastronomy.models import Country, Kitchen
+from ..gastronomy.models import Kitchen
 from ..product.models import Product
 from ..user.models import User
 from ..wishlist.models import Wishlist, WishlistItem
 
 Cart_model = Cart
 Company_model = Company
-Country_model = Country
 Kitchen_model = Kitchen
 Product_model = Product
 User_model = User

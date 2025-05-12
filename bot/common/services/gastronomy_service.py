@@ -1,21 +1,11 @@
-import logging
 from enum import Enum
 from typing import Dict, Optional
 
-from api.app.gastronomy.schemas import (
-    CountryListResponse,
-    CountryResponse,
-    KitchenListResponse,
-    KitchenResponse,
-)
+from api.app.gastronomy.schemas import KitchenListResponse, KitchenResponse
 
 from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
 from ..utils import make_request
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class EntityType(Enum):
@@ -41,9 +31,6 @@ class GastronomyService:
         except Exception as e:
             error_msg = getattr(e, "detail", str(e))
             status_code = getattr(e, "status_code", None) or 500
-            logger.error(
-                f"Error fetching list for {self.prefix}: {error_msg} (Status: {status_code})"
-            )
 
             return {"error": error_msg, "status": "failed", "status_code": status_code}
 
@@ -58,9 +45,7 @@ class GastronomyService:
         except Exception as e:
             error_msg = getattr(e, "detail", str(e))
             status_code = getattr(e, "status_code", None) or 500
-            logger.error(
-                f"Error fetching item {item_id} for {self.prefix}: {error_msg} (Status: {status_code})"
-            )
+
             return {"error": error_msg, "status": "failed", "status_code": status_code}
 
     async def create(self, data: Dict, telegram_id: int) -> Optional[Dict]:
@@ -78,9 +63,7 @@ class GastronomyService:
         except Exception as e:
             error_msg = getattr(e, "detail", str(e))
             status_code = getattr(e, "status_code", None) or 500
-            logger.error(
-                f"Error creating item for {self.prefix}: {error_msg} (Status: {status_code})"
-            )
+
             return {"error": error_msg, "status": "failed", "status_code": status_code}
 
     async def update(
@@ -100,9 +83,7 @@ class GastronomyService:
         except Exception as e:
             error_msg = getattr(e, "detail", str(e))
             status_code = getattr(e, "status_code", None) or 500
-            logger.error(
-                f"Error updating item {item_id} for {self.prefix}: {error_msg} (Status: {status_code})"
-            )
+
             return {"error": error_msg, "status": "failed", "status_code": status_code}
 
     async def delete(self, item_id: int, telegram_id: int) -> Optional[Dict]:
@@ -119,15 +100,10 @@ class GastronomyService:
         except Exception as e:
             error_msg = getattr(e, "detail", str(e))
             status_code = getattr(e, "status_code", None) or 500
-            logger.error(
-                f"Error deleting item {item_id} for {self.prefix}: {error_msg} (Status: {status_code})"
-            )
+
             return {"error": error_msg, "status": "failed", "status_code": status_code}
 
 
-country_service = GastronomyService(
-    EntityType.COUNTRY, CountryListResponse, CountryResponse
-)
 kitchen_service = GastronomyService(
     EntityType.KITCHEN, KitchenListResponse, KitchenResponse
 )

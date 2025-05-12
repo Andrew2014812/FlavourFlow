@@ -6,13 +6,10 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InputMediaPhoto,
-    KeyboardButton,
     Message,
 )
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from ..common.services.gastronomy_service import kitchen_service
-from ..common.services.text_service import text_service
 from .entity_handlers.render_utils import (
     render_admin_list,
     render_company_list,
@@ -28,11 +25,17 @@ ARROW_BACK = "↩️"
 
 
 def make_callback_data(
-    content_type: str, action: str, page: int, extra_arg: str = "", kitchen_id: str = ""
+    content_type: str,
+    action: str,
+    page: int,
+    extra_arg: str = "",
+    kitchen_id: str = "",
 ):
     data = {"t": content_type, "a": action, "p": page}
+
     if extra_arg:
         data["e"] = extra_arg
+
     if kitchen_id:
         data["k"] = kitchen_id
     return json.dumps(data, separators=(",", ":"))
@@ -52,7 +55,11 @@ def build_pagination_keyboard(
             InlineKeyboardButton(
                 text=ARROW_LEFT,
                 callback_data=make_callback_data(
-                    content_type, "nav", current_page - 1, extra_arg, kitchen_id
+                    content_type=content_type,
+                    action="nav",
+                    page=current_page - 1,
+                    extra_arg=extra_arg,
+                    kitchen_id=kitchen_id,
                 ),
             )
         )
@@ -64,7 +71,11 @@ def build_pagination_keyboard(
                 InlineKeyboardButton(
                     text=text,
                     callback_data=make_callback_data(
-                        content_type, "nav", page, extra_arg, kitchen_id
+                        content_type=content_type,
+                        action="nav",
+                        page=page,
+                        extra_arg=extra_arg,
+                        kitchen_id=kitchen_id,
                     ),
                 )
             )
@@ -82,7 +93,11 @@ def build_pagination_keyboard(
                     InlineKeyboardButton(
                         text=DOT_MIDDLE,
                         callback_data=make_callback_data(
-                            content_type, "nav", middle_page, extra_arg, kitchen_id
+                            content_type=content_type,
+                            action="nav",
+                            page=middle_page,
+                            extra_arg=extra_arg,
+                            kitchen_id=kitchen_id,
                         ),
                     )
                 )
@@ -92,7 +107,11 @@ def build_pagination_keyboard(
                     InlineKeyboardButton(
                         text=text,
                         callback_data=make_callback_data(
-                            content_type, "nav", page, extra_arg, kitchen_id
+                            content_type=content_type,
+                            action="nav",
+                            page=page,
+                            extra_arg=extra_arg,
+                            kitchen_id=kitchen_id,
                         ),
                     )
                 )
@@ -102,7 +121,11 @@ def build_pagination_keyboard(
             InlineKeyboardButton(
                 text=ARROW_RIGHT,
                 callback_data=make_callback_data(
-                    content_type, "nav", current_page + 1, extra_arg, kitchen_id
+                    content_type=content_type,
+                    action="nav",
+                    page=current_page + 1,
+                    extra_arg=extra_arg,
+                    kitchen_id=kitchen_id,
                 ),
             )
         )
@@ -111,7 +134,11 @@ def build_pagination_keyboard(
         back_button = InlineKeyboardButton(
             text=ARROW_BACK,
             callback_data=make_callback_data(
-                content_type, "back", current_page, extra_arg, kitchen_id
+                content_type=content_type,
+                action="back",
+                page=current_page,
+                extra_arg=extra_arg,
+                kitchen_id=kitchen_id,
             ),
         )
         return InlineKeyboardMarkup(inline_keyboard=[buttons, [back_button]])
@@ -129,7 +156,11 @@ async def update_paginated_message(
     with_back_button: bool = True,
 ):
     content = await get_content(
-        content_type, page, language_code, extra_arg, kitchen_id
+        content_type=content_type,
+        page=page,
+        language_code=language_code,
+        extra_arg=extra_arg,
+        kitchen_id=kitchen_id,
     )
     if not content:
         await callback.answer("Content not available")
@@ -139,26 +170,27 @@ async def update_paginated_message(
     if page > total_pages:
         page = max(1, total_pages)
 
-    effective_with_back_button = with_back_button and content_type != "cart"
+    with_back_button = with_back_button and content_type != "cart"
 
     keyboard = build_pagination_keyboard(
-        page,
-        total_pages,
-        content_type,
-        extra_arg,
-        kitchen_id,
-        effective_with_back_button,
+        current_page=page,
+        total_pages=total_pages,
+        content_type=content_type,
+        extra_arg=extra_arg,
+        kitchen_id=kitchen_id,
+        with_back_button=with_back_button,
     )
 
     merged_builder = InlineKeyboardBuilder()
     if builder:
         for button in builder.buttons:
             merged_builder.add(button)
+
     for row in keyboard.inline_keyboard:
         merged_builder.row(*row)
+
     reply_markup = merged_builder.as_markup()
 
-    # Проверяем, является ли сообщение медиа (фото) или текстом
     is_media_content = image_url and content_type in [
         "user-company",
         "user-products",
@@ -171,23 +203,21 @@ async def update_paginated_message(
                 InputMediaPhoto(media=image_url, caption=caption),
                 reply_markup=reply_markup,
             )
-        except TelegramBadRequest as e:
-            # Если редактирование медиа не удалось, отправляем новое сообщение
+        except TelegramBadRequest:
             await callback.message.delete()
             await callback.message.answer_photo(
                 photo=image_url, caption=caption, reply_markup=reply_markup
             )
     else:
-        # Проверяем, содержит ли сообщение текст
         if callback.message.text or callback.message.caption:
             try:
                 await callback.message.edit_text(caption, reply_markup=reply_markup)
-            except TelegramBadRequest as e:
-                # Если редактирование текста не удалось, отправляем новое сообщение
+
+            except TelegramBadRequest:
                 await callback.message.delete()
                 await callback.message.answer(caption, reply_markup=reply_markup)
+
         else:
-            # Если сообщение не текст и не медиа, отправляем новое
             await callback.message.delete()
             await callback.message.answer(caption, reply_markup=reply_markup)
 
@@ -202,7 +232,11 @@ async def send_paginated_message(
     with_back_button: bool = True,
 ):
     content = await get_content(
-        content_type, page, language_code, extra_arg, kitchen_id
+        content_type=content_type,
+        page=page,
+        language_code=language_code,
+        extra_arg=extra_arg,
+        kitchen_id=kitchen_id,
     )
     if not content:
         await message.answer("Content not available")
@@ -212,23 +246,25 @@ async def send_paginated_message(
     if page > total_pages:
         page = max(1, total_pages)
 
-    effective_with_back_button = with_back_button and content_type != "cart"
+    with_back_button = with_back_button and content_type != "cart"
 
     keyboard = build_pagination_keyboard(
-        page,
-        total_pages,
-        content_type,
-        extra_arg,
-        kitchen_id,
-        effective_with_back_button,
+        current_page=page,
+        total_pages=total_pages,
+        content_type=content_type,
+        extra_arg=extra_arg,
+        kitchen_id=kitchen_id,
+        with_back_button=with_back_button,
     )
 
     merged_builder = InlineKeyboardBuilder()
     if builder:
         for button in builder.buttons:
             merged_builder.add(button)
+
     for row in keyboard.inline_keyboard:
         merged_builder.row(*row)
+
     reply_markup = merged_builder.as_markup()
 
     if image_url and content_type in ["user-company", "user-products", "cart"]:
@@ -248,25 +284,18 @@ async def get_content(
 ):
     if content_type == "user-company":
         return await render_company_list(page, language_code, kitchen_id, extra_arg)
-    elif content_type in ["admin-company", "admin-country", "admin-kitchen"]:
+
+    elif content_type in ["admin-company", "admin-kitchen"]:
         entity_type = content_type.replace("admin-", "")
         return await render_admin_list(entity_type, page, language_code)
+
     elif content_type == "admin-product":
         return await render_product_list(page, language_code, extra_arg)
+
     elif content_type == "user-products":
         return await render_user_product_list(page, language_code, extra_arg)
+
     elif content_type == "cart":
         return await render_user_cart_product(page, language_code, extra_arg)
+
     return None
-
-
-async def get_category_keyboard(language_code: str):
-    kitchen_list = await kitchen_service.get_list(page=1)
-    builder = ReplyKeyboardBuilder()
-
-    for kitchen in kitchen_list.kitchens:
-        title = kitchen.title_en if language_code == "en" else kitchen.title_ua
-        builder.add(KeyboardButton(text=title))
-
-    builder.add(KeyboardButton(text=text_service.buttons[language_code]["back"]))
-    return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
