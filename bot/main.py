@@ -2,11 +2,11 @@ import asyncio
 import logging
 import time
 
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.common.database import create_db_and_tables
-from bot.config import TG_TOKEN
+from bot.config import get_bot
 from bot.handlers.callback_handlers import register_callback_handlers
 from bot.handlers.command_handlers import register_command_handlers
 from bot.handlers.entity_handlers.entity_handlers import (
@@ -32,8 +32,9 @@ logger = logging.getLogger(__name__)
 async def main():
     try:
         await create_db_and_tables()
-        bot = Bot(token=TG_TOKEN)
+        bot = await get_bot()
         dispatcher = Dispatcher(storage=MemoryStorage())
+
         register_command_handlers(dispatcher)
         register_callback_handlers(dispatcher)
         register_company_handlers(dispatcher)

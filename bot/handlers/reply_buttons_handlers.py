@@ -1,13 +1,18 @@
 import json
 from functools import wraps
 
-import stripe
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    LabeledPrice,
+    Message,
+)
 
 from api.app.user.schemas import UserResponseMe
 
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
+from ..config import PAYMENTS_TOKEN, get_bot
 from ..handlers.entity_handlers.main_handlers import show_main_menu
 from ..handlers.main_keyboard_handlers import (
     get_admin_panel_keyboard,
@@ -45,6 +50,7 @@ def admin_required(func):
         if user.role != "admin":
             await message.answer(text_service.get_text("no_access", language_code))
             return
+
         return await func(message, language_code, **kwargs)
 
     return wrapper
@@ -130,39 +136,30 @@ async def handle_admin(message: Message, language_code: str, **kwargs):
         await message.answer(text, reply_markup=keyboard)
 
 
-stripe.api_key = ""
-
-
 @register_button_handler(
     text_service.buttons["en"]["test_payment"],
     text_service.buttons["ua"]["test_payment"],
 )
-async def handle_payment(message: Message, language_code: str, **kwargs):
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "product_data": {
-                            "name": "Тестовый товар",
-                        },
-                        "unit_amount": 1000,
-                    },
-                    "quantity": 1,
-                }
-            ],
-            mode="payment",
-            success_url="https://example.com/success",
-            cancel_url="https://example.com/cancel",
-        )
+async def buy(message: Message, language_code: str, **kwargs):
+    bot = await get_bot()
 
-        payment_url = session.url
-        payment_message = (
-            "Для тестирования оплаты переходите по ссылке: " + f": {payment_url}"
-        )
-        await message.answer(payment_message)
-    except Exception as e:
-        error_message = "error in handle_payment: " + str(e)
-        await message.answer(error_message)
+    if PAYMENTS_TOKEN.split(":")[1] == "TEST":
+        await bot.send_message(message.chat.id, "Это тестовый платеж!")
+
+    await bot.send_invoice(
+        chat_id=message.chat.id,
+        title="Покупка товара",
+        description="Оплата за товар через Redsys",
+        provider_token=PAYMENTS_TOKEN,
+        currency="USD",
+        prices=[LabeledPrice(label="Товар", amount=1000)],
+        payload="unique-invoice-payload-123",
+        start_parameter="buy-product",
+        photo_url="https://example.com/product.jpg",
+        photo_width=416,
+        photo_height=234,
+        photo_size=416,
+        is_flexible=False,
+    )
+
+    await bot.session.close()

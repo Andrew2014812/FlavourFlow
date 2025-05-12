@@ -1,7 +1,9 @@
+import logging
+
 from aiogram import Dispatcher
 from aiogram import F as FILTER
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import Message, PreCheckoutQuery
 
 from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
@@ -23,6 +25,9 @@ from ..handlers.pagination_handlers import send_paginated_message
 from ..handlers.reply_buttons_handlers import button_handlers
 
 router = Router()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @router.message(lambda msg: msg.text in text_service.language_buttons)
@@ -72,6 +77,28 @@ async def handle_contact(message: Message):
     )
 
     await show_main_menu(message, user_info.language_code)
+
+
+@router.message(lambda message: message.successful_payment is not None)
+async def successful_payment(message: Message):
+    payment_info = message.successful_payment
+    await message.answer(
+        f"Платеж на сумму {payment_info.total_amount / 100} {payment_info.currency} успешен!\n"
+        f"ID платежа: {payment_info.provider_payment_charge_id}"
+    )
+
+
+@router.pre_checkout_query()
+async def pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    logger.info(f"Received pre_checkout_query: {pre_checkout_query.id}")
+    try:
+        await pre_checkout_query.answer(ok=True)
+        logger.info(
+            f"Successfully answered pre_checkout_query: {pre_checkout_query.id}"
+        )
+    except Exception as e:
+        logger.error(f"Error in pre_checkout_query: {str(e)}")
+        await pre_checkout_query.answer(ok=False, error_message=f"Error: {str(e)}")
 
 
 @router.message()

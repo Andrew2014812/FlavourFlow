@@ -1,13 +1,14 @@
 import os
 from enum import Enum
 
+from aiogram import Bot
 from dotenv import load_dotenv
 
 current_dir = os.path.dirname(__file__)
-texts_json_path = os.path.join(current_dir, 'texts.json')
+texts_json_path = os.path.join(current_dir, "texts.json")
 
-dotenv_path = os.path.join(current_dir, '..', 'dev.env')
-sqlite_path = os.path.join(current_dir, 'properties', 'bot.db')
+dotenv_path = os.path.join(current_dir, "..", "dev.env")
+sqlite_path = os.path.join(current_dir, "properties", "bot.db")
 load_dotenv(dotenv_path=dotenv_path)
 
 
@@ -15,7 +16,12 @@ def get_env_variable(var_name: str, default_var_name: str = None) -> str:
     value = os.environ.get(var_name, default_var_name)
     if value is None:
         raise RuntimeError(f"The environment variable '{var_name}' is not set.")
+
     return value
+
+
+async def get_bot() -> Bot:
+    return Bot(token=TG_TOKEN)
 
 
 class APIMethods(Enum):
@@ -27,7 +33,7 @@ class APIMethods(Enum):
 
 
 class APIAuth(Enum):
-    AUTH = 'Authorization'
+    AUTH = "Authorization"
 
 
 TG_TOKEN = get_env_variable("TG_TOKEN")
@@ -46,3 +52,4 @@ JWT_SECRET_KEY = get_env_variable("JWT_SECRET_KEY")
 JWT_ALGORITHM = get_env_variable("JWT_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = get_env_variable("ACCESS_TOKEN_EXPIRE_MINUTES")
 API_BASE_URL = get_env_variable("API_BASE_URL")
+PAYMENTS_TOKEN = get_env_variable("PAYMENTS_TOKEN")
