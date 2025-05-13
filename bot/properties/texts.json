@@ -3,7 +3,7 @@
     "ua": {
       "profile": "👤 Профіль",
       "about_us": "ℹ️ Про нас",
-      "restaurants": "🍽️ Ресторани",
+      "restaurants": "🍽️ Заклади",
       "cart": "🛒 Кошик",
       "contact_us": "📩 Напишіть нам",
       "orders": "🚚 Замовлення",
@@ -15,7 +15,7 @@
     "en": {
       "profile": "👤 Profile",
       "about_us": "ℹ️ About",
-      "restaurants": "🍽️ Restaurants",
+      "restaurants": "🍽️ Food establishments",
       "cart": "🛒 Cart",
       "contact_us": "📩 Write to us",
       "orders": "🚚 Orders",
