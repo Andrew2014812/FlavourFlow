@@ -235,7 +235,7 @@ async def render_user_cart_product(
             ),
         ),
         InlineKeyboardButton(
-            text=("Remove"),
+            text="Remove" if language_code == "en" else "Видалити",
             callback_data=json.dumps(
                 {
                     "a": "remove",
