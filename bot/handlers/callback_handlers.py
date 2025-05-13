@@ -28,6 +28,7 @@ from .entity_handlers.product_handlers import (
 from .entity_handlers.product_handlers import initiate_action as initiate_product_action
 from .entity_handlers.product_handlers import render_details as render_product_details
 from .pagination_handlers import update_paginated_message
+from .payment_handlers import proceed_payment
 from .reply_buttons_handlers import handle_admin, handle_restaurants
 
 router = Router()
@@ -254,6 +255,9 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             with_back_button=False,
         )
         await callback.answer()
+
+    elif action == "order":
+        await proceed_payment(callback.message, language_code)
 
     elif action == "edit_profile":
         await callback.message.answer(

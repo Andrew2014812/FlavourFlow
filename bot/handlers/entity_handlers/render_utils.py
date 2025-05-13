@@ -217,6 +217,7 @@ async def render_user_cart_product(
     quantity_name = "Quantity" if language_code == "en" else "Кількість"
     total_name = "Total" if language_code == "en" else "Всього"
     caption = f"{product_name}\n\n{composition}\n\n{price_name}: {cart_item.price} {cart_item.currency}\n{quantity_name}: {cart_item.quantity}\n{total_name}: {cart_item.price * cart_item.quantity} {cart_item.currency}"
+
     builder.row(
         InlineKeyboardButton(
             text="╋",
@@ -231,7 +232,7 @@ async def render_user_cart_product(
             ),
         ),
         InlineKeyboardButton(
-            text=("–"),
+            text="–",
             callback_data=json.dumps(
                 {
                     "a": "minus",
@@ -250,6 +251,20 @@ async def render_user_cart_product(
                     "t": "cart",
                     "p": page,
                     "id": str(cart_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+    )
+
+    builder.row(
+        InlineKeyboardButton(
+            text="Checkout" if language_code == "en" else "Зробити замовлення",
+            callback_data=json.dumps(
+                {
+                    "a": "order",
+                    "t": "cart",
+                    "p": page,
                 },
                 separators=(",", ":"),
             ),

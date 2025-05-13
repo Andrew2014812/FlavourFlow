@@ -1,18 +1,12 @@
 import json
 from functools import wraps
 
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    LabeledPrice,
-    Message,
-)
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.user.schemas import UserResponseMe
 
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
-from ..config import PAYMENTS_TOKEN, get_bot
 from ..handlers.entity_handlers.main_handlers import show_main_menu
 from ..handlers.main_keyboard_handlers import (
     get_admin_panel_keyboard,
@@ -134,32 +128,3 @@ async def handle_admin(message: Message, language_code: str, **kwargs):
         await message.edit_text(text, reply_markup=keyboard)
     else:
         await message.answer(text, reply_markup=keyboard)
-
-
-@register_button_handler(
-    text_service.buttons["en"]["test_payment"],
-    text_service.buttons["ua"]["test_payment"],
-)
-async def buy(message: Message, language_code: str, **kwargs):
-    bot = await get_bot()
-
-    if PAYMENTS_TOKEN.split(":")[1] == "TEST":
-        await bot.send_message(message.chat.id, "Это тестовый платеж!")
-
-    await bot.send_invoice(
-        chat_id=message.chat.id,
-        title="Покупка товара",
-        description="Оплата за товар через Redsys",
-        provider_token=PAYMENTS_TOKEN,
-        currency="USD",
-        prices=[LabeledPrice(label="Товар", amount=1000)],
-        payload="unique-invoice-payload-123",
-        start_parameter="buy-product",
-        photo_url="https://example.com/product.jpg",
-        photo_width=416,
-        photo_height=234,
-        photo_size=416,
-        is_flexible=False,
-    )
-
-    await bot.session.close()
