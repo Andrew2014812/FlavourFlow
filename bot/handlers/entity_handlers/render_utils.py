@@ -63,9 +63,7 @@ async def render_company_list(
         text = f"{company.title_en}\n\n{company.description_en}\n"
 
     builder = InlineKeyboardBuilder()
-    products_button_text = (
-        "Go to products" if language_code == "en" else "Перейти до продуктів"
-    )
+    products_button_text = "Go to products" if language_code == "en" else "До Страв"
     builder.row(
         InlineKeyboardButton(
             text=products_button_text,
