@@ -21,10 +21,17 @@ router = APIRouter()
 
 @router.get("/")
 async def product_list(
-    session: SessionDep, page: int = 1, limit: int = 10
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 10,
+    company_id: int = None,
 ) -> ProductListResponse:
-
-    return await get_all_products(session=session, page=page, limit=limit)
+    return await get_all_products(
+        session=session,
+        page=page,
+        limit=limit,
+        company_id=company_id,
+    )
 
 
 @router.get("/{product_id}/")

@@ -136,6 +136,14 @@ async def render_user_product_list(
         company_id=int(company_id), page=page, limit=1
     )
 
+    if not result.products:
+        return (
+            "No products found" if language_code == "en" else "Продукти не знайдено",
+            None,
+            0,
+            None,
+        )
+
     builder = InlineKeyboardBuilder()
 
     product = result.products[0]

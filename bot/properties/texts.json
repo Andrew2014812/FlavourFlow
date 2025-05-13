@@ -9,8 +9,7 @@
       "orders": "🚚 Замовлення",
       "wishlist": "✨ Список бажань",
       "admin_panel": "🛠️ Панель адміністратора",
-      "back": "↩️ Повернутись",
-      "test_payment": "Test payment"
+      "back": "↩️ Повернутись"
     },
     "en": {
       "profile": "👤 Profile",
@@ -21,8 +20,7 @@
       "orders": "🚚 Orders",
       "wishlist": "✨ Wishlist",
       "admin_panel": "🛠️ Admin panel",
-      "back": "↩️ Back",
-      "test_payment": "Test payment"
+      "back": "↩️ Back"
     }
   },
   "language_buttons": ["🇺🇦 Українська", "🇬🇧 English"],

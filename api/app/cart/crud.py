@@ -66,6 +66,9 @@ async def get_cart_items(
     limit: int = 1,
 ) -> CartItemFullResponse | None:
     cart: Cart = await get_entity_by_params(session, Cart, user_id=user_id)
+    if not cart:
+        return None
+
     cart_items, total_pages = await get_entity_by_params(
         session,
         CartItem,

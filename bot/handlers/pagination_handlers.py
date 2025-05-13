@@ -183,9 +183,11 @@ async def update_paginated_message(
 
     merged_builder = InlineKeyboardBuilder()
     if builder:
-        for button in builder.buttons:
-            merged_builder.add(button)
+        # Копируем структуру рядов из builder
+        for row in builder.as_markup().inline_keyboard:
+            merged_builder.row(*row)
 
+    # Добавляем ряды пагинации
     for row in keyboard.inline_keyboard:
         merged_builder.row(*row)
 
@@ -212,11 +214,9 @@ async def update_paginated_message(
         if callback.message.text or callback.message.caption:
             try:
                 await callback.message.edit_text(caption, reply_markup=reply_markup)
-
             except TelegramBadRequest:
                 await callback.message.delete()
                 await callback.message.answer(caption, reply_markup=reply_markup)
-
         else:
             await callback.message.delete()
             await callback.message.answer(caption, reply_markup=reply_markup)
@@ -259,9 +259,11 @@ async def send_paginated_message(
 
     merged_builder = InlineKeyboardBuilder()
     if builder:
-        for button in builder.buttons:
-            merged_builder.add(button)
+        # Копируем структуру рядов из builder
+        for row in builder.as_markup().inline_keyboard:
+            merged_builder.row(*row)
 
+    # Добавляем ряды пагинации
     for row in keyboard.inline_keyboard:
         merged_builder.row(*row)
 

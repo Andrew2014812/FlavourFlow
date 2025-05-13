@@ -1,12 +1,11 @@
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
-from sqlalchemy import func
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
 from ..product.models import Product
 from ..product.schemas import ProductCreate, ProductListResponse, ProductResponse
-from ..utils import delete_file, upload_file
+from ..utils import delete_file, get_entity_by_params, upload_file
 
 PRODUCT_NOT_FOUND = "Product not found"
 
@@ -58,17 +57,20 @@ async def create_product(
 
 
 async def get_all_products(
-    session: SessionDep, page: int = 1, limit: int = 10
+    session: SessionDep,
+    page: int = 1,
+    limit: int = 10,
+    company_id: int = None,
 ) -> ProductListResponse:
-    statement = select(func.count()).select_from(Product)
-    result = await session.exec(statement)
-    total_records = result.one()
-
-    total_pages = (total_records + limit - 1) // limit
-
-    statement = select(Product).limit(limit).offset((page - 1) * limit)
-    result = await session.exec(statement)
-    products = result.all()
+    products, total_pages = await get_entity_by_params(
+        session,
+        Product,
+        page=page,
+        limit=limit,
+        company_id=company_id,
+        return_all=True,
+        with_total_pages=True,
+    )
 
     return ProductListResponse(products=products, total_pages=total_pages)
 

@@ -4,7 +4,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from ..common.services.gastronomy_service import kitchen_service
-
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
 
@@ -64,4 +63,14 @@ async def get_kitchens_keyboard(language_code: str):
         builder.add(KeyboardButton(text=title))
 
     builder.add(KeyboardButton(text=text_service.buttons[language_code]["back"]))
+    builder.adjust(2)
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
+
+
+async def get_payment_keyboard(language_code: str):
+    builder = ReplyKeyboardBuilder()
+    button = "Зробити замовлення" if language_code == "ua" else "Make an order"
+
+    builder.add(KeyboardButton(text=button))
+
+    return builder.as_markup(resize_keyboard=True)
