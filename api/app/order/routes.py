@@ -1,12 +1,15 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import joinedload
 
 from ..common.dependencies import SessionDep
 from ..user.crud import get_current_user
 from ..user.models import User
 from ..utils import get_entity_by_params
 from .crud import create_order
-from .models import Order
-from .schemas import OrderCreate
+from .models import Order, OrderItem
+from .schemas import OrderCreate, OrderResponse
 
 router = APIRouter()
 
@@ -38,3 +41,18 @@ async def update_order_purchase_info(
 
     order.is_payed = True
     await session.commit()
+
+
+@router.get("/")
+async def get_paid_orders(
+    session: SessionDep,
+    current_user: User = Depends(get_current_user),
+) -> List[OrderResponse]:
+    return await get_entity_by_params(
+        session,
+        Order,
+        user_id=current_user.id,
+        is_payed=True,
+        return_all=True,
+        options=[joinedload(Order.order_items).joinedload(OrderItem.product)],
+    )

@@ -1,9 +1,12 @@
 import json
 from functools import wraps
+from typing import List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from api.app.order.schemas import OrderResponse
 from api.app.user.schemas import UserResponseMe
+from bot.common.services.order_service import get_paid_orders
 
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
@@ -128,3 +131,43 @@ async def handle_admin(message: Message, language_code: str, **kwargs):
         await message.edit_text(text, reply_markup=keyboard)
     else:
         await message.answer(text, reply_markup=keyboard)
+
+
+@register_button_handler(
+    text_service.buttons["en"]["orders"],
+    text_service.buttons["ua"]["orders"],
+)
+async def handle_orders(message: Message, language_code: str):
+    orders: List[OrderResponse] = await get_paid_orders(message.from_user.id)
+    if not orders:
+        await message.answer(
+            "You have no orders" if language_code == "en" else "У вас немає замовлень"
+        )
+        return
+    await message.answer(
+        "Your orders:" if language_code == "en" else "Ваші замовлення:"
+    )
+
+    for order in orders:
+        order_address_name = "Address" if language_code == "en" else "Адреса"
+        order_time_name = "Time" if language_code == "en" else "Час"
+        order_total_price_name = "Total price" if language_code == "en" else "Всього"
+
+        order_message = ""
+
+        for order_item in order.order_items:
+            order_item_caption = "Item" if language_code == "en" else "Позиція"
+            order_item_price_name = "Price" if language_code == "en" else "Ціна"
+            order_item_quantity_name = (
+                "Quantity" if language_code == "en" else "Кількість"
+            )
+
+            order_message += f"{order_item_caption}: {order_item.product.title_ua if language_code == 'ua' else order_item.product.title_en} \n"
+            order_message += f"{order_item_quantity_name}: {order_item.quantity}\n"
+            order_message += f"{order_item_price_name}: {order_item.product.price}\n\n"
+
+        order_message += f"{order_address_name}: {order.address}\n"
+        order_message += f"{order_time_name}: {order.time}\n"
+        order_message += f"{order_total_price_name}: {order.total_price}"
+
+        await message.answer(order_message)

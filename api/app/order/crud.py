@@ -1,6 +1,6 @@
-from api.app.utils import get_entity_by_params
-
+from ..cart.models import Cart
 from ..common.dependencies import SessionDep
+from ..utils import get_entity_by_params
 from .models import Order, OrderItem
 from .schemas import OrderCreate
 
@@ -10,7 +10,12 @@ async def create_order(
     user_id: int,
     order_create: OrderCreate,
 ) -> Order:
-    order = Order(user_id=user_id, total_price=order_create.total_price)
+    order = Order(
+        user_id=user_id,
+        total_price=order_create.total_price,
+        address=order_create.address,
+        time=order_create.time,
+    )
 
     session.add(order)
     await session.flush()
@@ -22,6 +27,9 @@ async def create_order(
         )
         session.add(order_item)
 
+    cart = await get_entity_by_params(session, Cart, user_id=user_id)
+
+    await session.delete(cart)
     await session.commit()
     await session.refresh(order)
 

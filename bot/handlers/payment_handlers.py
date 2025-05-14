@@ -26,7 +26,7 @@ async def proceed_payment(
         title="Оплата замовлення",
         description=(
             "Оплата замовлення через Redsys"
-            if language_code == "es"
+            if language_code == "ua"
             else "Order payment via Redsys"
         ),
         provider_token=PAYMENTS_TOKEN,

@@ -65,7 +65,12 @@ async def handle_order_details(message: Message, state: FSMContext) -> None:
     caption += f"\n{address_name}: {result['address']}\n{time_name}: {result.get('time', "Не вказано" if language_code == "ua" else "Not specified")}\n\n"
     await message.answer("Ваше замовлення:" if language_code == "ua" else "Your order:")
 
-    order_create = OrderCreate(total_price=total_price, order_items=order_items)
+    order_create = OrderCreate(
+        total_price=total_price,
+        order_items=order_items,
+        address=result["address"],
+        time=result.get("time", None),
+    )
     order = await create_order(order_create=order_create, user_id=message.from_user.id)
 
     builder = InlineKeyboardBuilder()

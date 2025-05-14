@@ -1,5 +1,5 @@
 from api.app.order.models import Order
-from api.app.order.schemas import OrderCreate
+from api.app.order.schemas import OrderCreate, OrderResponse
 from bot.config import APIAuth, APIMethods
 
 from ...common.services.user_info_service import get_user_info
@@ -31,3 +31,16 @@ async def update_order_purchase_info(order_id: int, user_id: int):
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
         },
     )
+
+
+async def get_paid_orders(user_id: int):
+    user_info = await get_user_info(user_id)
+    response = await make_request(
+        sub_url=f"{BASE}/",
+        method=APIMethods.GET.value,
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
+    )
+
+    return [OrderResponse.model_validate(item) for item in response.get("data")]
