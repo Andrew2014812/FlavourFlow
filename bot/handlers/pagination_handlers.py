@@ -259,11 +259,9 @@ async def send_paginated_message(
 
     merged_builder = InlineKeyboardBuilder()
     if builder:
-        # Копируем структуру рядов из builder
         for row in builder.as_markup().inline_keyboard:
             merged_builder.row(*row)
 
-    # Добавляем ряды пагинации
     for row in keyboard.inline_keyboard:
         merged_builder.row(*row)
 

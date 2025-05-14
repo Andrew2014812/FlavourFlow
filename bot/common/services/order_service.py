@@ -1,3 +1,4 @@
+from api.app.order.models import Order
 from api.app.order.schemas import OrderCreate
 from bot.config import APIAuth, APIMethods
 
@@ -18,4 +19,15 @@ async def create_order(order_create: OrderCreate, user_id: int):
         },
     )
 
-    print(response)
+    return Order.model_validate(response.get("data"))
+
+
+async def update_order_purchase_info(order_id: int, user_id: int):
+    user_info = await get_user_info(user_id)
+    await make_request(
+        sub_url=f"{BASE}/{order_id}/",
+        method=APIMethods.PUT.value,
+        headers={
+            APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+        },
+    )

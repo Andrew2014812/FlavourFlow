@@ -11,6 +11,7 @@ from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.product_service import product_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
+from ..handlers.payment_handlers import proceed_payment
 from .entity_handlers.entity_handlers import (
     handle_edit_company_image,
     handle_edit_company_kitchen,
@@ -258,7 +259,13 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     elif action == "order":
         await handle_order_create(callback.message, language_code, state)
-        # await proceed_payment(callback.message, language_code)
+
+    elif action == "pay":
+        total_price = data.get("pr")
+        order_id = data.get("o")
+        await proceed_payment(
+            callback.message, language_code, total_price=total_price, order_id=order_id
+        )
 
     elif action == "edit_profile":
         await callback.message.answer(

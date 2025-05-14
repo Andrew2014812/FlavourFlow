@@ -1,3 +1,4 @@
+import json
 import logging
 
 from aiogram import Dispatcher
@@ -7,6 +8,7 @@ from aiogram.types import Message, PreCheckoutQuery
 
 from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
+from bot.common.services.order_service import update_order_purchase_info
 
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
@@ -81,10 +83,15 @@ async def handle_contact(message: Message):
 
 @router.message(lambda message: message.successful_payment is not None)
 async def successful_payment(message: Message):
+    user_info = await get_user_info(message.from_user.id)
     payment_info = message.successful_payment
+
+    payload_data = json.loads(payment_info.invoice_payload)
+    order_id = payload_data.get("order_id")
+
+    await update_order_purchase_info(order_id=order_id, user_id=message.from_user.id)
     await message.answer(
-        f"Платеж на сумму {payment_info.total_amount / 100} {payment_info.currency} успешен!\n"
-        f"ID платежа: {payment_info.provider_payment_charge_id}"
+        text_service.get_text("payment_success", user_info.language_code)
     )
 
 

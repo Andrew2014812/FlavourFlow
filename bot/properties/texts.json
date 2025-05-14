@@ -78,7 +78,8 @@
       "upload_product_image": "Будь ласка, завантажте зображення продукту",
       "order_instruction": "Будь ласка, надішліть деталі замовлення у форматі: \n\nАдреса: [адреса доставки]\nЧас: [час доставки]\n\nПриклади (залиште поле часу порожнім, якщо час не важливий):\n\nСкопіюйте необхідний варінт:",
       "order_example_with_time": "Адреса: вул. Шевченка, 1; Час: 12:00",
-      "order_example_without_time": "Адреса: вул. Шевченка, 1"
+      "order_example_without_time": "Адреса: вул. Шевченка, 1",
+      "payment_success": "✅ Оплата успішна! Дякуємо за покупку!"
     },
     "en": {
       "language_set": "Language set! You can now use the bot.",
@@ -132,7 +133,8 @@
       "upload_product_image": "Please upload a product image",
       "order_instruction": "Please send the order details in the format:\n\nAddress: [delivery address]\nTime: [delivery time]\n\nExamples (leave time empty if not important):\n\nCopy the necessary option:",
       "order_example_with_time": "Address: Shevchenko St, 1; Time: 12:00",
-      "order_example_without_time": "Address: Shevchenko St, 1"
+      "order_example_without_time": "Address: Shevchenko St, 1",
+      "payment_success": "✅ Payment successful! Tank you for your purchase!"
     }
   },
   "admin_buttons": {

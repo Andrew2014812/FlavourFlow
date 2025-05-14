@@ -9,6 +9,7 @@ class Order(OrderBase, table=True):
     __tablename__ = "order"
 
     id: int = Field(default=None, primary_key=True)
+    is_payed: bool = Field(default=False)
 
     order_items: List["OrderItem"] = Relationship(back_populates="order")
     user: Optional["User"] = Relationship(back_populates="orders")  # type: ignore
