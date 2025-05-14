@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlmodel import Field, Relationship
 
 from ..cart.models import Cart
+from ..order.models import Order
 from ..user.schemas import UserBase
 from ..wishlist.models import Wishlist
 
@@ -14,3 +15,4 @@ class User(UserBase, table=True):
     wishlist: Optional[Wishlist] = Relationship(
         back_populates="user", cascade_delete=True
     )
+    orders: List[Order] = Relationship(back_populates="user")

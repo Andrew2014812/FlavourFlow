@@ -12,6 +12,9 @@ from bot.handlers.command_handlers import register_command_handlers
 from bot.handlers.entity_handlers.entity_handlers import (
     register_handlers as register_company_handlers,
 )
+from bot.handlers.entity_handlers.order_handlers import (
+    register_handlers as register_order_handlers,
+)
 from bot.handlers.entity_handlers.product_handlers import (
     register_handlers as register_product_handlers,
 )
@@ -37,6 +40,7 @@ async def main():
 
         register_command_handlers(dispatcher)
         register_callback_handlers(dispatcher)
+        register_order_handlers(dispatcher)
         register_company_handlers(dispatcher)
         register_product_handlers(dispatcher)
         register_profile_handlers(dispatcher)

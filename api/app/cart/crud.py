@@ -1,4 +1,7 @@
+from typing import List
+
 from fastapi import HTTPException, status
+from sqlalchemy.orm import joinedload
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
@@ -64,8 +67,11 @@ async def get_cart_items(
     user_id: int,
     page: int,
     limit: int = 1,
-) -> CartItemFullResponse | None:
-    cart: Cart = await get_entity_by_params(session, Cart, user_id=user_id)
+    return_all: bool = False,
+) -> CartItemFullResponse | List[CartItemResponse] | None:
+    cart: Cart = await get_entity_by_params(
+        session, Cart, user_id=user_id, options=[joinedload(Cart.items)]
+    )
     if not cart:
         return None
 
@@ -82,6 +88,9 @@ async def get_cart_items(
 
     if not cart_items:
         return None
+
+    if return_all:
+        return cart.items
 
     return CartItemFullResponse(**cart_items[0].model_dump(), total_pages=total_pages)
 

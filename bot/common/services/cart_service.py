@@ -1,4 +1,6 @@
-from api.app.cart.schemas import CartItemFullResponse
+from typing import List
+
+from api.app.cart.schemas import CartItemFullResponse, CartItemResponse
 
 from ...common.utils import make_request
 from ...config import APIAuth, APIMethods
@@ -22,12 +24,14 @@ async def add_to_cart(telegram_id: int, product_id: int) -> None:
     return response
 
 
-async def get_cart_items(telegram_id: int, page: int) -> CartItemFullResponse | None:
+async def get_cart_items(
+    telegram_id: int, page: int = None, return_all: bool = False
+) -> CartItemFullResponse | List[CartItemResponse] | None:
     user_info = await get_user_info(telegram_id)
     response = await make_request(
         sub_url=f"{BASE}/",
         method=APIMethods.GET.value,
-        params={"page": page},
+        params={"page": page} if page else {"return_all": str(return_all)},
         headers={
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
         },
@@ -35,6 +39,9 @@ async def get_cart_items(telegram_id: int, page: int) -> CartItemFullResponse | 
 
     if response.get("data") is None:
         return None
+
+    if return_all:
+        return [CartItemResponse(**item) for item in response.get("data")]
 
     return CartItemFullResponse.model_validate(response.get("data"))
 

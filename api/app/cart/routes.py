@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 
 from ..common.dependencies import SessionDep
@@ -19,9 +21,12 @@ async def get_cart(
     session: SessionDep,
     current_user: User = Depends(get_current_user),
     page: int = 1,
-) -> CartItemFullResponse | None:
+    return_all: bool = False,
+) -> CartItemFullResponse | List[CartItemResponse] | None:
 
-    return await get_cart_items(session=session, user_id=current_user.id, page=page)
+    return await get_cart_items(
+        session=session, user_id=current_user.id, page=page, return_all=return_all
+    )
 
 
 @router.patch("/amount/", status_code=status.HTTP_200_OK)
