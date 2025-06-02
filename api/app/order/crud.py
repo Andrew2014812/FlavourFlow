@@ -1,5 +1,6 @@
 from ..cart.models import Cart
 from ..common.dependencies import SessionDep
+from ..product.models import Product
 from ..utils import get_entity_by_params
 from .models import Order, OrderItem
 from .schemas import OrderCreate
@@ -10,11 +11,18 @@ async def create_order(
     user_id: int,
     order_create: OrderCreate,
 ) -> Order:
+    product: Product = await get_entity_by_params(
+        session,
+        Product,
+        id=order_create.order_items[0].product_id,
+    )
+
     order = Order(
         user_id=user_id,
         total_price=order_create.total_price,
         address=order_create.address,
         time=order_create.time,
+        company_id=product.company_id,
     )
 
     session.add(order)

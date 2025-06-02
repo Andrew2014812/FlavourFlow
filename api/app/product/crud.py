@@ -1,10 +1,15 @@
+import random
+from typing import List
+
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
+from ..company.models import Company
 from ..product.models import Product
 from ..product.schemas import ProductCreate, ProductListResponse, ProductResponse
+from ..user.models import User
 from ..utils import delete_file, get_entity_by_params, upload_file
 
 PRODUCT_NOT_FOUND = "Product not found"
@@ -153,3 +158,83 @@ async def remove_product(session: SessionDep, product_id: int):
 
     await session.delete(existing_product)
     await session.commit()
+
+
+async def get_product_recommendations(
+    session: SessionDep,
+    user: User,
+) -> List[ProductResponse]:
+    if not user.orders:
+        companies = await get_entity_by_params(
+            session,
+            Company,
+            return_all=True,
+        )
+        companies_ids = [company.id for company in companies]
+
+        if not companies_ids:
+            return []
+
+        target_company_id = random.choice(companies_ids)
+
+        products = await get_entity_by_params(
+            session,
+            Product,
+            return_all=True,
+            filters={"company_id": target_company_id},
+        )
+
+        random_products = random.sample(products, min(2, len(products)))
+
+        return [ProductResponse(**product.model_dump()) for product in random_products]
+
+    else:
+        order_company_ids = list(set(order.company_id for order in user.orders))
+        target_company_id = random.choice(order_company_ids)
+
+        used_product_ids = set(
+            item.product_id for order in user.orders for item in order.order_items
+        )
+
+        all_products = await get_entity_by_params(
+            session,
+            Product,
+            return_all=True,
+            filters={"company_id": target_company_id},
+        )
+
+        available_products = [
+            product for product in all_products if product.id not in used_product_ids
+        ]
+
+        if not available_products:
+            companies = await get_entity_by_params(
+                session,
+                Company,
+                return_all=True,
+            )
+            companies_ids = [company.id for company in companies]
+
+            if not companies_ids:
+                return []
+
+            target_company_id = random.choice(companies_ids)
+
+            products = await get_entity_by_params(
+                session,
+                Product,
+                return_all=True,
+                filters={"company_id": target_company_id},
+            )
+
+            random_products = random.sample(products, min(2, len(products)))
+
+            return [
+                ProductResponse(**product.model_dump()) for product in random_products
+            ]
+
+        random_products = random.sample(
+            available_products, min(2, len(available_products))
+        )
+
+        return [ProductResponse(**product.model_dump()) for product in random_products]

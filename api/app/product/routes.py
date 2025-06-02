@@ -1,10 +1,16 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import joinedload
+
+from api.app.order.models import Order
 
 from ..common.dependencies import SessionDep
 from ..product.crud import (
     create_product,
     get_all_products,
     get_product_by_id,
+    get_product_recommendations,
     remove_product,
     update_product,
 )
@@ -14,7 +20,9 @@ from ..product.schemas import (
     ProductPatch,
     ProductResponse,
 )
-from ..user.crud import is_admin
+from ..user.crud import get_current_user, is_admin
+from ..user.models import User
+from ..utils import get_entity_by_params
 
 router = APIRouter()
 
@@ -31,6 +39,27 @@ async def product_list(
         page=page,
         limit=limit,
         company_id=company_id,
+    )
+
+
+@router.get("/recommendations/")
+async def get_recommendations(
+    session: SessionDep,
+    current_user: User = Depends(get_current_user),
+) -> List[ProductResponse]:
+    user = await get_entity_by_params(
+        session=session,
+        entity_class=User,
+        id=current_user.id,
+        options=[
+            joinedload(User.orders),
+            joinedload(User.orders).joinedload(Order.order_items),
+        ],
+        return_all=False,
+    )
+    return await get_product_recommendations(
+        session=session,
+        user=user,
     )
 
 
@@ -76,5 +105,4 @@ async def patch_product(
 async def delete_product(
     product_id: int, session: SessionDep, _: None = Depends(is_admin)
 ):
-
     await remove_product(session=session, product_id=product_id)

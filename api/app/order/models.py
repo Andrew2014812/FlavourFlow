@@ -14,6 +14,7 @@ class Order(OrderBase, table=True):
     is_payed: bool = Field(default=False)
 
     user_id: int = Field(foreign_key="user.id")
+    company_id: int = Field(foreign_key="company.id")
 
     order_items: List["OrderItem"] = Relationship(back_populates="order")
     user: Optional["User"] = Relationship(back_populates="orders")  # type: ignore
