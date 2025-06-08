@@ -1,5 +1,4 @@
 import random
-from typing import List
 
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
@@ -163,7 +162,7 @@ async def remove_product(session: SessionDep, product_id: int):
 async def get_product_recommendations(
     session: SessionDep,
     user: User,
-) -> List[ProductResponse]:
+) -> ProductListResponse:
     if not user.orders:
         companies = await get_entity_by_params(
             session,
@@ -173,7 +172,7 @@ async def get_product_recommendations(
         companies_ids = [company.id for company in companies]
 
         if not companies_ids:
-            return []
+            return ProductListResponse(products=[], total_pages=1)
 
         target_company_id = random.choice(companies_ids)
 
@@ -186,7 +185,19 @@ async def get_product_recommendations(
 
         random_products = random.sample(products, min(2, len(products)))
 
-        return [ProductResponse(**product.model_dump()) for product in random_products]
+        for product in random_products:
+            print(product.company)
+
+        products_result = [
+            ProductResponse(
+                **product.model_dump(),
+                company_name_en=product.company.title_en,
+                company_name_ua=product.company.title_ua,
+            )
+            for product in random_products
+        ]
+
+        return ProductListResponse(products=products_result, total_pages=1)
 
     else:
         order_company_ids = list(set(order.company_id for order in user.orders))
@@ -216,7 +227,7 @@ async def get_product_recommendations(
             companies_ids = [company.id for company in companies]
 
             if not companies_ids:
-                return []
+                return ProductListResponse(products=[], total_pages=1)
 
             target_company_id = random.choice(companies_ids)
 
@@ -229,12 +240,26 @@ async def get_product_recommendations(
 
             random_products = random.sample(products, min(2, len(products)))
 
-            return [
-                ProductResponse(**product.model_dump()) for product in random_products
+            products_result = [
+                ProductResponse(
+                    **product.model_dump(),
+                    company_name_en=product.company.title_en,
+                    company_name_ua=product.company.title_ua,
+                )
+                for product in random_products
             ]
+            return ProductListResponse(products=products_result, total_pages=1)
 
         random_products = random.sample(
             available_products, min(2, len(available_products))
         )
 
-        return [ProductResponse(**product.model_dump()) for product in random_products]
+        products_result = [
+            ProductResponse(
+                **product.model_dump(),
+                company_name_en=product.company.title_en,
+                company_name_ua=product.company.title_ua,
+            )
+            for product in random_products
+        ]
+        return ProductListResponse(products=products_result, total_pages=1)

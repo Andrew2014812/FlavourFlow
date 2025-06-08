@@ -38,7 +38,7 @@ class ProductService:
         user_info: UserInfo,
     ) -> Optional[ProductListResponse]:
         response = await make_request(
-            sub_url=self.prefix,
+            sub_url=f"{self.prefix}recommendations/",
             method=APIMethods.GET.value,
             headers={
                 APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"

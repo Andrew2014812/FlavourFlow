@@ -51,6 +51,8 @@ class ProductCreate(SQLModel):
 
 class ProductResponse(ProductBase):
     id: int
+    company_name_en: Optional[str] = None
+    company_name_ua: Optional[str] = None
 
 
 class ProductListResponse(SQLModel):

@@ -6,11 +6,12 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.order.schemas import OrderResponse
 from api.app.user.schemas import UserResponseMe
-from bot.common.services.order_service import get_paid_orders
 
+from ..common.services.order_service import get_paid_orders
 from ..common.services.text_service import text_service
 from ..common.services.user_service import get_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
+from ..handlers.entity_handlers.product_handlers import render_user_recommendations
 from ..handlers.main_keyboard_handlers import (
     get_admin_panel_keyboard,
     get_language_keyboard,
@@ -170,3 +171,11 @@ async def handle_orders(message: Message, language_code: str):
         order_message += f"{order_total_price_name}: ${order.total_price}"
 
         await message.answer(order_message)
+
+
+@register_button_handler(
+    text_service.buttons["en"]["recommendations"],
+    text_service.buttons["ua"]["recommendations"],
+)
+async def handle_recommendations(message: Message, _: str):
+    await render_user_recommendations(message)

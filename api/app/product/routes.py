@@ -1,11 +1,8 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import joinedload
 
-from api.app.order.models import Order
-
 from ..common.dependencies import SessionDep
+from ..order.models import Order, OrderItem
 from ..product.crud import (
     create_product,
     get_all_products,
@@ -14,6 +11,7 @@ from ..product.crud import (
     remove_product,
     update_product,
 )
+from ..product.models import Product
 from ..product.schemas import (
     ProductCreate,
     ProductListResponse,
@@ -46,7 +44,7 @@ async def product_list(
 async def get_recommendations(
     session: SessionDep,
     current_user: User = Depends(get_current_user),
-) -> List[ProductResponse]:
+) -> ProductListResponse:
     user = await get_entity_by_params(
         session=session,
         entity_class=User,
@@ -54,6 +52,13 @@ async def get_recommendations(
         options=[
             joinedload(User.orders),
             joinedload(User.orders).joinedload(Order.order_items),
+            joinedload(User.orders)
+            .joinedload(Order.order_items)
+            .joinedload(OrderItem.product),
+            joinedload(User.orders)
+            .joinedload(Order.order_items)
+            .joinedload(OrderItem.product)
+            .joinedload(Product.company),
         ],
         return_all=False,
     )

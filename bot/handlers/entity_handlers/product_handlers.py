@@ -439,13 +439,19 @@ async def render_user_product(
     total_pages: int = 1,
 ):
     builder = InlineKeyboardBuilder()
+    if product.company_name_en and product.company_name_ua:
+        company_name = f'{product.company_name_en if language_code == "en" else product.company_name_ua}\n\n'
+    else:
+        company_name = ""
 
     product_name = product.title_en if language_code == "en" else product.title_ua
     composition = (
         product.composition_en if language_code == "en" else product.composition_ua
     )
     price_name = "Price" if language_code == "en" else "Ціна"
-    caption = f"{product_name}\n{price_name}: ${product.price}\n\n{composition}"
+    caption = (
+        f"{company_name}{product_name}\n{price_name}: ${product.price}\n\n{composition}"
+    )
     builder.row(
         InlineKeyboardButton(
             text="Add to Cart" if language_code == "en" else "Додати до кошика",
