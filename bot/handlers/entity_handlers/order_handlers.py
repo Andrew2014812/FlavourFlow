@@ -58,7 +58,7 @@ async def handle_order_details(message: Message, state: FSMContext) -> None:
     for item in cart_items:
         total_price += item.price * item.quantity
         order_items.append(OrderItemCreate(**item.model_dump()))
-        caption += f"{item.product_title_ua} - {item.quantity} - {item.price * item.quantity} {item.currency}.\n"
+        caption += f"{item.product_title_ua} - {item.quantity} - ${item.price * item.quantity}.\n"
 
     address_name = "Address" if language_code == "en" else "Адреса"
     time_name = "Time" if language_code == "en" else "Час"

@@ -9,7 +9,6 @@ class UserBase(SQLModel):
     first_name: str
     last_name: Optional[str] = Field(nullable=True, default=None)
     phone_number: str = Field(unique=True, index=True)
-    bonuses: float = Field(default=0)
     telegram_id: int = Field(sa_column=Column(BigInteger))
     role: Optional[str] = Field(default="user")
 
@@ -34,7 +33,6 @@ class UserResponseMe(SQLModel):
     last_name: Optional[str] = None
     phone_number: str
     telegram_id: int
-    bonuses: float
     role: str
 
 

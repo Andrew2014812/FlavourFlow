@@ -14,7 +14,6 @@ class ProductBase(SQLModel):
     image_link: str = Field(nullable=True, unique=True)
     image_id: str = Field(nullable=True, unique=True)
     price: int
-    currency: str = Field(default="UAH")
 
     company_id: Optional[int] = Field(default=None, foreign_key="company.id")
 

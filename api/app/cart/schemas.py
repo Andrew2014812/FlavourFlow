@@ -15,7 +15,6 @@ class CartItemBase(SQLModel):
     composition_en: str
     image_link: str
     price: int
-    currency: str = Field(default="UAH")
 
 
 class CartItemCreate(SQLModel):

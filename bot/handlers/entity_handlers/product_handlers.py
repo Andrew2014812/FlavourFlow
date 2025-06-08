@@ -45,7 +45,6 @@ PRODUCT_FIELD_MAPPING = {
     "Склад ua:": "composition_ua",
     "Склад en:": "composition_en",
     "Ціна:": "price",
-    "Валюта:": "currency",
 }
 
 
@@ -302,7 +301,6 @@ async def process_image_upload(message: Message, state: FSMContext):
         "composition_ua",
         "composition_en",
         "price",
-        "currency",
     ]
     if product_data and not all(field in product_data for field in required_fields):
         missing_fields = [

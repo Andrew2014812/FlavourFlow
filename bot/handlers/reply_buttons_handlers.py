@@ -70,7 +70,6 @@ async def handle_profile(message: Message, language_code: str):
     profile_data = {
         "name": f"{user_data.first_name} {last_name}",
         "language": "Українська" if language_code == "ua" else "English",
-        "bonuses": user_data.bonuses,
         "phone": user_data.phone_number,
     }
 
@@ -164,10 +163,10 @@ async def handle_orders(message: Message, language_code: str):
 
             order_message += f"{order_item_caption}: {order_item.product.title_ua if language_code == 'ua' else order_item.product.title_en} \n"
             order_message += f"{order_item_quantity_name}: {order_item.quantity}\n"
-            order_message += f"{order_item_price_name}: {order_item.product.price}\n\n"
+            order_message += f"{order_item_price_name}: ${order_item.product.price}\n\n"
 
         order_message += f"{order_address_name}: {order.address}\n"
         order_message += f"{order_time_name}: {order.time}\n"
-        order_message += f"{order_total_price_name}: {order.total_price}"
+        order_message += f"{order_total_price_name}: ${order.total_price}"
 
         await message.answer(order_message)

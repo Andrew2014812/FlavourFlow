@@ -23,7 +23,7 @@ async def proceed_payment(
 
     await bot.send_invoice(
         chat_id=message.chat.id,
-        title="Оплата замовлення",
+        title="Оплата замовлення" if language_code == "ua" else "Order payment",
         description=(
             "Оплата замовлення через Redsys"
             if language_code == "ua"

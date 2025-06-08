@@ -152,7 +152,7 @@ async def render_user_product_list(
         product.composition_en if language_code == "en" else product.composition_ua
     )
     price_name = "Price" if language_code == "en" else "Ціна"
-    caption = f"{product_name}\n{price_name}: {product.price} {product.currency}\n\n{composition}"
+    caption = f"{product_name}\n{price_name}: ${product.price}\n\n{composition}"
     builder.row(
         InlineKeyboardButton(
             text="Add to Cart" if language_code == "en" else "Додати до кошика",
@@ -216,7 +216,7 @@ async def render_user_cart_product(
     price_name = "Price" if language_code == "en" else "Ціна"
     quantity_name = "Quantity" if language_code == "en" else "Кількість"
     total_name = "Total" if language_code == "en" else "Всього"
-    caption = f"{product_name}\n\n{composition}\n\n{price_name}: {cart_item.price} {cart_item.currency}\n{quantity_name}: {cart_item.quantity}\n{total_name}: {cart_item.price * cart_item.quantity} {cart_item.currency}"
+    caption = f"{product_name}\n\n{composition}\n\n{price_name}: ${cart_item.price}\n{quantity_name}: {cart_item.quantity}\n{total_name}: ${cart_item.price * cart_item.quantity} "
 
     builder.row(
         InlineKeyboardButton(
