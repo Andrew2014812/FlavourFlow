@@ -19,7 +19,7 @@ async def cmd_start(message: Message):
 
 @router.message(Command(commands=["recommendations"]))
 async def cmd_recommendations(message: Message):
-    await render_user_recommendations(message)
+    await render_user_recommendations(message, message.from_user.id)
 
 
 def register_command_handlers(dispatcher: Dispatcher):

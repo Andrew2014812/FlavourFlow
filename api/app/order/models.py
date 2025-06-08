@@ -14,6 +14,7 @@ class Order(OrderBase, table=True):
     id: int = Field(default=None, primary_key=True)
     is_payed: bool = Field(default=False)
     is_submitted: bool = Field(default=False)
+    is_pay_on_delivery: bool = Field(default=False)
 
     user_id: int = Field(foreign_key="user.id")
     company_id: int = Field(foreign_key="company.id")

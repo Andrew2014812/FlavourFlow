@@ -182,7 +182,7 @@ async def handle_orders(message: Message, language_code: str, _: FSMContext = No
     text_service.buttons["ua"]["recommendations"],
 )
 async def handle_recommendations(message: Message, _: str, state: FSMContext = None):
-    await render_user_recommendations(message)
+    await render_user_recommendations(message, message.from_user.id)
 
 
 @register_button_handler(

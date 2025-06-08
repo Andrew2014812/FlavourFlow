@@ -9,21 +9,28 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 from api.app.order.schemas import OrderCreate, OrderItemCreate, OrderResponse
 from api.app.user.schemas import UserResponse
-from bot.common.models import UserInfo
 
+from ...common.models import UserInfo
 from ...common.services.cart_service import get_cart_items
-from ...common.services.order_service import accept_order, create_order, get_order_by_id
+from ...common.services.order_service import (
+    accept_order,
+    create_order,
+    get_order_by_id,
+    update_order_purchase_info,
+)
 from ...common.services.text_service import text_service
 from ...common.services.user_info_service import get_user_info
 from ...common.services.user_service import retrieve_admins
 from ...config import get_bot
 from ...handlers.entity_handlers.handler_utils import convert_raw_text_to_valid_dict
+from ...handlers.entity_handlers.product_handlers import render_user_recommendations
 
 router = Router()
 
 
 class Form(StatesGroup):
     process_order_details = State()
+    proceed_payment = State()
 
 
 FIELD_MAPPING = {
@@ -79,6 +86,19 @@ async def handle_order_details(message: Message, state: FSMContext) -> None:
     )
     order = await create_order(order_create=order_create, user_id=message.from_user.id)
 
+    await proceed_payment(
+        message, state, language_code, order.id, order.total_price, caption
+    )
+
+
+async def proceed_payment(
+    message: Message,
+    state: FSMContext,
+    language_code: str,
+    order_id: int,
+    total_price: int,
+    caption: str,
+):
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(
@@ -87,14 +107,39 @@ async def handle_order_details(message: Message, state: FSMContext) -> None:
                 {
                     "a": "pay",
                     "pr": total_price,
-                    "o": order.id,
+                    "o": order_id,
                 },
                 separators=(",", ":"),
             ),
-        )
+        ),
+        InlineKeyboardButton(
+            text="Оплата при отриманні" if language_code == "ua" else "Pay on delivery",
+            callback_data=json.dumps(
+                {"a": "pay_on_delivery", "o": order_id}, separators=(",", ":")
+            ),
+        ),
     )
     await message.answer(caption, reply_markup=builder.as_markup())
     await state.clear()
+
+
+async def proceed_payment_on_delivery(
+    message: Message,
+    order_id: int,
+    user_id: int,
+):
+    await confirm_order(message, order_id, await get_user_info(user_id))
+
+
+async def confirm_order(message: Message, order_id: int, user_info: UserInfo):
+    await update_order_purchase_info(order_id=order_id, user_id=user_info.telegram_id)
+    await message.answer(
+        f"Замовлення №{order_id} в обробці ви отримаєте повідомлення при прийнятті!"
+        if user_info.language_code == "ua"
+        else f"Your order #{order_id} will be processed and you will receive a notification when it is accepted!"
+    )
+    await render_user_recommendations(message, user_info.telegram_id)
+    await send_order_info_to_admins(user_info.telegram_id, order_id)
 
 
 async def render_orders(
@@ -128,10 +173,10 @@ async def render_orders(
         await bot.send_message(user_id, order_message)
 
 
-async def send_order_info_to_admins(message: Message, order_id: int):
+async def send_order_info_to_admins(user_id: int, order_id: int):
     bot = await get_bot()
     admins = await retrieve_admins()
-    order = await get_order_by_id(order_id=order_id, user_id=message.from_user.id)
+    order = await get_order_by_id(order_id=order_id, user_id=user_id)
 
     for admin in admins:
         user_info = await get_user_info(admin.telegram_id)

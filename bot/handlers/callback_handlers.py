@@ -34,7 +34,11 @@ from .entity_handlers.entity_handlers import (
     render_details,
 )
 from .entity_handlers.handler_utils import ActionType
-from .entity_handlers.order_handlers import handle_accept_order, handle_order_create
+from .entity_handlers.order_handlers import (
+    handle_accept_order,
+    handle_order_create,
+    proceed_payment_on_delivery,
+)
 from .entity_handlers.product_handlers import (
     handle_edit_product_image,
     handle_edit_product_text,
@@ -370,6 +374,12 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         order_id = data.get("o")
         await proceed_payment(
             callback.message, language_code, total_price=total_price, order_id=order_id
+        )
+
+    elif action == "pay_on_delivery":
+        order_id = data.get("o")
+        await proceed_payment_on_delivery(
+            callback.message, order_id=order_id, user_id=callback.from_user.id
         )
 
     elif action == "edit_profile":

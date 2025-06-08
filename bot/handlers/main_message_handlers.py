@@ -11,7 +11,6 @@ from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
 
 from ..common.services.gastronomy_service import kitchen_service
-from ..common.services.order_service import update_order_purchase_info
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import (
     create_user_info,
@@ -20,8 +19,7 @@ from ..common.services.user_info_service import (
 )
 from ..common.services.user_service import login_user, register_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
-from ..handlers.entity_handlers.order_handlers import send_order_info_to_admins
-from ..handlers.entity_handlers.product_handlers import render_user_recommendations
+from ..handlers.entity_handlers.order_handlers import confirm_order
 from ..handlers.main_keyboard_handlers import (
     get_contact_keyboard,
     get_language_keyboard,
@@ -91,18 +89,11 @@ async def successful_payment(message: Message):
 
     payload_data = json.loads(payment_info.invoice_payload)
     order_id = payload_data.get("order_id")
-
-    await update_order_purchase_info(order_id=order_id, user_id=message.from_user.id)
     await message.answer(
         text_service.get_text("payment_success", user_info.language_code)
     )
-    await message.answer(
-        f"Замовлення №{order_id} в обробці ви отримаєте повідомлення при прийнятті!"
-        if user_info.language_code == "ua"
-        else f"Your order #{order_id} will be processed and you will receive a notification when it is accepted!"
-    )
-    await render_user_recommendations(message)
-    await send_order_info_to_admins(message, order_id)
+
+    await confirm_order(message, order_id, user_info)
 
 
 @router.pre_checkout_query()
