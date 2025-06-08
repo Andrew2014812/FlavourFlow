@@ -2,7 +2,9 @@ from typing import List, Optional
 
 from sqlmodel import Field, SQLModel
 
+from ..company.models import Company
 from ..product.schemas import ProductResponse
+from ..user.models import User
 
 
 class OrderBase(SQLModel):
@@ -17,7 +19,10 @@ class OrderCreate(OrderBase):
 
 class OrderResponse(OrderBase):
     id: int
+    is_submitted: bool = False
     order_items: List["OrderItemResponse"] = []
+    user: User = None
+    company: Company = None
 
 
 class OrderItemBase(SQLModel):

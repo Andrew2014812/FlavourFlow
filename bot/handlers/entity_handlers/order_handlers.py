@@ -1,16 +1,22 @@
 import json
+from typing import List
 
-from aiogram import Dispatcher, Router
+from aiogram import Bot, Dispatcher, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
-from api.app.order.schemas import OrderCreate, OrderItemCreate
+from api.app.order.schemas import OrderCreate, OrderItemCreate, OrderResponse
+from api.app.user.schemas import UserResponse
+from bot.common.models import UserInfo
 
 from ...common.services.cart_service import get_cart_items
-from ...common.services.order_service import create_order
+from ...common.services.order_service import accept_order, create_order, get_order_by_id
 from ...common.services.text_service import text_service
+from ...common.services.user_info_service import get_user_info
+from ...common.services.user_service import retrieve_admins
+from ...config import get_bot
 from ...handlers.entity_handlers.handler_utils import convert_raw_text_to_valid_dict
 
 router = Router()
@@ -89,6 +95,137 @@ async def handle_order_details(message: Message, state: FSMContext) -> None:
     )
     await message.answer(caption, reply_markup=builder.as_markup())
     await state.clear()
+
+
+async def render_orders(
+    bot: Bot, orders: List[OrderResponse], language_code: str, user_id: int
+):
+    for order in orders:
+        order_status_en = "Accepted" if order.is_submitted else "Pending"
+        order_status_ua = "Прийнято" if order.is_submitted else "В обробці"
+        order_status_name = "Status" if language_code == "en" else "Статус"
+        order_address_name = "Address" if language_code == "en" else "Адреса"
+        order_time_name = "Time" if language_code == "en" else "Час"
+        order_total_price_name = "Total price" if language_code == "en" else "Всього"
+
+        order_message = f"№{order.id}\n{order_status_name}: {order_status_en if language_code == 'en' else order_status_ua}\n\n"
+
+        for order_item in order.order_items:
+            order_item_caption = "Item" if language_code == "en" else "Позиція"
+            order_item_price_name = "Price" if language_code == "en" else "Ціна"
+            order_item_quantity_name = (
+                "Quantity" if language_code == "en" else "Кількість"
+            )
+
+            order_message += f"{order_item_caption}: {order_item.product.title_ua if language_code == 'ua' else order_item.product.title_en} \n"
+            order_message += f"{order_item_quantity_name}: {order_item.quantity}\n"
+            order_message += f"{order_item_price_name}: ${order_item.product.price}\n\n"
+
+        order_message += f"{order_address_name}: {order.address}\n"
+        order_message += f"{order_time_name}: {order.time}\n"
+        order_message += f"{order_total_price_name}: ${order.total_price}"
+
+        await bot.send_message(user_id, order_message)
+
+
+async def send_order_info_to_admins(message: Message, order_id: int):
+    bot = await get_bot()
+    admins = await retrieve_admins()
+    order = await get_order_by_id(order_id=order_id, user_id=message.from_user.id)
+
+    for admin in admins:
+        user_info = await get_user_info(admin.telegram_id)
+        await bot.send_message(
+            admin.telegram_id,
+            (
+                "New order received!"
+                if user_info.language_code == "en"
+                else "Нове замовлення отримано!"
+            ),
+        )
+        await send_admin_orders_info(bot, user_info, admin, [order])
+
+    await bot.session.close()
+
+
+async def send_admin_orders_info(
+    bot: Bot,
+    user_info: UserInfo,
+    admin: UserResponse,
+    orders: List[OrderResponse],
+):
+
+    for order in orders:
+        if user_info.language_code == "en":
+            caption = f"Order #{order.id}\n\n Client information:\nName: {order.user.first_name} {order.user.last_name}\nPhone: {order.user.phone_number}\n\nDetails:"
+        else:
+            caption = f"Замовлення #{order.id}\n\nПерсональні дані клієнта:\nІм'я: {order.user.first_name} {order.user.last_name if order.user.last_name else ''}\nТелефон: {order.user.phone_number}\n\nДеталі:"
+
+        await bot.send_message(
+            chat_id=admin.telegram_id,
+            text=caption,
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text=(
+                                "Accept"
+                                if user_info.language_code == "en"
+                                else "Прийняти"
+                            ),
+                            callback_data=json.dumps(
+                                {
+                                    "a": "accept",
+                                    "o": order.id,
+                                    "u": order.user.telegram_id,
+                                },
+                                separators=(",", ":"),
+                            ),
+                        )
+                    ]
+                ]
+            ),
+        )
+        await render_orders(
+            bot=bot,
+            orders=[order],
+            language_code=user_info.language_code,
+            user_id=admin.telegram_id,
+        ),
+
+
+async def handle_accept_order(
+    message: Message,
+    language_code: str,
+    order_id: int,
+    admin_id: int,
+    user_id: int,
+):
+    response = await accept_order(order_id=order_id, user_id=admin_id)
+    if response["status"] == 400:
+        await message.answer(
+            "Order already accepted!"
+            if language_code == "en"
+            else "Замовлення вже прийнято!"
+        )
+        return
+
+    await message.answer(
+        "Order accepted successfully!"
+        if language_code == "en"
+        else "Замовлення успішно прийнято!"
+    )
+    bot = await get_bot()
+    user_info = await get_user_info(user_id)
+    await bot.send_message(
+        user_id,
+        (
+            f"Your order №{order_id} has been accepted!"
+            if user_info.language_code == "en"
+            else f"Ваше замовлення №{order_id} прийнято!"
+        ),
+    )
+    await bot.session.close()
 
 
 def register_handlers(dispatcher: Dispatcher):

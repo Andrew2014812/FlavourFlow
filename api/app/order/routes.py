@@ -1,10 +1,10 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import joinedload
 
 from ..common.dependencies import SessionDep
-from ..user.crud import get_current_user
+from ..user.crud import get_current_user, is_admin
 from ..user.models import User
 from ..utils import get_entity_by_params
 from .crud import create_order
@@ -27,7 +27,7 @@ async def post_order(
     )
 
 
-@router.put("/{order_id}/")
+@router.put("/pay/{order_id}/")
 async def update_order_purchase_info(
     session: SessionDep,
     order_id: int,
@@ -43,6 +43,46 @@ async def update_order_purchase_info(
     await session.commit()
 
 
+@router.put("/accept/{order_id}/")
+async def accept_order(
+    session: SessionDep,
+    order_id: int,
+    _: User = Depends(is_admin),
+) -> None:
+    order: Order = await get_entity_by_params(
+        session,
+        Order,
+        id=order_id,
+    )
+
+    if order.is_submitted:
+        raise HTTPException(
+            status_code=400,
+            detail="Order is already submitted",
+        )
+
+    order.is_submitted = True
+    await session.commit()
+
+
+@router.get("/id/{order_id}/")
+async def get_order(
+    session: SessionDep,
+    order_id: int,
+    _: User = Depends(get_current_user),
+) -> OrderResponse:
+    return await get_entity_by_params(
+        session,
+        Order,
+        id=order_id,
+        options=[
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.company),
+        ],
+    )
+
+
 @router.get("/")
 async def get_paid_orders(
     session: SessionDep,
@@ -54,5 +94,26 @@ async def get_paid_orders(
         user_id=current_user.id,
         is_payed=True,
         return_all=True,
-        options=[joinedload(Order.order_items).joinedload(OrderItem.product)],
+        options=[
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.company),
+        ],
+    )
+
+
+@router.get("/admin/")
+async def get_all_orders(
+    session: SessionDep,
+    _: User = Depends(is_admin),
+) -> List[OrderResponse]:
+    return await get_entity_by_params(
+        session,
+        Order,
+        return_all=True,
+        options=[
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.company),
+        ],
     )

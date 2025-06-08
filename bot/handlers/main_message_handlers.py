@@ -20,6 +20,7 @@ from ..common.services.user_info_service import (
 )
 from ..common.services.user_service import login_user, register_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
+from ..handlers.entity_handlers.order_handlers import send_order_info_to_admins
 from ..handlers.entity_handlers.product_handlers import render_user_recommendations
 from ..handlers.main_keyboard_handlers import (
     get_contact_keyboard,
@@ -95,7 +96,13 @@ async def successful_payment(message: Message):
     await message.answer(
         text_service.get_text("payment_success", user_info.language_code)
     )
+    await message.answer(
+        f"Замовлення №{order_id} в обробці ви отримаєте повідомлення при прийнятті!"
+        if user_info.language_code == "ua"
+        else f"Your order #{order_id} will be processed and you will receive a notification when it is accepted!"
+    )
     await render_user_recommendations(message)
+    await send_order_info_to_admins(message, order_id)
 
 
 @router.pre_checkout_query()
@@ -146,7 +153,7 @@ async def handle_buttons(message: Message, state: FSMContext):
     if text in text_service.buttons.get(language_code, {}).values():
         handler = button_handlers.get(text)
         if handler:
-            await handler(message, language_code, state)
+            await handler(message, language_code)
         else:
             await message.answer(text_service.get_text("unknown_option", language_code))
     else:

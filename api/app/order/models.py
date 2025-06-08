@@ -2,8 +2,9 @@ from typing import List, Optional
 
 from sqlmodel import Field, Relationship
 
-from api.app.product.models import Product
-
+from ..company.models import Company
+from ..product.models import Product
+from ..user.models import User
 from .schemas import OrderBase, OrderItemBase
 
 
@@ -12,12 +13,14 @@ class Order(OrderBase, table=True):
 
     id: int = Field(default=None, primary_key=True)
     is_payed: bool = Field(default=False)
+    is_submitted: bool = Field(default=False)
 
     user_id: int = Field(foreign_key="user.id")
     company_id: int = Field(foreign_key="company.id")
 
     order_items: List["OrderItem"] = Relationship(back_populates="order")
-    user: Optional["User"] = Relationship(back_populates="orders")  # type: ignore
+    user: Optional[User] = Relationship(back_populates="orders")  # type: ignore
+    company: Optional[Company] = Relationship(back_populates="orders")
 
 
 class OrderItem(OrderItemBase, table=True):

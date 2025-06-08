@@ -28,7 +28,7 @@ from .entity_handlers.entity_handlers import (
     render_details,
 )
 from .entity_handlers.handler_utils import ActionType
-from .entity_handlers.order_handlers import handle_order_create
+from .entity_handlers.order_handlers import handle_accept_order, handle_order_create
 from .entity_handlers.product_handlers import (
     handle_edit_product_image,
     handle_edit_product_text,
@@ -90,7 +90,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     elif action == "back":
         if content_type == CONTENT_TYPES["COMPANY"]:
             await callback.message.delete()
-            await handle_restaurants(callback.message, language_code)
+            await handle_restaurants(callback.message, language_code, state)
 
         elif content_type == CONTENT_TYPES["ADMIN_PRODUCT"]:
             await update_paginated_message(
@@ -309,6 +309,17 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     elif action == "order":
         await handle_order_create(callback.message, language_code, state)
+
+    elif action == "accept":
+        order_id = data.get("o")
+        user_id = data.get("u")
+        await handle_accept_order(
+            callback.message,
+            language_code,
+            order_id=order_id,
+            admin_id=callback.from_user.id,
+            user_id=user_id,
+        )
 
     elif action == "pay":
         total_price = data.get("pr")

@@ -34,15 +34,6 @@ async def retrieve_user(
     telegram_id: int = Query(default=None, description="Filter by telegram id"),
     _: None = Depends(is_admin),
 ) -> UserResponse | List[UserResponse]:
-    """
-    Get a user by params.
-
-    If `phone_number` and `telegram_id` are `None`, return all users.
-    If `phone_number` is provided, return a user with the phone number.
-    If `telegram_id` is provided, return a user with the telegram id.
-
-    Requires admin privileges.
-    """
 
     return await get_user_by_params(
         phone_number=phone_number,
@@ -53,16 +44,6 @@ async def retrieve_user(
 
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
 async def post_user(user: UserCreate, session: SessionDep) -> UserResponse:
-    """
-    Create a new user
-
-    Args:
-        user (UserCreate): The user data to register
-        session (SessionDep): The database session
-
-    Returns:
-        UserResponse: The created user
-    """
 
     return await create_user(session=session, user=user)
 
@@ -123,32 +104,12 @@ async def login_for_access_token(
     session: SessionDep,
     user: UserLogin,
 ) -> Token:
-    """
-    Login to get an access token.
-
-    Args:
-        session (SessionDep): The database session
-        user (UserLogin): The user data to login
-
-    Returns:
-        Token: The access token
-    """
 
     return await authenticate_user(session, user)
 
 
 @router.get("/{user_id}/")
 async def retrieve_user_by_id(user_id: int, session: SessionDep) -> UserResponse:
-    """
-    Retrieve a user by id.
-
-    Args:
-        user_id (int): The id of the user to retrieve
-        session (SessionDep): The database session
-
-    Returns:
-        UserResponse: The retrieved user
-    """
 
     return await get_user_by_id(user_id=user_id, session=session)
 

@@ -1,15 +1,22 @@
 from enum import Enum
+from typing import List
 
 from fastapi import status
+from sqlmodel.ext.asyncio.session import AsyncSession
 
+from api.app.common.database import engine
+from api.app.user.models import User
 from api.app.user.schemas import (
     Token,
     UserCreate,
     UserLogin,
     UserResponse,
     UserResponseMe,
+    UserRole,
 )
+from api.app.utils import get_entity_by_params
 
+from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
 from ..services.user_info_service import delete_user_info, get_user_info
 from ..utils import make_request
@@ -43,6 +50,13 @@ async def get_user(telegram_id: int) -> UserResponseMe | None:
         return None
 
     return UserResponseMe.model_validate(response.get("data"))
+
+
+async def retrieve_admins() -> List[UserResponse]:
+    async with AsyncSession(engine) as session:
+        return await get_entity_by_params(
+            session, User, role=UserRole.ADMIN.value, return_all=True
+        )
 
 
 async def update_user(telegram_id: int, **fields) -> UserResponseMe | None:

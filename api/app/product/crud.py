@@ -184,10 +184,6 @@ async def get_product_recommendations(
         )
 
         random_products = random.sample(products, min(2, len(products)))
-
-        for product in random_products:
-            print(product.company)
-
         products_result = [
             ProductResponse(
                 **product.model_dump(),
