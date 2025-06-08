@@ -369,6 +369,13 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             user_id=user_id,
         )
 
+    elif action == "cancel_order":
+        await callback.message.answer(
+            "Order canceled!" if language_code == "en" else "Замовлення скасовано!"
+        )
+        await state.clear()
+        await callback.answer()
+
     elif action == "pay":
         total_price = data.get("pr")
         order_id = data.get("o")

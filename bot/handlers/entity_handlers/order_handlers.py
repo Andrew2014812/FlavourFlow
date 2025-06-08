@@ -45,7 +45,24 @@ async def handle_order_create(
     message: Message, language_code: str, state: FSMContext
 ) -> None:
 
-    await message.answer(text_service.get_text("order_instruction", language_code))
+    await message.answer(
+        text_service.get_text("order_instruction", language_code),
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=("Cancel" if language_code == "en" else "Відмінити"),
+                        callback_data=json.dumps(
+                            {
+                                "a": "cancel_order",
+                            },
+                            separators=(",", ":"),
+                        ),
+                    )
+                ]
+            ]
+        ),
+    )
     await message.answer(
         text_service.get_text("order_example_with_time", language_code)
     )
