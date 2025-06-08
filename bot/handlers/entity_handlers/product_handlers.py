@@ -7,8 +7,11 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, Message, PhotoSize
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from ...common.services.product_service import product_service
+from api.app.product.schemas import ProductListResponse, ProductResponse
+
+from ...common.services.product_service import ProductService, product_service
 from ...common.services.text_service import text_service
+from ...common.services.user_info_service import get_user_info
 from ..pagination_handlers import send_paginated_message
 from .handler_utils import (
     ActionType,
@@ -428,3 +431,63 @@ async def handle_edit_product_image(callback: CallbackQuery, state: FSMContext):
 
 def register_handlers(dispatcher: Dispatcher):
     dispatcher.include_router(router)
+
+
+async def render_user_product(
+    product: ProductResponse,
+    language_code: str,
+    total_pages: int = 1,
+):
+    builder = InlineKeyboardBuilder()
+
+    product_name = product.title_en if language_code == "en" else product.title_ua
+    composition = (
+        product.composition_en if language_code == "en" else product.composition_ua
+    )
+    price_name = "Price" if language_code == "en" else "Ціна"
+    caption = f"{product_name}\n{price_name}: ${product.price}\n\n{composition}"
+    builder.row(
+        InlineKeyboardButton(
+            text="Add to Cart" if language_code == "en" else "Додати до кошика",
+            callback_data=json.dumps(
+                {
+                    "a": "add_to_cart",
+                    "t": "user-products",
+                    "e": str(product.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+        # InlineKeyboardButton(
+        #     text=(
+        #         "Add to Wishlist"
+        #         if language_code == "en"
+        #         else "Додати до списку бажань"
+        #     ),
+        #     callback_data=json.dumps(
+        #         {
+        #             "a": "add_to_wishlist",
+        #             "t": "user-products",
+        #             "e": str(product.id),
+        #         },
+        #         separators=(",", ":"),
+        #     ),
+        # ),
+    )
+
+    return caption, product.image_link, total_pages, builder
+
+
+async def render_user_recommendations(message: Message):
+    user_info = await get_user_info(message.from_user.id)
+    product_service = ProductService()
+    product_response: ProductListResponse = await product_service.get_recommendations(
+        user_info
+    )
+
+    for product in product_response.products:
+        result = await render_user_product(product, user_info.language_code)
+        caption, image_link, _, builder = result
+        await message.answer_photo(
+            photo=image_link, caption=caption, reply_markup=builder.as_markup()
+        )

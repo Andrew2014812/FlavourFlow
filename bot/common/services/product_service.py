@@ -11,6 +11,7 @@ from api.app.product.schemas import ProductCreate, ProductListResponse, ProductR
 
 from ...common.services.user_info_service import get_user_info
 from ...config import APIAuth, APIMethods
+from ..models import UserInfo
 from ..utils import make_request
 
 
@@ -32,6 +33,19 @@ class ProductService:
         )
         return ProductListResponse.model_validate(response.get("data"))
 
+    async def get_recommendations(
+        self,
+        user_info: UserInfo,
+    ) -> Optional[ProductListResponse]:
+        response = await make_request(
+            sub_url=self.prefix,
+            method=APIMethods.GET.value,
+            headers={
+                APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
+            },
+        )
+        return ProductListResponse.model_validate(response.get("data"))
+
     async def get_item(self, item_id: int) -> Optional[ProductResponse]:
         response = await make_request(
             sub_url=f"{self.prefix}{item_id}/",
@@ -49,9 +63,7 @@ class ProductService:
         product_create = ProductCreate(**product_create_data)
 
         async with AsyncSession(engine) as session:
-            response = await create_product(
-                session=session, product_create=product_create
-            )
+            await create_product(session=session, product_create=product_create)
 
     async def update(
         self, item_id: int, data: Dict, telegram_id: int

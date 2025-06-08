@@ -132,6 +132,8 @@ async def render_product_list(page: int, language_code: str, company_id: str):
 async def render_user_product_list(
     page: int, language_code: str, company_id: str
 ) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
+    from .product_handlers import render_user_product
+
     result: ProductListResponse = await product_service.get_list(
         company_id=int(company_id), page=page, limit=1
     )
@@ -144,48 +146,11 @@ async def render_user_product_list(
             None,
         )
 
-    builder = InlineKeyboardBuilder()
-
-    product = result.products[0]
-    product_name = product.title_en if language_code == "en" else product.title_ua
-    composition = (
-        product.composition_en if language_code == "en" else product.composition_ua
+    return await render_user_product(
+        product=result.products[0],
+        language_code=language_code,
+        total_pages=result.total_pages,
     )
-    price_name = "Price" if language_code == "en" else "Ціна"
-    caption = f"{product_name}\n{price_name}: ${product.price}\n\n{composition}"
-    builder.row(
-        InlineKeyboardButton(
-            text="Add to Cart" if language_code == "en" else "Додати до кошика",
-            callback_data=json.dumps(
-                {
-                    "a": "add_to_cart",
-                    "t": "user-products",
-                    "p": page,
-                    "e": str(product.id),
-                },
-                separators=(",", ":"),
-            ),
-        ),
-        # InlineKeyboardButton(
-        #     text=(
-        #         "Add to Wishlist"
-        #         if language_code == "en"
-        #         else "Додати до списку бажань"
-        #     ),
-        #     callback_data=json.dumps(
-        #         {
-        #             "a": "add_to_wishlist",
-        #             "t": "user-products",
-        #             "p": page,
-        #             "e": str(product.id),
-        #         },
-        #         separators=(",", ":"),
-        #     ),
-        # ),
-    )
-
-    total_pages = result.total_pages
-    return caption, product.image_link, total_pages, builder
 
 
 async def render_user_cart_product(

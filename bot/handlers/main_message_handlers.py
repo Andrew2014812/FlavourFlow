@@ -8,9 +8,9 @@ from aiogram.types import Message, PreCheckoutQuery
 
 from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
-from bot.common.services.order_service import update_order_purchase_info
 
 from ..common.services.gastronomy_service import kitchen_service
+from ..common.services.order_service import update_order_purchase_info
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import (
     create_user_info,
@@ -19,6 +19,7 @@ from ..common.services.user_info_service import (
 )
 from ..common.services.user_service import login_user, register_user
 from ..handlers.entity_handlers.main_handlers import show_main_menu
+from ..handlers.entity_handlers.product_handlers import render_user_recommendations
 from ..handlers.main_keyboard_handlers import (
     get_contact_keyboard,
     get_language_keyboard,
@@ -93,6 +94,7 @@ async def successful_payment(message: Message):
     await message.answer(
         text_service.get_text("payment_success", user_info.language_code)
     )
+    await render_user_recommendations(message)
 
 
 @router.pre_checkout_query()
