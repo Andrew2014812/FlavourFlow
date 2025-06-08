@@ -460,6 +460,7 @@ async def render_user_product(
                     "a": "add_to_cart",
                     "t": "user-products",
                     "e": str(product.id),
+                    "c": str(product.company_id),
                 },
                 separators=(",", ":"),
             ),

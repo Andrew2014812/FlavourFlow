@@ -5,7 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from ..common.services import product_service
-from ..common.services.cart_service import add_to_cart, change_amount, remove_from_cart
+from ..common.services.cart_service import (
+    add_to_cart,
+    change_amount,
+    clear_cart,
+    remove_from_cart,
+)
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.product_service import product_service
@@ -16,6 +21,7 @@ from ..common.services.wishlist_service import (
     move_to_cart,
     remove_from_wishlist,
 )
+from ..handlers.entity_handlers.main_handlers import render_warning_cart_message
 from ..handlers.entity_handlers.support_handlers import answer_message, ignore_message
 from ..handlers.payment_handlers import proceed_payment
 from .entity_handlers.entity_handlers import (
@@ -215,12 +221,17 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
 
     elif action == "add_to_cart" and content_type == "user-products":
         product_id = extra_arg
-        response = await add_to_cart(callback.from_user.id, product_id)
+        company_id = data.get("c")
+        response = await add_to_cart(callback.from_user.id, product_id, company_id)
         if response["status"] == 200:
             await callback.message.answer(
                 "Product added to cart!"
                 if language_code == "en"
                 else "Продукт додано до кошика!"
+            )
+        elif response["status"] == 400:
+            await render_warning_cart_message(
+                callback, language_code, product_id, company_id, response
             )
         else:
             await callback.message.answer(
@@ -228,6 +239,31 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             )
 
         await callback.answer()
+
+    elif action == "clear_cart":
+        product_id = extra_arg
+        company_id = data.get("c")
+        await clear_cart(callback.from_user.id)
+        await callback.message.delete()
+        await callback.message.answer(
+            "Previous cart cleared!"
+            if language_code == "en"
+            else "Попередній кошик очищено!"
+        )
+        response = await add_to_cart(
+            callback.from_user.id, int(product_id), int(company_id)
+        )
+        if response["status"] == 200:
+            await callback.message.answer(
+                "New product added to cart!"
+                if language_code == "en"
+                else "Новий продукт додано до кошика!"
+            )
+        callback.answer()
+
+    elif action == "cancel_clear_cart":
+        await callback.message.delete()
+        callback.answer()
 
     elif action == "add_to_wishlist" and content_type == "user-products":
         product_id = extra_arg
@@ -285,7 +321,9 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         )
         await callback.answer()
 
-    elif action == "move_to_cart" and content_type == "wishlist":
+    elif action == "m_cart" and content_type == "wl":
+        product_id = extra_arg
+        company_id = data.get("c")
         response = await move_to_cart(callback.from_user.id, item_id)
         if response["status"] == 200:
             await callback.message.answer(
@@ -293,6 +331,12 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 if language_code == "en"
                 else "Продукт переміщено до кошика!"
             )
+        elif response["status"] == 400:
+            await render_warning_cart_message(
+                callback, language_code, product_id, company_id, response
+            )
+            await callback.answer()
+            return
         else:
             await callback.message.answer(
                 "Something went wrong" if language_code == "en" else "Щось пішло не так"

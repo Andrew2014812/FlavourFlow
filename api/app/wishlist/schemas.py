@@ -17,6 +17,8 @@ class WishlistItemBase(SQLModel):
 
 
 class WishlistItemResponse(WishlistItemBase):
+    product_id: int
+    company_id: int
     id: int
 
 

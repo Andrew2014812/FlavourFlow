@@ -2,6 +2,7 @@ import random
 
 from cloudinary.exceptions import GeneralError
 from fastapi import HTTPException, status
+from sqlalchemy.orm import joinedload
 from sqlmodel import select
 
 from ..common.dependencies import SessionDep
@@ -208,6 +209,7 @@ async def get_product_recommendations(
             Product,
             return_all=True,
             filters={"company_id": target_company_id},
+            options=[joinedload(Product.company)],
         )
 
         available_products = [

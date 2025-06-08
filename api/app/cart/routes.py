@@ -5,7 +5,13 @@ from fastapi import APIRouter, Depends, status
 from ..common.dependencies import SessionDep
 from ..user.crud import get_current_user
 from ..user.models import User
-from .crud import add_to_cart, change_amount, get_cart_items, remove_cart_item
+from .crud import (
+    add_to_cart,
+    change_amount,
+    clear_cart,
+    get_cart_items,
+    remove_cart_item,
+)
 from .schemas import (
     CartItemChangeAmount,
     CartItemCreate,
@@ -58,3 +64,12 @@ async def delete_cart_item(
 ):
 
     await remove_cart_item(session=session, user_id=current_user.id, item_id=item_id)
+
+
+@router.delete("/clear/", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_cart_route(
+    session: SessionDep,
+    current_user: User = Depends(get_current_user),
+):
+
+    await clear_cart(session=session, user_id=current_user.id)

@@ -21,10 +21,18 @@ async def add_to_cart(
     user_id: int,
     new_item: CartItemCreate,
 ) -> CartItemResponse:
-    cart = await get_entity_by_params(session, Cart, user_id=user_id)
+    cart: Cart = await get_entity_by_params(
+        session, Cart, user_id=user_id, options=[joinedload(Cart.company)]
+    )
+
+    if cart and new_item.company_id != cart.company.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=cart.company.title_en,
+        )
 
     if not cart:
-        cart = Cart(user_id=user_id)
+        cart = Cart(user_id=user_id, company_id=new_item.company_id)
         session.add(cart)
         await session.commit()
         await session.refresh(cart)
@@ -123,7 +131,9 @@ async def change_amount(session: SessionDep, item: CartItemChangeAmount):
 
 
 async def remove_cart_item(session: SessionDep, user_id: int, item_id: int):
-    cart: Cart = await get_entity_by_params(session, Cart, user_id=user_id)
+    cart: Cart = await get_entity_by_params(
+        session, Cart, user_id=user_id, options=[joinedload(Cart.items)]
+    )
 
     if not cart:
         raise HTTPException(
@@ -138,4 +148,20 @@ async def remove_cart_item(session: SessionDep, user_id: int, item_id: int):
         )
 
     await session.delete(item_to_delete)
+    await session.commit()
+    await session.refresh(cart)
+
+    if not cart.items:
+        await clear_cart(session=session, user_id=user_id)
+
+
+async def clear_cart(session: SessionDep, user_id: int):
+    cart: Cart = await get_entity_by_params(session, Cart, user_id=user_id)
+
+    if not cart:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cart not found"
+        )
+
+    await session.delete(cart)
     await session.commit()

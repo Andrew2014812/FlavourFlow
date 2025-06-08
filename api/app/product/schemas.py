@@ -3,6 +3,8 @@ from typing import Optional
 from fastapi import File, Form, UploadFile
 from sqlmodel import Field, SQLModel
 
+from ..company.models import Company
+
 
 class ProductBase(SQLModel):
     title_ua: str
@@ -53,6 +55,11 @@ class ProductResponse(ProductBase):
     id: int
     company_name_en: Optional[str] = None
     company_name_ua: Optional[str] = None
+    company_id: Optional[int]
+
+
+class ProductFullResponse(ProductBase):
+    company: Company
 
 
 class ProductListResponse(SQLModel):

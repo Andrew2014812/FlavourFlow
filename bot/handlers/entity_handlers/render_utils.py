@@ -294,10 +294,12 @@ async def render_user_wishlist_product(
             text="To Cart" if language_code == "en" else "До кошика",
             callback_data=json.dumps(
                 {
-                    "a": "move_to_cart",
-                    "t": "wishlist",
+                    "a": "m_cart",
+                    "t": "wl",
                     "p": page,
                     "id": str(wishlist_item.id),
+                    "e": str(wishlist_item.product_id),
+                    "c": str(wishlist_item.company_id),
                 },
                 separators=(",", ":"),
             ),

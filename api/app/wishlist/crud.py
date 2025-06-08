@@ -64,7 +64,16 @@ async def get_wishlist_items(
     return_all: bool = False,
 ) -> WishlistItemFullResponse | List[WishlistItemResponse] | None:
     wishlist: Wishlist = await get_entity_by_params(
-        session, Wishlist, user_id=user_id, options=[joinedload(Wishlist.items)]
+        session,
+        Wishlist,
+        user_id=user_id,
+        options=[
+            joinedload(Wishlist.items),
+            joinedload(Wishlist.items).joinedload(WishlistItem.product),
+            joinedload(Wishlist.items)
+            .joinedload(WishlistItem.product)
+            .joinedload(Product.company),
+        ],
     )
     if not wishlist:
         return None
@@ -78,6 +87,10 @@ async def get_wishlist_items(
         with_total_pages=True,
         order_by="id",
         return_all=True,
+        options=[
+            joinedload(WishlistItem.product),
+            joinedload(WishlistItem.product).joinedload(Product.company),
+        ],
     )
 
     if not wishlist_items:
@@ -87,7 +100,9 @@ async def get_wishlist_items(
         return wishlist.items
 
     return WishlistItemFullResponse(
-        **wishlist_items[0].model_dump(), total_pages=total_pages
+        **wishlist_items[0].model_dump(),
+        company_id=wishlist_items[0].product.company.id,
+        total_pages=total_pages
     )
 
 
@@ -125,10 +140,20 @@ async def remove_wishlist_item(session: SessionDep, user_id: int, item_id: int):
 
 async def move_to_cart(session: SessionDep, user_id: int, item_id: int):
     wish_list_item: WishlistItem = await get_entity_by_params(
-        session, WishlistItem, id=item_id
+        session,
+        WishlistItem,
+        id=item_id,
+        options=[
+            joinedload(WishlistItem.product),
+            joinedload(WishlistItem.product).joinedload(Product.company),
+        ],
     )
     cart_item = await add_to_cart(
-        new_item=CartItemCreate(product_id=wish_list_item.product_id, quantity=1),
+        new_item=CartItemCreate(
+            product_id=wish_list_item.product_id,
+            quantity=1,
+            company_id=wish_list_item.product.company.id,
+        ),
         session=session,
         user_id=user_id,
     )

@@ -3,6 +3,7 @@ from sqlmodel import Field, SQLModel
 
 class CartBase(SQLModel):
     user_id: int = Field(foreign_key="user.id")
+    company_id: int = Field(foreign_key="company.id")
 
 
 class CartItemBase(SQLModel):
@@ -19,6 +20,7 @@ class CartItemBase(SQLModel):
 
 class CartItemCreate(SQLModel):
     product_id: int
+    company_id: int
     quantity: int
 
 
