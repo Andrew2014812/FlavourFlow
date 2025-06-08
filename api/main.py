@@ -13,7 +13,7 @@ from api.app.wishlist.routes import router as wishlist_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:  # type: ignore
+async def lifespan(_: FastAPI) -> None:
     await create_db_and_tables()
     yield
 

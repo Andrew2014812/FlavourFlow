@@ -121,12 +121,27 @@ async def handle_cart(message: Message, language_code: str):
 
 
 @register_button_handler(
+    text_service.buttons["en"]["wishlist"], text_service.buttons["ua"]["wishlist"]
+)
+async def handle_wishlist(message: Message, language_code: str):
+    await send_paginated_message(
+        message,
+        "wishlist",
+        1,
+        language_code,
+        message.from_user.id,
+        with_back_button=False,
+    )
+
+
+@register_button_handler(
     text_service.buttons["en"]["admin_panel"], text_service.buttons["ua"]["admin_panel"]
 )
 @admin_required
 async def handle_admin(message: Message, language_code: str, **kwargs):
     text = text_service.get_text("select_admin_action", language_code)
     keyboard = get_admin_panel_keyboard(language_code)
+
     if kwargs.get("telegram_id"):
         await message.edit_text(text, reply_markup=keyboard)
     else:

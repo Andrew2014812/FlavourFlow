@@ -5,12 +5,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 from api.app.cart.schemas import CartItemFullResponse
 from api.app.product.schemas import ProductListResponse
+from api.app.wishlist.schemas import WishlistItemFullResponse
 
 from ...common.services.cart_service import get_cart_items
 from ...common.services.company_service import company_service
 from ...common.services.gastronomy_service import kitchen_service
 from ...common.services.product_service import product_service
 from ...common.services.text_service import text_service
+from ...common.services.wishlist_service import get_wishlist_items
 from .handler_utils import build_admin_buttons
 
 SERVICES = {
@@ -238,3 +240,69 @@ async def render_user_cart_product(
 
     total_pages = cart_item.total_pages
     return caption, cart_item.image_link, total_pages, builder
+
+
+async def render_user_wishlist_product(
+    page: int, language_code: str, telegram_id: int
+) -> Tuple[str, Optional[str], int, InlineKeyboardBuilder]:
+    wishlist_item: WishlistItemFullResponse = await get_wishlist_items(
+        telegram_id=telegram_id, page=page
+    )
+
+    if not wishlist_item:
+        return (
+            "Wishlist is empty" if language_code == "en" else "Список порожній",
+            None,
+            0,
+            None,
+        )
+
+    builder = InlineKeyboardBuilder()
+
+    product_name = (
+        wishlist_item.product_title_en
+        if language_code == "en"
+        else wishlist_item.product_title_ua
+    )
+    composition = (
+        wishlist_item.composition_en
+        if language_code == "en"
+        else wishlist_item.composition_ua
+    )
+    price_name = "Price" if language_code == "en" else "Ціна"
+    caption = (
+        f"{product_name}\n\n{composition}\n\n{price_name}: ${wishlist_item.price}\n"
+    )
+
+    builder.row(
+        InlineKeyboardButton(
+            text="Remove" if language_code == "en" else "Видалити",
+            callback_data=json.dumps(
+                {
+                    "a": "remove",
+                    "t": "wishlist",
+                    "p": page,
+                    "id": str(wishlist_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+    )
+
+    builder.row(
+        InlineKeyboardButton(
+            text="To Cart" if language_code == "en" else "До кошика",
+            callback_data=json.dumps(
+                {
+                    "a": "move_to_cart",
+                    "t": "wishlist",
+                    "p": page,
+                    "id": str(wishlist_item.id),
+                },
+                separators=(",", ":"),
+            ),
+        ),
+    )
+
+    total_pages = wishlist_item.total_pages
+    return caption, wishlist_item.image_link, total_pages, builder

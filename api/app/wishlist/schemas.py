@@ -8,11 +8,17 @@ class WishlistBase(SQLModel):
 class WishlistItemBase(SQLModel):
     wishlist_id: int = Field(foreign_key="wishlist.id")
     product_id: int = Field(foreign_key="product.id")
-
-
-class WishlistItemCreate(SQLModel):
-    product_id: int
+    product_title_ua: str
+    product_title_en: str
+    composition_ua: str
+    composition_en: str
+    image_link: str
+    price: int
 
 
 class WishlistItemResponse(WishlistItemBase):
     id: int
+
+
+class WishlistItemFullResponse(WishlistItemResponse):
+    total_pages: int

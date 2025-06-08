@@ -11,6 +11,11 @@ from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.product_service import product_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
+from ..common.services.wishlist_service import (
+    add_to_wishlist,
+    move_to_cart,
+    remove_from_wishlist,
+)
 from ..handlers.payment_handlers import proceed_payment
 from .entity_handlers.entity_handlers import (
     handle_edit_company_image,
@@ -208,18 +213,27 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 else "Продукт додано до кошика!"
             )
         else:
-            await callback.message.answer("something went wrong")
+            await callback.message.answer(
+                "Something went wrong" if language_code == "en" else "Щось пішло не так"
+            )
 
         await callback.answer()
 
-    # elif action == "add_to_wishlist" and content_type == "user-products":
-    #     product_id = extra_arg
-    #     await callback.message.answer(
-    #         "Product added to wishlist!"
-    #         if language_code == "en"
-    #         else "Продукт додано до списку бажань!"
-    #     )
-    #     await callback.answer()
+    elif action == "add_to_wishlist" and content_type == "user-products":
+        product_id = extra_arg
+        response = await add_to_wishlist(callback.from_user.id, product_id)
+        if response["status"] == 200:
+            await callback.message.answer(
+                "Product added to wishlist!"
+                if language_code == "en"
+                else "Продукт додано до списку бажань!"
+            )
+        else:
+            await callback.message.answer(
+                "Something went wrong" if language_code == "en" else "Щось пішло не так"
+            )
+
+        await callback.answer()
 
     elif action == "plus":
         await change_amount(callback.from_user.id, item_id, 1)
@@ -245,11 +259,37 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         )
         await callback.answer()
 
-    elif action == "remove" and content_type == "cart":
-        await remove_from_cart(callback.from_user.id, item_id)
+    elif action == "remove" and content_type in ["cart", "wishlist"]:
+        if content_type == "wishlist":
+            await remove_from_wishlist(callback.from_user.id, item_id)
+        else:
+            await remove_from_cart(callback.from_user.id, item_id)
+
         await update_paginated_message(
             callback,
-            "cart",
+            content_type,
+            1,
+            language_code,
+            callback.from_user.id,
+            with_back_button=False,
+        )
+        await callback.answer()
+
+    elif action == "move_to_cart" and content_type == "wishlist":
+        response = await move_to_cart(callback.from_user.id, item_id)
+        if response["status"] == 200:
+            await callback.message.answer(
+                "Product moved to cart!"
+                if language_code == "en"
+                else "Продукт переміщено до кошика!"
+            )
+        else:
+            await callback.message.answer(
+                "Something went wrong" if language_code == "en" else "Щось пішло не так"
+            )
+        await update_paginated_message(
+            callback,
+            "wishlist",
             1,
             language_code,
             callback.from_user.id,

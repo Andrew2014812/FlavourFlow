@@ -16,6 +16,7 @@ from .entity_handlers.render_utils import (
     render_product_list,
     render_user_cart_product,
     render_user_product_list,
+    render_user_wishlist_product,
 )
 
 ARROW_LEFT = "⬅️"
@@ -195,6 +196,7 @@ async def update_paginated_message(
         "user-company",
         "user-products",
         "cart",
+        "wishlist",
     ]
 
     if is_media_content:
@@ -265,7 +267,12 @@ async def send_paginated_message(
 
     reply_markup = merged_builder.as_markup()
 
-    if image_url and content_type in ["user-company", "user-products", "cart"]:
+    if image_url and content_type in [
+        "user-company",
+        "user-products",
+        "cart",
+        "wishlist",
+    ]:
         await message.answer_photo(
             photo=image_url, caption=caption, reply_markup=reply_markup
         )
@@ -295,5 +302,8 @@ async def get_content(
 
     elif content_type == "cart":
         return await render_user_cart_product(page, language_code, extra_arg)
+
+    elif content_type == "wishlist":
+        return await render_user_wishlist_product(page, language_code, extra_arg)
 
     return None
