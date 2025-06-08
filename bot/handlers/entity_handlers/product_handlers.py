@@ -484,7 +484,9 @@ async def render_user_product(
     return caption, product.image_link, total_pages, builder
 
 
-async def render_user_recommendations(message: Message):
+async def render_user_recommendations(
+    message: Message,
+):
     user_info = await get_user_info(message.from_user.id)
     product_service = ProductService()
     product_response: ProductListResponse = await product_service.get_recommendations(

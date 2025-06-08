@@ -19,6 +19,9 @@ from bot.handlers.entity_handlers.product_handlers import (
     register_handlers as register_product_handlers,
 )
 from bot.handlers.entity_handlers.profile_handlers import register_profile_handlers
+from bot.handlers.entity_handlers.support_handlers import (
+    register_handlers as register_support_handlers,
+)
 from bot.handlers.main_message_handlers import register_main_message_handlers
 
 logging.basicConfig(
@@ -43,7 +46,9 @@ async def main():
         register_order_handlers(dispatcher)
         register_company_handlers(dispatcher)
         register_product_handlers(dispatcher)
+        register_support_handlers(dispatcher)
         register_profile_handlers(dispatcher)
+
         register_main_message_handlers(dispatcher)
 
         logger.info("Starting bot polling...")

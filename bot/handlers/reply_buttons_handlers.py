@@ -2,10 +2,13 @@ import json
 from functools import wraps
 from typing import List
 
+from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from api.app.order.schemas import OrderResponse
 from api.app.user.schemas import UserResponseMe
+from bot.common.services.user_info_service import get_user_info
+from bot.handlers.entity_handlers.support_handlers import Form
 
 from ..common.services.order_service import get_paid_orders
 from ..common.services.text_service import text_service
@@ -57,7 +60,7 @@ def admin_required(func):
 @register_button_handler(
     text_service.buttons["en"]["profile"], text_service.buttons["ua"]["profile"]
 )
-async def handle_profile(message: Message, language_code: str):
+async def handle_profile(message: Message, language_code: str, _: FSMContext):
     user_data: UserResponseMe = await get_user(message.from_user.id)
 
     if not user_data:
@@ -97,7 +100,7 @@ async def handle_profile(message: Message, language_code: str):
 @register_button_handler(
     text_service.buttons["en"]["restaurants"], text_service.buttons["ua"]["restaurants"]
 )
-async def handle_restaurants(message: Message, language_code: str):
+async def handle_restaurants(message: Message, language_code: str, _: FSMContext):
     await message.answer(
         text_service.get_text("select_category", language_code),
         reply_markup=await get_kitchens_keyboard(language_code),
@@ -107,14 +110,14 @@ async def handle_restaurants(message: Message, language_code: str):
 @register_button_handler(
     text_service.buttons["en"]["back"], text_service.buttons["ua"]["back"]
 )
-async def handle_back(message: Message, language_code: str):
+async def handle_back(message: Message, language_code: str, _: FSMContext):
     await show_main_menu(message, language_code)
 
 
 @register_button_handler(
     text_service.buttons["en"]["cart"], text_service.buttons["ua"]["cart"]
 )
-async def handle_cart(message: Message, language_code: str):
+async def handle_cart(message: Message, language_code: str, _: FSMContext):
     await send_paginated_message(
         message, "cart", 1, language_code, message.from_user.id, with_back_button=False
     )
@@ -123,7 +126,7 @@ async def handle_cart(message: Message, language_code: str):
 @register_button_handler(
     text_service.buttons["en"]["wishlist"], text_service.buttons["ua"]["wishlist"]
 )
-async def handle_wishlist(message: Message, language_code: str):
+async def handle_wishlist(message: Message, language_code: str, _: FSMContext):
     await send_paginated_message(
         message,
         "wishlist",
@@ -138,7 +141,7 @@ async def handle_wishlist(message: Message, language_code: str):
     text_service.buttons["en"]["admin_panel"], text_service.buttons["ua"]["admin_panel"]
 )
 @admin_required
-async def handle_admin(message: Message, language_code: str, **kwargs):
+async def handle_admin(message: Message, language_code: str, _: FSMContext, **kwargs):
     text = text_service.get_text("select_admin_action", language_code)
     keyboard = get_admin_panel_keyboard(language_code)
 
@@ -152,7 +155,7 @@ async def handle_admin(message: Message, language_code: str, **kwargs):
     text_service.buttons["en"]["orders"],
     text_service.buttons["ua"]["orders"],
 )
-async def handle_orders(message: Message, language_code: str):
+async def handle_orders(message: Message, language_code: str, _: FSMContext):
     orders: List[OrderResponse] = await get_paid_orders(message.from_user.id)
     if not orders:
         await message.answer(
@@ -192,5 +195,24 @@ async def handle_orders(message: Message, language_code: str):
     text_service.buttons["en"]["recommendations"],
     text_service.buttons["ua"]["recommendations"],
 )
-async def handle_recommendations(message: Message, _: str):
+async def handle_recommendations(message: Message, _: str, state: FSMContext):
     await render_user_recommendations(message)
+
+
+@register_button_handler(
+    text_service.buttons["en"]["support"], text_service.buttons["ua"]["support"]
+)
+async def handle_help(message: Message, language_code: str, state: FSMContext):
+    user_info = await get_user_info(message.from_user.id)
+    if not user_info.is_support_pending:
+        await message.answer(
+            "Enter your question" if language_code == "en" else "Введіть ваше питання"
+        )
+        await state.update_data(language_code=language_code)
+        await state.set_state(Form.support_question)
+    else:
+        await message.answer(
+            "You have already sent a message, please wait an answer"
+            if language_code == "en"
+            else "Ви вже надіслали повідомлення, будь ласка, очіквайте відповідь"
+        )

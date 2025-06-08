@@ -12,3 +12,4 @@ class UserInfo(SQLModel, table=True):
     language_code: Optional[str] = Field(default="en")
     phone_number: Optional[str] = Field(nullable=True)
     is_registered: bool = Field(default=False)
+    is_support_pending: bool = Field(default=False)

@@ -4,6 +4,7 @@ import logging
 from aiogram import Dispatcher
 from aiogram import F as FILTER
 from aiogram import Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, PreCheckoutQuery
 
 from api.app.gastronomy.schemas import KitchenListResponse
@@ -111,7 +112,7 @@ async def pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
 
 
 @router.message()
-async def handle_buttons(message: Message):
+async def handle_buttons(message: Message, state: FSMContext):
     user_info = await get_user_info(message.from_user.id)
 
     if not user_info:
@@ -145,7 +146,7 @@ async def handle_buttons(message: Message):
     if text in text_service.buttons.get(language_code, {}).values():
         handler = button_handlers.get(text)
         if handler:
-            await handler(message, language_code)
+            await handler(message, language_code, state)
         else:
             await message.answer(text_service.get_text("unknown_option", language_code))
     else:

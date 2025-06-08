@@ -16,6 +16,7 @@ from ..common.services.wishlist_service import (
     move_to_cart,
     remove_from_wishlist,
 )
+from ..handlers.entity_handlers.support_handlers import answer_message, ignore_message
 from ..handlers.payment_handlers import proceed_payment
 from .entity_handlers.entity_handlers import (
     handle_edit_company_image,
@@ -58,14 +59,23 @@ SERVICES = {
 async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     user_info = await get_user_info(callback.from_user.id)
     language_code = user_info.language_code
-    data = json.loads(callback.data)
-    action = data.get("a")
-    content_type = data.get("t")
-    page = data.get("p", 1)
-    item_id = data.get("id")
-    extra_arg = data.get("e", "")
-    kitchen_id = data.get("k", "")
-    company_page = data.get("cp", page)
+    try:
+        data = json.loads(callback.data)
+        action = data.get("a")
+        content_type = data.get("t")
+        page = data.get("p", 1)
+        item_id = data.get("id")
+        extra_arg = data.get("e", "")
+        kitchen_id = data.get("k", "")
+        company_page = data.get("cp", page)
+
+    except json.JSONDecodeError:
+        data = callback.data.split(":")
+        content_type = ""
+        action = data[0]
+        chat_id = data[1]
+        user_id = data[2]
+        message_id = data[3]
 
     if action == "nav":
         await update_paginated_message(
@@ -310,6 +320,25 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     elif action == "edit_profile":
         await callback.message.answer(
             text_service.get_text("update_profile_instruction", language_code)
+        )
+
+    elif action == "s_answer":
+        await answer_message(
+            chat_id=chat_id,
+            user_id=user_id,
+            question_message_id=message_id,
+            state=state,
+            message_id=callback.message.message_id,
+            language_code=language_code,
+        )
+
+    elif action == "s_ignore":
+        await ignore_message(
+            message_id=callback.message.message_id,
+            chat_id=chat_id,
+            user_id=user_id,
+            question_message_id=message_id,
+            language_code=language_code,
         )
 
     elif content_type == "select_kitchen_create":
