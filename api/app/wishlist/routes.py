@@ -34,9 +34,9 @@ async def post_wishlist_item(
     product_id: int,
     session: SessionDep,
     current_user: User = Depends(get_current_user),
-) -> WishlistItemResponse:
+) -> None:
 
-    return await add_to_wishlist(
+    await add_to_wishlist(
         session=session,
         user_id=current_user.id,
         product_id=product_id,

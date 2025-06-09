@@ -23,7 +23,6 @@ from ...common.services.user_info_service import get_user_info
 from ...common.services.user_service import retrieve_admins
 from ...config import get_bot
 from ...handlers.entity_handlers.handler_utils import convert_raw_text_to_valid_dict
-from ...handlers.entity_handlers.product_handlers import render_user_recommendations
 
 router = Router()
 
@@ -155,7 +154,6 @@ async def confirm_order(message: Message, order_id: int, user_info: UserInfo):
         if user_info.language_code == "ua"
         else f"Your order #{order_id} will be processed and you will receive a notification when it is accepted!"
     )
-    await render_user_recommendations(message, user_info.telegram_id)
     await send_order_info_to_admins(user_info.telegram_id, order_id)
 
 

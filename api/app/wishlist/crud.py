@@ -17,7 +17,7 @@ async def add_to_wishlist(
     session: SessionDep,
     user_id: int,
     product_id: int,
-) -> WishlistItemResponse:
+) -> None:
     wishlist = await get_entity_by_params(session, Wishlist, user_id=user_id)
 
     if not wishlist:
@@ -51,9 +51,6 @@ async def add_to_wishlist(
         session.add(wishlist_item)
 
     await session.commit()
-    await session.refresh(wishlist_item)
-
-    return wishlist_item
 
 
 async def get_wishlist_items(
