@@ -69,6 +69,8 @@ SERVICES = {
 async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     user_info = await get_user_info(callback.from_user.id)
     language_code = user_info.language_code
+    if not language_code:
+        language_code = "en"
     try:
         data = json.loads(callback.data)
         action = data.get("a")
