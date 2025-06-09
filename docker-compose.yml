@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python api/run.py
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m bot.main
+    environment:
+      - TG_TOKEN=${TG_TOKEN}
+      - GROUP_ID=${GROUP_ID}
+      - ADMIN_ID=${ADMIN_ID}
+      - ADMIN2_ID=${ADMIN2_ID}
+      - API_BASE_URL=${API_BASE_URL}
+      - PAYMENTS_TOKEN=${PAYMENTS_TOKEN}
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
