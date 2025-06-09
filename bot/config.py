@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 current_dir = os.path.dirname(__file__)
 texts_json_path = os.path.join(current_dir, "texts.json")
 
-dotenv_path = os.path.join(current_dir, "..", "dev.env")
+dotenv_path = os.path.join(current_dir, "..", ".env")
 sqlite_path = os.path.join(current_dir, "properties", "bot.db")
 load_dotenv(dotenv_path=dotenv_path)
 
