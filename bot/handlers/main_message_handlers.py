@@ -144,7 +144,7 @@ async def handle_buttons(message: Message, state: FSMContext):
     if text in text_service.buttons.get(language_code, {}).values():
         handler = button_handlers.get(text)
         if handler:
-            await handler(message, language_code)
+            await handler(message, language_code, state)
         else:
             await message.answer(text_service.get_text("unknown_option", language_code))
     else:

@@ -38,7 +38,9 @@ def register_button_handler(*texts):
 
 def admin_required(func):
     @wraps(func)
-    async def wrapper(message: Message, language_code: str, **kwargs):
+    async def wrapper(
+        message: Message, language_code: str, _: FSMContext = None, **kwargs
+    ):
         user = await get_user(message.from_user.id) or await get_user(
             kwargs.get("telegram_id", message.from_user.id)
         )
