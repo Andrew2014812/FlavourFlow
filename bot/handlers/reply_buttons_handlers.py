@@ -194,8 +194,24 @@ async def handle_help(message: Message, language_code: str, state: FSMContext = 
     user_info = await get_user_info(message.from_user.id)
     if not user_info.is_support_pending:
         await message.answer(
-            "Enter your question" if language_code == "en" else "Введіть ваше питання"
-        )
+            "Enter your question" if language_code == "en" else "Введіть ваше питання",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text=("Cancel" if language_code == "en" else "Відмінити"),
+                            callback_data=json.dumps(
+                                {
+                                    "a": "cancel_clear_cart",
+                                },
+                                separators=(",", ":"),
+                            ),
+                        )
+                    ]
+                ]
+            ),
+        ),
+
         await state.update_data(language_code=language_code)
         await state.set_state(Form.support_question)
     else:
@@ -204,3 +220,15 @@ async def handle_help(message: Message, language_code: str, state: FSMContext = 
             if language_code == "en"
             else "Ви вже надіслали повідомлення, будь ласка, очіквайте відповідь"
         )
+
+
+@register_button_handler(
+    text_service.buttons["en"]["about_us"], text_service.buttons["ua"]["about_us"]
+)
+async def handle_help(message: Message, language_code: str, state: FSMContext = None):
+    if language_code == "en":
+        caption = "Flavour Flow is an intelligent Telegram bot designed for quick and convenient online ordering of food from restaurants. The bot allows you to view menus, place orders, pay for them, choose a delivery method, and receive personalized recommendations based on your taste preferences.\n\nDeveloper: Andrii Kiiko, student of group KN-322SV"
+    else:
+        caption = "Flavour Flow - це інтелектуальний Telegram-бот, створений для швидкого та зручного онлайн-замовлення страв із закладів харчування. Бот дозволяє переглядати меню, формувати замовлення, оплачувати їх, вибирати спосіб доставки та отримувати персоналізовані рекомендації на основі ваших смакових вподобань.\n\nРозробник: Кійко Андрій, студент групи КН-322СВ"
+
+    await message.answer(caption)

@@ -24,6 +24,7 @@ from ..common.services.wishlist_service import (
 )
 from ..handlers.entity_handlers.main_handlers import render_warning_cart_message
 from ..handlers.entity_handlers.support_handlers import answer_message, ignore_message
+from ..handlers.main_message_handlers import handle_contact
 from ..handlers.payment_handlers import proceed_payment
 from .entity_handlers.entity_handlers import (
     handle_edit_company_image,
@@ -252,6 +253,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             await callback.message.answer(
                 "Something went wrong" if language_code == "en" else "Щось пішло не так"
             )
+            await handle_contact(callback.message, user_info)
 
         await callback.answer()
 
@@ -274,10 +276,14 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
                 if language_code == "en"
                 else "Новий продукт додано до кошика!"
             )
+        else:
+            await handle_contact(callback.message, user_info)
+
         callback.answer()
 
     elif action == "cancel_clear_cart":
         await callback.message.delete()
+        await state.clear()
         callback.answer()
 
     elif action == "add_to_wishlist" and content_type == "user-products":
@@ -293,6 +299,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             await callback.message.answer(
                 "Something went wrong" if language_code == "en" else "Щось пішло не так"
             )
+            await handle_contact(callback.message, user_info)
 
         await callback.answer()
 

@@ -10,6 +10,7 @@ from aiogram.types import Message, PreCheckoutQuery
 from api.app.gastronomy.schemas import KitchenListResponse
 from api.app.user.schemas import Token, UserCreate
 
+from ..common.models import UserInfo
 from ..common.services.gastronomy_service import kitchen_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import (
@@ -52,9 +53,10 @@ async def handle_language_choice(message: Message):
 
 
 @router.message(FILTER.content_type == "contact")
-async def handle_contact(message: Message):
+async def handle_contact(message: Message, user_info: UserInfo = None):
     user_id = message.from_user.id
-    user_info = await get_user_info(user_id)
+    if not user_info:
+        user_info = await get_user_info(user_id)
 
     if not user_info.is_registered:
         user_create = UserCreate(
