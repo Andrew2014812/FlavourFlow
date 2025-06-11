@@ -65,25 +65,24 @@ async def accept_order(
     await session.commit()
 
 
-@router.get("/id/{order_id}/")
+@router.get("/")
 async def get_order(
     session: SessionDep,
-    order_id: int,
     _: User = Depends(get_current_user),
-) -> OrderResponse:
+) -> List[OrderResponse]:
     return await get_entity_by_params(
         session,
         Order,
-        id=order_id,
         options=[
             joinedload(Order.order_items).joinedload(OrderItem.product),
             joinedload(Order.user),
             joinedload(Order.company),
         ],
+        return_all=True,
     )
 
 
-@router.get("/")
+@router.get("/paid/")
 async def get_paid_orders(
     session: SessionDep,
     current_user: User = Depends(get_current_user),

@@ -1,9 +1,10 @@
 from api.app.order.models import Order
 from api.app.order.schemas import OrderCreate, OrderResponse
-from bot.config import APIAuth, APIMethods
 
+from ...common.models import UserInfo
 from ...common.services.user_info_service import get_user_info
 from ...common.utils import make_request
+from ...config import APIAuth, APIMethods
 
 BASE = "order"
 
@@ -48,7 +49,7 @@ async def accept_order(order_id: int, user_id: int):
 async def get_paid_orders(user_id: int):
     user_info = await get_user_info(user_id)
     response = await make_request(
-        sub_url=f"{BASE}/",
+        sub_url=f"{BASE}/paid/",
         method=APIMethods.GET.value,
         headers={
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
@@ -58,14 +59,12 @@ async def get_paid_orders(user_id: int):
     return [OrderResponse.model_validate(item) for item in response.get("data")]
 
 
-async def get_order_by_id(order_id: int, user_id: int):
-    user_info = await get_user_info(user_id)
+async def get_orders(user_info: UserInfo):
     response = await make_request(
-        sub_url=f"{BASE}/id/{order_id}/",
+        sub_url=f"{BASE}/",
         method=APIMethods.GET.value,
         headers={
             APIAuth.AUTH.value: f"{user_info.token_type} {user_info.access_token}"
         },
     )
-
-    return OrderResponse.model_validate(response.get("data"))
+    return [OrderResponse.model_validate(item) for item in response.get("data")]

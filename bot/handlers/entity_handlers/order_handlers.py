@@ -8,14 +8,12 @@ from aiogram.types import InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 
 from api.app.order.schemas import OrderCreate, OrderItemCreate, OrderResponse
-from api.app.user.schemas import UserResponse
 
 from ...common.models import UserInfo
 from ...common.services.cart_service import get_cart_items
 from ...common.services.order_service import (
     accept_order,
     create_order,
-    get_order_by_id,
     update_order_purchase_info,
 )
 from ...common.services.text_service import text_service
@@ -154,7 +152,7 @@ async def confirm_order(message: Message, order_id: int, user_info: UserInfo):
         if user_info.language_code == "ua"
         else f"Your order #{order_id} will be processed and you will receive a notification when it is accepted!"
     )
-    await send_order_info_to_admins(user_info.telegram_id, order_id)
+    await send_order_info_to_admins()
 
 
 async def render_orders(
@@ -188,70 +186,74 @@ async def render_orders(
         await bot.send_message(user_id, order_message)
 
 
-async def send_order_info_to_admins(user_id: int, order_id: int):
+async def send_order_info_to_admins():
     bot = await get_bot()
     admins = await retrieve_admins()
-    order = await get_order_by_id(order_id=order_id, user_id=user_id)
 
     for admin in admins:
         user_info = await get_user_info(admin.telegram_id)
+        language_code = user_info.language_code if user_info else "en"
+
         await bot.send_message(
             admin.telegram_id,
             (
                 "New order received!"
-                if user_info.language_code == "en"
+                if language_code == "en"
                 else "Нове замовлення отримано!"
             ),
         )
-        await send_admin_orders_info(bot, user_info, admin, [order])
 
     await bot.session.close()
 
 
 async def send_admin_orders_info(
-    bot: Bot,
     user_info: UserInfo,
-    admin: UserResponse,
     orders: List[OrderResponse],
 ):
+    bot = await get_bot()
+    language_code = user_info.language_code if user_info else "en"
 
     for order in orders:
-        if user_info.language_code == "en":
+        if user_info and language_code == "en":
             caption = f"Order #{order.id}\n\n Client information:\nName: {order.user.first_name} {order.user.last_name}\nPhone: {order.user.phone_number}\n\nDetails:"
         else:
             caption = f"Замовлення #{order.id}\n\nПерсональні дані клієнта:\nІм'я: {order.user.first_name} {order.user.last_name if order.user.last_name else ''}\nТелефон: {order.user.phone_number}\n\nДеталі:"
 
         await bot.send_message(
-            chat_id=admin.telegram_id,
+            chat_id=user_info.telegram_id,
             text=caption,
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text=(
-                                "Accept"
-                                if user_info.language_code == "en"
-                                else "Прийняти"
-                            ),
-                            callback_data=json.dumps(
-                                {
-                                    "a": "accept",
-                                    "o": order.id,
-                                    "u": order.user.telegram_id,
-                                },
-                                separators=(",", ":"),
-                            ),
-                        )
+            reply_markup=(
+                InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text=(
+                                    "Accept" if language_code == "en" else "Прийняти"
+                                ),
+                                callback_data=json.dumps(
+                                    {
+                                        "a": "accept",
+                                        "o": order.id,
+                                        "u": order.user.telegram_id,
+                                    },
+                                    separators=(",", ":"),
+                                ),
+                            )
+                        ]
                     ]
-                ]
+                )
+                if not order.is_submitted
+                else None
             ),
         )
         await render_orders(
             bot=bot,
             orders=[order],
-            language_code=user_info.language_code,
-            user_id=admin.telegram_id,
+            language_code=language_code,
+            user_id=user_info.telegram_id,
         ),
+
+    await bot.session.close()
 
 
 async def handle_accept_order(

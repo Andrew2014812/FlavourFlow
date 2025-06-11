@@ -143,11 +143,13 @@
   "admin_buttons": {
     "en": {
       "admin-company": "🏢 Companies and products",
-      "admin-kitchen": "🍳 Kitchens"
+      "admin-kitchen": "🍳 Kitchens",
+      "admin-orders": "🚚 Orders"
     },
     "ua": {
       "admin-company": "🏢 Компанії та продукти",
-      "admin-kitchen": "🍳 Кухні"
+      "admin-kitchen": "🍳 Кухні",
+      "admin-orders": "🚚 Замовлення"
     }
   },
   "admin_actions": {

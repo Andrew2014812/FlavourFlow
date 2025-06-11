@@ -13,6 +13,7 @@ from ..common.services.cart_service import (
 )
 from ..common.services.company_service import company_service
 from ..common.services.gastronomy_service import kitchen_service
+from ..common.services.order_service import get_orders
 from ..common.services.product_service import product_service
 from ..common.services.text_service import text_service
 from ..common.services.user_info_service import get_user_info
@@ -38,6 +39,7 @@ from .entity_handlers.order_handlers import (
     handle_accept_order,
     handle_order_create,
     proceed_payment_on_delivery,
+    send_admin_orders_info,
 )
 from .entity_handlers.product_handlers import (
     handle_edit_product_image,
@@ -89,6 +91,10 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
         user_id = data[2]
         message_id = data[3]
 
+    if content_type == "admin-orders":
+        orders = await get_orders(user_info)
+        await send_admin_orders_info(user_info, orders)
+
     if action == "nav":
         await update_paginated_message(
             callback=callback,
@@ -115,6 +121,7 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
             await handle_admin(
                 callback.message, language_code, telegram_id=callback.from_user.id
             )
+
         elif content_type == "user-products":
             await update_paginated_message(
                 callback=callback,
