@@ -94,6 +94,8 @@ async def handle_callbacks(callback: CallbackQuery, state: FSMContext):
     if content_type == "admin-orders":
         orders = await get_orders(user_info)
         await send_admin_orders_info(user_info, orders)
+        await callback.answer()
+        return
 
     if action == "nav":
         await update_paginated_message(
