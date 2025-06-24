@@ -208,7 +208,7 @@ async def get_product_recommendations(
             session,
             Product,
             return_all=True,
-            filters={"company_id": target_company_id},
+            company_id=target_company_id,
             options=[joinedload(Product.company)],
         )
 
